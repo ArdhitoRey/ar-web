@@ -19,7 +19,7 @@ export async function playPart8() {
     const allContainers = [
         dom.containerPart1, dom.containerPart2, dom.containerPart3,
         dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7
-    ]; 
+    ];
     const previousContainer = allContainers.find(c => c && c.getAttribute('visible') === 'true');
     
     if (previousContainer) {
