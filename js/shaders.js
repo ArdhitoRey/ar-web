@@ -405,7 +405,7 @@ AFRAME.registerShader('chromakey-cyan', {
     }
 });
 
-// CHROMAKEY Shader - Khusus Magenta/Ungu Screen (Target warna chroma #D201D9)
+// CHROMAKEY Shader - Khusus Magenta/Ungu Screen (#B200B8 & #D201D9)
 AFRAME.registerShader('chromakey-magenta', {
     schema: { src: {type: 'map'} },
     init: function(data) {
@@ -433,51 +433,51 @@ AFRAME.registerShader('chromakey-magenta', {
                 void main() {
                     vec4 color = texture2D(tex, vUv);
 
-                    // Target warna chroma ungu: #B200B8 dan #D201D9
-                    // - #B200B8 (RGB: 178, 0, 184): dalam kompresi video terdeteksi sebagai vec3(0.6431, 0.0, 0.6980)
-                    // - #D201D9 (RGB: 210, 1, 217): dalam kompresi video terdeteksi sebagai vec3(0.7529, 0.0, 0.8196)
-                    const vec3 targetB2_video = vec3(0.6431, 0.0, 0.6980);
-                    const vec3 targetB2_user  = vec3(0.6980, 0.0, 0.7216);
-                    const vec3 targetD2_video = vec3(0.7529, 0.0, 0.8196);
-                    const vec3 targetD2_user  = vec3(0.8235, 0.0039, 0.8510);
-
-                    // Hitung jarak warna terdekat ke palet chroma ungu
-                    float d1 = length(color.rgb - targetB2_video);
-                    float d2 = length(color.rgb - targetB2_user);
-                    float d3 = length(color.rgb - targetD2_video);
-                    float d4 = length(color.rgb - targetD2_user);
-                    float dChroma = min(min(d1, d2), min(d3, d4));
+                    // Deteksi warna Magenta/Ungu (#B200B8 & #D201D9):
+                    // - Latar ungu: R tinggi, B tinggi, G mendekati 0.0, selisih |R - B| sangat kecil
+                    // - Karakter / corak baju: G >= 0.22 atau R jauh lebih tinggi dari B (rbBalance rendah)
+                    float rb = min(color.r, color.b);
+                    float magentaDominance = rb - color.g;
+                    float rbBalance = 1.0 - abs(color.r - color.b);
 
                     // Transisi halus presisi:
-                    // - Latar chroma dan tepian anti-aliasing berada pada dChroma <= 0.04
-                    // - Menghilangkan border garis tepi samping gambar secara bersih
-                    // - Corak pada baju dan elemen objek lainnya tetap solid opaque 100%
-                    float alpha = smoothstep(0.038, 0.088, dChroma);
+                    // 1) domFactor: dominasi magenta terhadap green (0.15 - 0.28)
+                    float domFactor = smoothstep(0.15, 0.28, magentaDominance);
+                    // 2) balFactor: memastikan R dan B seimbang (khas ungu murni)
+                    float balFactor = smoothstep(0.74, 0.84, rbBalance);
+                    // 3) rbFactor: intensitas R dan B mencukupi
+                    float rbFactor  = smoothstep(0.22, 0.32, rb);
 
-                    // Pengaman hard-cut untuk piksel latar belakang murni
-                    if (dChroma < 0.038) {
-                        alpha = 0.0;
+                    float isMagenta = domFactor * balFactor * rbFactor;
+
+                    // Hard-cut pengaman untuk piksel latar belakang ungu murni & border samping gambar
+                    if (magentaDominance > 0.25 && rbBalance > 0.78 && rb > 0.28) {
+                        isMagenta = 1.0;
                     }
+                    if (color.g < 0.06 && rb > 0.30 && rbBalance > 0.80) {
+                        isMagenta = 1.0;
+                    }
+
+                    float alpha = 1.0 - isMagenta;
 
                     vec3 finalColor = color.rgb;
 
-                    // Despill lembut hanya pada tepi semi-transparan untuk hilangkan halo ungu di pinggiran
-                    if (alpha > 0.05 && alpha < 0.95) {
-                        float despillStrength = (1.0 - alpha) * 0.8;
+                    // Despill lembut di tepian semi-transparan untuk hilangkan sisa halo ungu
+                    if (alpha > 0.0 && alpha < 0.99 && rbBalance > 0.70) {
+                        float despillStrength = (1.0 - alpha) * 0.95;
                         float maxGB = max(finalColor.g, finalColor.b);
                         finalColor.r = mix(finalColor.r, min(finalColor.r, maxGB), despillStrength);
                         float avgRG = (finalColor.r + finalColor.g) * 0.5;
-                        finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength * 0.7);
+                        finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength * 0.8);
                     }
-
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
             `,
             transparent: true,
             side: THREE.DoubleSide,
-            depthWrite: false
+            depthWrite: false,
+            blending: THREE.NormalBlending
         });
     }
 });
