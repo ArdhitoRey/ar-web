@@ -1,5 +1,6 @@
 // Quiz AR Logic - Marker 8 MindAR Experience
 // Video sync, green chromakey (chromakey-advanced), 9.25s pause with seamless instant button tap
+// Synchronized voiceover audio for question (stops at 9.25s), correct answer, and wrong answer
 
 const cacheBuster = Date.now();
 console.log('🔄 [Quiz AR] Inisialisasi kuis AR dengan Marker 8. Cache buster:', cacheBuster);
@@ -8,9 +9,21 @@ console.log('🔄 [Quiz AR] Inisialisasi kuis AR dengan Marker 8. Cache buster:'
 const vidBenar = document.getElementById('vid-quiz-benar');
 const vidSalah = document.getElementById('vid-quiz-salah');
 
-// Source paths
+// Source paths for videos
 if (vidBenar) vidBenar.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/video/benar.mp4?t=${cacheBuster}`;
 if (vidSalah) vidSalah.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/video/salah.mp4?t=${cacheBuster}`;
+
+// Audio Elements
+const soundPertanyaan = document.getElementById('sound-quiz-pertanyaan');
+const soundBenar = document.getElementById('sound-quiz-benar');
+const soundSalah = document.getElementById('sound-quiz-salah');
+
+// Source paths for sounds
+if (soundPertanyaan) soundPertanyaan.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/sound/pertanyaan.mp3?t=${cacheBuster}`;
+if (soundBenar) soundBenar.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/sound/benar.mp3?t=${cacheBuster}`;
+if (soundSalah) soundSalah.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/sound/salah.mp3?t=${cacheBuster}`;
+
+const allSounds = [soundPertanyaan, soundBenar, soundSalah].filter(Boolean);
 
 // DOM Elements
 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -48,7 +61,7 @@ let isTargetFound = false;
 let choiceHandled = false;
 let audioCtx = null;
 
-// Sound Synthesizer via Web Audio API for interactive feedback
+// Sound Synthesizer via Web Audio API for subtle tactile feedback
 function playChime(isCorrect) {
     try {
         if (!audioCtx) {
@@ -68,19 +81,19 @@ function playChime(isCorrect) {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(523.25, now);
             osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
             osc.start(now);
-            osc.stop(now + 0.5);
+            osc.stop(now + 0.35);
         } else {
             // Soft double low tone: G4 (392Hz) -> Eb4 (311Hz)
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(392.00, now);
             osc.frequency.setValueAtTime(311.13, now + 0.12);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
             osc.start(now);
-            osc.stop(now + 0.4);
+            osc.stop(now + 0.3);
         }
     } catch (e) {
         console.warn('⚠️ Web Audio feedback unavailable:', e);
@@ -143,6 +156,20 @@ if (startButton) {
             if (audioCtx.state === 'suspended') await audioCtx.resume();
         } catch (e) {
             console.warn('⚠️ Audio context unlock warning:', e);
+        }
+
+        // Prime audio elements for iOS/Android autoplay policy compliance
+        for (let s of allSounds) {
+            try {
+                s.muted = true;
+                const p = s.play();
+                if (p !== undefined) await p;
+                s.pause();
+                s.currentTime = 0;
+                s.muted = false;
+            } catch (e) {
+                console.warn('⚠️ Sound element priming warning:', e);
+            }
         }
 
         // Prime video elements with play/pause
@@ -208,7 +235,7 @@ async function startQuizPlayback() {
     quizState = 'INTRO_PLAYING';
     choiceHandled = false;
 
-    console.log('🎬 [Quiz AR] Memulai pemutaran video kuis (Benar & Salah) sinkron...');
+    console.log('🎬 [Quiz AR] Memulai pemutaran video kuis & audio pertanyaan...');
     if (statusBar) {
         statusBar.textContent = '🎬 Kuis dimulai! Simak pertanyaannya... 🎯';
         statusBar.classList.add('tracking');
@@ -225,16 +252,34 @@ async function startQuizPlayback() {
     if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', false);
     if (quizTouchLayer) quizTouchLayer.classList.remove('active');
 
-    // Reset dan mulai kedua video dari 0s
+    // Reset dan mulai kedua video dari 0s (muted agar tidak tumpang tindih dengan MP3)
     if (vidBenar) {
         vidBenar.pause();
         vidBenar.currentTime = 0;
-        vidBenar.muted = false; // Audio aktif dari video Benar
+        vidBenar.muted = true;
     }
     if (vidSalah) {
         vidSalah.pause();
         vidSalah.currentTime = 0;
-        vidSalah.muted = true;  // Mute video Salah agar audio tidak tumpang tindih
+        vidSalah.muted = true;
+    }
+
+    // Reset audio feedback jika ada yang sedang berjalan
+    if (soundBenar) {
+        soundBenar.pause();
+        soundBenar.currentTime = 0;
+    }
+    if (soundSalah) {
+        soundSalah.pause();
+        soundSalah.currentTime = 0;
+    }
+
+    // Putar audio pertanyaan dari 0s
+    if (soundPertanyaan) {
+        soundPertanyaan.pause();
+        soundPertanyaan.currentTime = 0;
+        soundPertanyaan.muted = false;
+        soundPertanyaan.play().catch(e => console.warn('⚠️ Gagal memutar audio pertanyaan:', e));
     }
 
     try {
@@ -260,9 +305,11 @@ function startTimelineMonitor() {
     const checkTime = () => {
         if (quizState !== 'INTRO_PLAYING') return;
 
-        const currentT = vidBenar ? vidBenar.currentTime : (vidSalah ? vidSalah.currentTime : 0);
+        const currentVidT = vidBenar ? vidBenar.currentTime : (vidSalah ? vidSalah.currentTime : 0);
+        const currentSoundT = soundPertanyaan ? soundPertanyaan.currentTime : 0;
 
-        if (currentT >= 9.25) {
+        // Berhenti jika video atau audio pertanyaan mencapai 9.25 detik
+        if (currentVidT >= 9.25 || currentSoundT >= 9.25) {
             reachDecisionPoint();
             return;
         }
@@ -275,8 +322,14 @@ function startTimelineMonitor() {
 
 // Dipanggil tepat pada detik 9.25
 function reachDecisionPoint() {
-    console.log('⏸️ [Quiz AR] Mencapai detik 9.25! Menjeda video dan memunculkan tombol pilihan...');
+    if (quizState !== 'INTRO_PLAYING') return;
+    console.log('⏸️ [Quiz AR] Mencapai detik 9.25! Menjeda video dan audio pertanyaan...');
     quizState = 'WAITING_CHOICE';
+
+    if (monitorRaf) {
+        cancelAnimationFrame(monitorRaf);
+        monitorRaf = null;
+    }
 
     // Jeda kedua video tepat di detik 9.25
     if (vidBenar) {
@@ -286,6 +339,12 @@ function reachDecisionPoint() {
     if (vidSalah) {
         vidSalah.pause();
         vidSalah.currentTime = 9.25;
+    }
+
+    // Hentikan pertanyaan.mp3 tepat di detik 9.25 sesuai permintaan user
+    if (soundPertanyaan) {
+        soundPertanyaan.pause();
+        soundPertanyaan.currentTime = 9.25;
     }
 
     // AKTIFKAN TOMBOL PILIHAN DENGAN ZERO EFEK/ANIMASI
@@ -313,6 +372,11 @@ function selectChoice(choice) {
 
     console.log(`✨ [Quiz AR] Pengguna memilih: ${choice.toUpperCase()}`);
 
+    // Pastikan audio pertanyaan benar-benar mati
+    if (soundPertanyaan) {
+        soundPertanyaan.pause();
+    }
+
     // Sembunyikan target pilihan
     if (btnChoiceBenar3D) btnChoiceBenar3D.setAttribute('visible', false);
     if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', false);
@@ -323,14 +387,26 @@ function selectChoice(choice) {
 
     if (isBenar) {
         // User memilih BENAR:
-        // Sembunyikan video Salah, lanjutkan video Benar
+        // Hentikan dan sembunyikan video/sound Salah
         if (videoQuizSalah) videoQuizSalah.setAttribute('visible', false);
         if (vidSalah) vidSalah.pause();
+        if (soundSalah) {
+            soundSalah.pause();
+            soundSalah.currentTime = 0;
+        }
 
+        // Tampilkan video Benar dan mulai audio Benar
         if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
         if (vidBenar) {
-            vidBenar.muted = false;
+            vidBenar.muted = true;
             vidBenar.play().catch(e => console.error('Play Benar error:', e));
+        }
+
+        if (soundBenar) {
+            soundBenar.pause();
+            soundBenar.currentTime = 0;
+            soundBenar.muted = false;
+            soundBenar.play().catch(e => console.error('Play sound Benar error:', e));
         }
 
         if (statusBar) {
@@ -338,18 +414,30 @@ function selectChoice(choice) {
             statusBar.classList.add('tracking');
         }
 
-        waitForVideoCompletion(vidBenar, true);
+        waitForQuizCompletion(vidBenar, soundBenar, true);
 
     } else {
         // User memilih SALAH:
-        // Sembunyikan video Benar, lanjutkan video Salah
+        // Hentikan dan sembunyikan video/sound Benar
         if (videoQuizBenar) videoQuizBenar.setAttribute('visible', false);
         if (vidBenar) vidBenar.pause();
+        if (soundBenar) {
+            soundBenar.pause();
+            soundBenar.currentTime = 0;
+        }
 
+        // Tampilkan video Salah dan mulai audio Salah
         if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
         if (vidSalah) {
-            vidSalah.muted = false;
+            vidSalah.muted = true;
             vidSalah.play().catch(e => console.error('Play Salah error:', e));
+        }
+
+        if (soundSalah) {
+            soundSalah.pause();
+            soundSalah.currentTime = 0;
+            soundSalah.muted = false;
+            soundSalah.play().catch(e => console.error('Play sound Salah error:', e));
         }
 
         if (statusBar) {
@@ -357,35 +445,70 @@ function selectChoice(choice) {
             statusBar.classList.add('finished');
         }
 
-        waitForVideoCompletion(vidSalah, false);
+        waitForQuizCompletion(vidSalah, soundSalah, false);
     }
 }
 
-// Monitor penyelesaian video hasil
-function waitForVideoCompletion(videoEl, isCorrect) {
-    if (!videoEl) return;
-
+// Monitor penyelesaian video & audio hasil kuis
+function waitForQuizCompletion(videoEl, soundEl, isCorrect) {
     let hasEnded = false;
-    const onComplete = () => {
+    let videoDone = false;
+    let soundDone = false;
+
+    const onAllDone = () => {
         if (hasEnded) return;
         hasEnded = true;
 
-        console.log(`🏁 [Quiz AR] Video penjelasan selesai (${isCorrect ? 'Benar' : 'Salah'}).`);
-        videoEl.pause();
+        console.log(`🏁 [Quiz AR] Penjelasan selesai (${isCorrect ? 'Benar' : 'Salah'}).`);
+        if (videoEl) videoEl.pause();
+        if (soundEl) soundEl.pause();
         quizState = 'FINISHED';
         showResultModal(isCorrect);
     };
 
-    const timeHandler = function() {
-        // Freeze frame ~0.4 detik sebelum akhir untuk mencegah black screen
-        if (this.duration && (this.duration - this.currentTime <= 0.4)) {
-            this.removeEventListener('timeupdate', timeHandler);
-            onComplete();
+    const tryFinish = () => {
+        if (videoDone && soundDone) {
+            onAllDone();
         }
     };
 
-    videoEl.addEventListener('timeupdate', timeHandler);
-    videoEl.addEventListener('ended', onComplete, { once: true });
+    // Video handler: freeze frame ~0.4 detik sebelum akhir untuk mencegah black screen
+    const videoTimeHandler = function () {
+        if (this.duration && (this.duration - this.currentTime <= 0.4)) {
+            this.removeEventListener('timeupdate', videoTimeHandler);
+            this.pause();
+            videoDone = true;
+            tryFinish();
+        }
+    };
+
+    if (videoEl) {
+        videoEl.addEventListener('timeupdate', videoTimeHandler);
+        videoEl.addEventListener('ended', () => {
+            videoDone = true;
+            tryFinish();
+        }, { once: true });
+    } else {
+        videoDone = true;
+    }
+
+    if (soundEl) {
+        soundEl.addEventListener('ended', () => {
+            soundDone = true;
+            tryFinish();
+        }, { once: true });
+    } else {
+        soundDone = true;
+    }
+
+    // Safety fallback timeout: jika ada lag/stall, maksimal 13 detik
+    setTimeout(() => {
+        if (!hasEnded) {
+            videoDone = true;
+            soundDone = true;
+            onAllDone();
+        }
+    }, 13000);
 }
 
 // -----------------------------------------------------------------------------
@@ -497,6 +620,20 @@ if (btnReplayQuiz) {
         if (vidSalah) {
             vidSalah.pause();
             vidSalah.currentTime = 0;
+        }
+
+        // Reset semua audio
+        if (soundPertanyaan) {
+            soundPertanyaan.pause();
+            soundPertanyaan.currentTime = 0;
+        }
+        if (soundBenar) {
+            soundBenar.pause();
+            soundBenar.currentTime = 0;
+        }
+        if (soundSalah) {
+            soundSalah.pause();
+            soundSalah.currentTime = 0;
         }
 
         if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
