@@ -61,6 +61,25 @@ let isTargetFound = false;
 let choiceHandled = false;
 let audioCtx = null;
 
+// -----------------------------------------------------------------------------
+// Force Load Video & Audio Assets
+// -----------------------------------------------------------------------------
+const allVideos = [vidBenar, vidSalah].filter(Boolean);
+
+allSounds.forEach(s => {
+    if (s) {
+        s.load();
+        s.preload = "auto";
+    }
+});
+
+allVideos.forEach(v => {
+    if (v) {
+        v.load();
+        v.preload = "auto";
+    }
+});
+
 // Sound Synthesizer via Web Audio API for subtle tactile feedback
 function playChime(isCorrect) {
     try {
@@ -103,7 +122,6 @@ function playChime(isCorrect) {
 // -----------------------------------------------------------------------------
 // Pre-buffering & Start Button Activation
 // -----------------------------------------------------------------------------
-const allVideos = [vidBenar, vidSalah].filter(Boolean);
 let bufferedCount = 0;
 
 function unlockStartButton() {
@@ -172,14 +190,13 @@ if (startButton) {
             }
         }
 
-        // Prime video elements with play/pause
+        // Prime video elements without disrupting buffer pipeline
         for (let v of allVideos) {
             try {
                 v.muted = true;
                 const p = v.play();
                 if (p !== undefined) await p;
                 v.pause();
-                v.currentTime = 0;
             } catch (e) {
                 console.warn('⚠️ Video element priming warning:', e);
             }
@@ -252,16 +269,18 @@ async function startQuizPlayback() {
     if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', false);
     if (quizTouchLayer) quizTouchLayer.classList.remove('active');
 
-    // Reset dan mulai kedua video dari 0s (muted agar tidak tumpang tindih dengan MP3)
+    // Reset dan mulai kedua video dari 0s
     if (vidBenar) {
-        vidBenar.pause();
-        vidBenar.currentTime = 0;
         vidBenar.muted = true;
+        if (vidBenar.currentTime !== 0) {
+            try { vidBenar.currentTime = 0; } catch (e) {}
+        }
     }
     if (vidSalah) {
-        vidSalah.pause();
-        vidSalah.currentTime = 0;
         vidSalah.muted = true;
+        if (vidSalah.currentTime !== 0) {
+            try { vidSalah.currentTime = 0; } catch (e) {}
+        }
     }
 
     // Reset audio feedback jika ada yang sedang berjalan
@@ -282,13 +301,13 @@ async function startQuizPlayback() {
         soundPertanyaan.play().catch(e => console.warn('⚠️ Gagal memutar audio pertanyaan:', e));
     }
 
-    try {
-        const p1 = vidBenar ? vidBenar.play() : Promise.resolve();
-        const p2 = vidSalah ? vidSalah.play() : Promise.resolve();
-        await Promise.all([p1, p2]);
-    } catch (e) {
-        console.error('❌ [Quiz AR] Error memulai video:', e);
-    }
+    const playPromises = allVideos.map(v => {
+        return v.play().catch(e => {
+            console.warn('⚠️ Play retry untuk:', v.id, e);
+            return v.play().catch(err => console.error('❌ Play final error:', v.id, err));
+        });
+    });
+    await Promise.all(playPromises);
 
     // Monitor waktu hingga mencapai 9.25s
     startTimelineMonitor();
@@ -334,11 +353,15 @@ function reachDecisionPoint() {
     // Jeda kedua video tepat di detik 9.25
     if (vidBenar) {
         vidBenar.pause();
-        vidBenar.currentTime = 9.25;
+        if (Math.abs(vidBenar.currentTime - 9.25) > 0.4) {
+            try { vidBenar.currentTime = 9.25; } catch (e) {}
+        }
     }
     if (vidSalah) {
         vidSalah.pause();
-        vidSalah.currentTime = 9.25;
+        if (Math.abs(vidSalah.currentTime - 9.25) > 0.4) {
+            try { vidSalah.currentTime = 9.25; } catch (e) {}
+        }
     }
 
     // Hentikan pertanyaan.mp3 tepat di detik 9.25 sesuai permintaan user
@@ -407,7 +430,16 @@ function selectChoice(choice) {
         if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
         if (vidBenar) {
             vidBenar.muted = true;
-            vidBenar.play().catch(e => console.error('Play Benar error:', e));
+            if (vidBenar.currentTime < 9.0 || vidBenar.currentTime > 9.5) {
+                try { vidBenar.currentTime = 9.25; } catch (e) {}
+            }
+            const p = vidBenar.play();
+            if (p !== undefined) {
+                p.catch(e => {
+                    console.warn('⚠️ Play Benar retry:', e);
+                    setTimeout(() => vidBenar.play().catch(err => console.error('❌ Play Benar error:', err)), 100);
+                });
+            }
         }
 
         if (soundBenar) {
@@ -438,7 +470,16 @@ function selectChoice(choice) {
         if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
         if (vidSalah) {
             vidSalah.muted = true;
-            vidSalah.play().catch(e => console.error('Play Salah error:', e));
+            if (vidSalah.currentTime < 9.0 || vidSalah.currentTime > 9.5) {
+                try { vidSalah.currentTime = 9.25; } catch (e) {}
+            }
+            const p = vidSalah.play();
+            if (p !== undefined) {
+                p.catch(e => {
+                    console.warn('⚠️ Play Salah retry:', e);
+                    setTimeout(() => vidSalah.play().catch(err => console.error('❌ Play Salah error:', err)), 100);
+                });
+            }
         }
 
         if (soundSalah) {
