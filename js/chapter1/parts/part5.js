@@ -68,7 +68,8 @@ async function startPart5Videos() {
             await dom.soundV5.play();
             fadeAudioIn(dom.soundV5, 400);
         } else {
-             console.warn('⚠️ [Part 5] Audio belum diizinkan / tidak ditemukan.');
+            console.warn('⚠️ [Part 5] Audio belum diizinkan / tidak ditemukan.');
+        }
     } catch (e) { 
         console.error('❌ [Part 5] Audio error:', e); 
     }

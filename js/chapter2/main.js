@@ -83,29 +83,55 @@ allVideos.forEach((v, index) => {
 // SESUAIKAN JUMLAH VIDEO DARI SELURUH PART SECARA DINAMIS
 const totalVideos = allVideos.length;
 
-allVideos.forEach((video, index) => {
+function unlockStartButton() {
+    if (state.allFullyBuffered) return;
+    state.allFullyBuffered = true;
+    state.allReady = true;
+    if (dom.loadingMessage) dom.loadingMessage.textContent = "Selesai!";
+    if (dom.loadingDetail) dom.loadingDetail.textContent = "Silakan mulai pengalaman AR";
+    if (dom.startButton) {
+        dom.startButton.disabled = false;
+        dom.startButton.textContent = "Mulai";
+        dom.startButton.style.background = "#4caf50";
+        dom.startButton.style.color = "white";
+    }
+}
+
+allVideos.forEach((video) => {
+    if (!video) return;
+
+    const onBuffered = () => {
+        state.videosBuffered++; 
+        if (dom.loadingDetail) {
+            dom.loadingDetail.textContent = state.videosBuffered >= totalVideos ? "Siap!" : "Harap bersabar sebentar";
+        }
+        if (state.videosBuffered >= totalVideos) {
+            unlockStartButton();
+        }
+    };
+
+    if (video.readyState >= 3) {
+        onBuffered();
+    } else {
+        video.addEventListener("canplaythrough", onBuffered, { once: true });
+    }
+
     video.addEventListener("loadeddata", () => {
         state.videosLoaded++; 
-        const dots = "●".repeat(state.videosLoaded) + "○".repeat(totalVideos - state.videosLoaded);
-        dom.loadingProgress.textContent = dots;
-    });
-
-    video.addEventListener("canplaythrough", () => {
-        state.videosBuffered++;
-        dom.loadingDetail.textContent = state.videosBuffered === totalVideos ? "Siap!" : "Harap bersabar sebentar";
-
-        if (state.videosBuffered >= totalVideos && !state.allFullyBuffered) {
-            state.allFullyBuffered = true;
-            state.allReady = true;
-            dom.loadingMessage.textContent = "Selesai!";
-            dom.loadingDetail.textContent = "Silakan mulai pengalaman AR";
-            dom.startButton.disabled = false;
-            dom.startButton.textContent = "Mulai";
-            dom.startButton.style.background = "#4caf50";
-            dom.startButton.style.color = "white";
+        if (dom.loadingProgress) {
+            const dots = "●".repeat(Math.min(state.videosLoaded, totalVideos)) + "○".repeat(Math.max(0, totalVideos - state.videosLoaded));
+            dom.loadingProgress.textContent = dots;
         }
-    });
+    }, { once: true });
 });
+
+// Safety fallback: jika pre-buffer browser terhambat (misal di mobile), buka tombol Mulai setelah 3.5 detik
+setTimeout(() => {
+    if (!state.allFullyBuffered) {
+        console.log("⏱️ [Chapter 2] Pre-buffer timeout: Tombol Mulai diaktifkan otomatis.");
+        unlockStartButton();
+    }
+}, 3500);
 
 dom.startButton.addEventListener("click", async () => {
     if (!state.allFullyBuffered) return;

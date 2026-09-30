@@ -74,7 +74,12 @@ async function startPart1Videos() {
             console.warn('⚠️ [Part 1] Audio belum diizinkan / tidak ditemukan.');
         }
     } catch (e) { 
-        console.error('❌ [Part 1]    let hasFinished = false;
+        console.error('❌ [Part 1] Audio error:', e);
+    }
+    
+    state.isTransitioning = false;
+    
+    let hasFinished = false;
     const finishPart1 = () => {
         if (hasFinished) return;
         hasFinished = true;
