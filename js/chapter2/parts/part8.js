@@ -136,14 +136,11 @@ export function initPart8() {
     };
 
     const kerangEl = document.getElementById('video-kerang-part8-v1');
-    const planePlay = document.getElementById('plane-kerang-play');
-
-    [kerangEl, planePlay].forEach(el => {
-        if (!el) return;
-        el.addEventListener('click', navigateToQuiz);
-        el.addEventListener('touchend', navigateToQuiz);
-        el.addEventListener('mousedown', navigateToQuiz);
-    });
+    if (kerangEl) {
+        kerangEl.addEventListener('click', navigateToQuiz);
+        kerangEl.addEventListener('touchend', navigateToQuiz);
+        kerangEl.addEventListener('mousedown', navigateToQuiz);
+    }
 
     // Listener pada scene canvas sebagai fallback jika part8 selesai
     const sceneEl = document.getElementById('arScene');
