@@ -405,12 +405,7 @@ AFRAME.registerShader('chromakey-cyan', {
     }
 });
 
-// CHROMAKEY Shader - Khusus Magenta/Ungu Screen (Background magenta seperti #C200CC)
-// Strategi sama dengan chromakey-cyan tapi target warna kebalikannya:
-//  - Magenta = R tinggi + B tinggi, G rendah.
-//  - magentaDominance = min(R, B) - G
-//  - rbBalance       = 1 - |R - B|  (1.0 saat R == B = magenta murni)
-//  - Edge softening tahap 2 + despill agresif untuk hilangkan halo ungu di tepi.
+// CHROMAKEY Shader - Khusus Magenta/Ungu Screen (Target warna chroma #D201D9)
 AFRAME.registerShader('chromakey-magenta', {
     schema: { src: {type: 'map'} },
     init: function(data) {
@@ -438,42 +433,37 @@ AFRAME.registerShader('chromakey-magenta', {
                 void main() {
                     vec4 color = texture2D(tex, vUv);
 
-                    float rb = min(color.r, color.b);
-                    float rbAvg = (color.r + color.b) * 0.5;
-                    float magentaDominance = rb - color.g;             // dominasi magenta vs green (utama)
-                    float magentaLoose    = rbAvg - color.g;           // dominasi magenta longgar (utk halo)
-                    float rbBalance       = 1.0 - abs(color.r - color.b); // 1.0 saat R == B (magenta murni)
+                    // Target warna chroma: #D201D9 (RGB: 210, 1, 217 -> vec3(0.8235, 0.0039, 0.8510))
+                    // Dalam kompresi video MP4 terdeteksi sebagai vec3(0.7529, 0.0, 0.8196)
+                    const vec3 targetChromaUser = vec3(0.8235, 0.0039, 0.8510);
+                    const vec3 targetChromaVideo = vec3(0.7529, 0.0, 0.8196);
 
-                    // Tahap 1: alpha utama dari smoothstep magenta-dominance.
-                    // Range lebar (0.05 - 0.35) supaya tepi halus & garis tipis ungu tertangkap.
-                    float coreAlpha = 1.0 - smoothstep(0.05, 0.35, magentaDominance);
+                    // Hitung jarak warna terdekat ke warna chroma
+                    float d1 = length(color.rgb - targetChromaVideo);
+                    float d2 = length(color.rgb - targetChromaUser);
+                    float dChroma = min(d1, d2);
 
-                    // Tahap 2: edge softening berbasis magenta longgar untuk hilangkan halo
-                    // ungu-pucat di sekitar kontur objek.
-                    float edgeAlpha = 1.0 - smoothstep(0.00, 0.20, magentaLoose) * smoothstep(0.5, 0.85, rbBalance);
+                    // Transisi halus presisi:
+                    // - Latar chroma dan tepian anti-aliasing berada pada dChroma <= 0.04
+                    // - Corak pada baju dan elemen objek lainnya berada pada dChroma >= 0.12 (tetap solid opaque 100%)
+                    float alpha = smoothstep(0.035, 0.085, dChroma);
 
-                    // Gabungkan: ambil yang paling transparent
-                    float alpha = min(coreAlpha, edgeAlpha);
-
-                    // Pengaman hard-cut: pixel jelas-jelas magenta -> paksa transparan
-                    if (color.g < 0.55 && color.r > 0.5 && color.b > 0.5 && magentaDominance > 0.20 && rbBalance > 0.78) {
+                    // Pengaman hard-cut untuk piksel latar belakang murni
+                    if (dChroma < 0.035) {
                         alpha = 0.0;
                     }
 
                     vec3 finalColor = color.rgb;
 
-                    // Despill agresif untuk pinggiran objek (hilangkan halo magenta di kontur)
-                    if (alpha > 0.0 && alpha < 0.95) {
-                        float despillStrength = (1.0 - alpha) * 0.85;
-
-                        // Turunkan kanal merah ke arah max(G, B) supaya tidak lagi ungu
+                    // Despill lembut hanya pada tepi semi-transparan untuk hilangkan halo ungu di pinggiran
+                    if (alpha > 0.05 && alpha < 0.95) {
+                        float despillStrength = (1.0 - alpha) * 0.8;
                         float maxGB = max(finalColor.g, finalColor.b);
                         finalColor.r = mix(finalColor.r, min(finalColor.r, maxGB), despillStrength);
-
-                        // Lalu kanal biru turun ke arah rata-rata R & G
                         float avgRG = (finalColor.r + finalColor.g) * 0.5;
                         finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength * 0.7);
                     }
+
                     if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
