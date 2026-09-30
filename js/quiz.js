@@ -348,9 +348,17 @@ function reachDecisionPoint() {
     }
 
     // AKTIFKAN TOMBOL PILIHAN DENGAN ZERO EFEK/ANIMASI
-    // Sesuai permintaan user: "jangan ada efek apapun saat buttonnya muncul, karena saya mau seolah olah nyambung dengan videonya"
-    if (btnChoiceBenar3D) btnChoiceBenar3D.setAttribute('visible', true);
-    if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', true);
+    // Sesuai permintaan: tombol muncul instan menyatu dengan video tanpa clipping
+    if (btnChoiceBenar3D) {
+        btnChoiceBenar3D.setAttribute('visible', true);
+        const mesh = btnChoiceBenar3D.getObject3D('mesh');
+        if (mesh && mesh.material) mesh.material.depthWrite = false;
+    }
+    if (btnChoiceSalah3D) {
+        btnChoiceSalah3D.setAttribute('visible', true);
+        const mesh = btnChoiceSalah3D.getObject3D('mesh');
+        if (mesh && mesh.material) mesh.material.depthWrite = false;
+    }
 
     // Aktifkan juga overlay 2D touch transparan untuk kemudahan klik di layar HP
     if (quizTouchLayer) quizTouchLayer.classList.add('active');
