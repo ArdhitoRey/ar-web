@@ -77,36 +77,43 @@ async function startPart4Videos() {
     
     state.isTransitioning = false;
     
-    if (dom.soundV4) {
-        dom.soundV4.onended = () => {
-            console.log('✅ [Part 4] Audio habis! Video frozen di frame terakhir.');
-            state.isPlaying = false;
-            state.part4Finished = true;
-            
-            if (dom.containerPart4) {
-                // Memudarkan layar selama 250 milidetik
-                fadeOutContainer(dom.containerPart4, 250, () => {
-                    // Setelah layar benar-benar hilang (transparan 100%),
-                    // barulah kita matikan videonya dan reset ke detik 0
-                    videos.part4.forEach(v => { 
-                        try { 
-                            v.pause(); 
-                            v.currentTime = 0;
-                        } catch (e) {} 
-                    });
-                        console.log('🧹 Layar dibersihkan dan video dimatikan.');
+    let hasFinished = false;
+    const finishPart4 = () => {
+        if (hasFinished) return;
+        hasFinished = true;
+        clearTimeout(safetyTimer);
+
+        console.log('✅ [Part 4] Selesai! Video dibersihkan.');
+        state.isPlaying = false;
+        state.part4Finished = true;
+        
+        if (dom.containerPart4) {
+            fadeOutContainer(dom.containerPart4, 250, () => {
+                videos.part4.forEach(v => { 
+                    try { 
+                        v.pause(); 
+                        v.currentTime = 0;
+                    } catch (e) {} 
                 });
-            }
-            
-            state.isMarkerLocked = false;
-            state.lockedMarker = null;
-            console.log('🔓 [Part 4] Marker UNLOCKED');
-            
-            dom.statusBar.textContent = '✅ Part 4 selesai - Tap layar untuk ulang atau scan Marker 5 🎯';
-            dom.statusBar.classList.remove('tracking');
-            dom.statusBar.classList.add('finished');
-        };
+                console.log('🧹 Layar dibersihkan dan video dimatikan.');
+            });
+        }
+        
+        state.isMarkerLocked = false;
+        state.lockedMarker = null;
+        console.log('🔓 [Part 4] Marker UNLOCKED');
+        
+        dom.statusBar.textContent = '✅ Part 4 selesai - Tap layar untuk ulang atau scan Marker 5 🎯';
+        dom.statusBar.classList.remove('tracking');
+        dom.statusBar.classList.add('finished');
+    };
+
+    if (dom.soundV4) {
+        dom.soundV4.onended = finishPart4;
     }
+
+    const fallbackDur = Math.max((dom.soundV4 && dom.soundV4.duration) || 0, ...videos.part4.map(v => (v && v.duration) || 0), 12);
+    const safetyTimer = setTimeout(finishPart4, (fallbackDur + 0.5) * 1000);
 }
 
 export function initPart4() {
@@ -132,18 +139,10 @@ export function initPart4() {
             state.activeMarkerDetection = 4;
             state.markerIgnoreUntil = now + state.MARKER_IGNORE_DURATION;
             
-            // Matikan deteksi marker sebelumnya
-            if (dom.target1) dom.target1.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target2) dom.target2.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target3) dom.target3.setAttribute('mindar-image-target', 'enabled: false');
-            
             playPart4();
             
             setTimeout(() => {
                 if (!state.isPlaying) {
-                    if (dom.target1) dom.target1.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target2) dom.target2.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target3) dom.target3.setAttribute('mindar-image-target', 'enabled: true');
                     state.activeMarkerDetection = null;
                 }
             }, state.MARKER_IGNORE_DURATION);

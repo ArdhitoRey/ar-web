@@ -1,18 +1,15 @@
 import { dom } from './state.js';
 
 export function fadeOutContainer(container, duration, callback) {
+    if (!container) {
+        if (callback) callback();
+        return;
+    }
+    
     container.setAttribute('animation', {
         property: 'scale',
         from: '1 1 1',
         to: '0.8 0.8 0.8',
-        dur: duration,
-        easing: 'easeInQuad'
-    });
-    
-    container.setAttribute('animation__opacity', {
-        property: 'opacity',
-        from: 1,
-        to: 0,
         dur: duration,
         easing: 'easeInQuad'
     });
@@ -26,22 +23,14 @@ export function fadeOutContainer(container, duration, callback) {
 }
 
 export function fadeInContainer(container, duration) {
+    if (!container) return;
     container.setAttribute('visible', true);
     container.setAttribute('scale', '0.8 0.8 0.8');
-    container.setAttribute('opacity', 0);
     
     container.setAttribute('animation', {
         property: 'scale',
         from: '0.8 0.8 0.8',
         to: '1 1 1',
-        dur: duration,
-        easing: 'easeOutQuad'
-    });
-    
-    container.setAttribute('animation__opacity', {
-        property: 'opacity',
-        from: 0,
-        to: 1,
         dur: duration,
         easing: 'easeOutQuad'
     });

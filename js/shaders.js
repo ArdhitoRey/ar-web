@@ -41,6 +41,7 @@ AFRAME.registerShader('chromakey-advanced', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
                     if (alpha > 0.5 && greenDominance > 0.05) finalColor.g *= 0.9;
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -94,6 +95,7 @@ AFRAME.registerShader('chromakey-gentle', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
                     if (alpha > 0.6 && greenDominance > 0.08) finalColor.g *= 0.95;
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -153,6 +155,7 @@ AFRAME.registerShader('chromakey-bubble', {
                         finalColor *= brightness;
                         finalColor = clamp(finalColor, 0.0, 1.0);
                     }
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -217,6 +220,7 @@ AFRAME.registerShader('chromakey-blue', {
                     }
                     
                     if (alpha > 0.5 && blueDominance > 0.05) finalColor.b *= 0.9;
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -325,6 +329,7 @@ AFRAME.registerShader('chromakey-bakteri', {
                     if (alpha > 0.0 && alpha < 1.0) {
                         finalColor.g = min(finalColor.g, (finalColor.r + finalColor.b) * 0.6);
                     }
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -387,6 +392,7 @@ AFRAME.registerShader('chromakey-cyan', {
                         finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength);
                         finalColor.g = mix(finalColor.g, min(finalColor.g, (finalColor.r + finalColor.b) * 0.5), despillStrength * 0.5);
                     }
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -467,6 +473,7 @@ AFRAME.registerShader('chromakey-magenta', {
                         float avgRG = (finalColor.r + finalColor.g) * 0.5;
                         finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength * 0.7);
                     }
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -475,29 +482,5 @@ AFRAME.registerShader('chromakey-magenta', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
-    }
-});
-
-AFRAME.registerComponent('smooth-tracking', {
-    schema: { smoothing: {type: 'number', default: 0.7} },
-    init: function() {
-        this.targetPosition = new THREE.Vector3();        this.targetRotation = new THREE.Euler();
-    },
-    tick: function() {
-        const obj = this.el.object3D;
-        this.targetPosition.lerp(obj.position, 1 - this.data.smoothing);
-        obj.position.copy(this.targetPosition);
-        this.targetRotation.x += (obj.rotation.x - this.targetRotation.x) * (1 - this.data.smoothing);
-        this.targetRotation.y += (obj.rotation.y - this.targetRotation.y) * (1 - this.data.smoothing);
-        this.targetRotation.z += (obj.rotation.z - this.targetRotation.z) * (1 - this.data.smoothing);
-        obj.rotation.copy(this.targetRotation);
-    }
-});
-
-// Setup Smooth Tracking secara global
-document.addEventListener('DOMContentLoaded', () => {
-    for (let i = 1; i <= 7; i++) {
-        const target = document.getElementById(`target${i}`);
-        if (target) target.setAttribute('smooth-tracking', 'smoothing: 0.7');
     }
 });

@@ -69,41 +69,48 @@ async function startPart7Videos() {
             fadeAudioIn(dom.soundV7, 400);
         } else {
              console.warn('⚠️ [Part 7] Audio belum diizinkan / tidak ditemukan.');
-        }
-    } catch (e) { console.error('❌ [Part 7] Audio error:', e); }
+    } catch (e) { 
+        console.error('❌ [Part 7] Audio error:', e); 
+    }
     
     state.isTransitioning = false;
     
-    // 4. SUTRADARA AUDIO (Saat audio habis: video FREEZE, container tetap terlihat)
-    if (dom.soundV7) {
-        dom.soundV7.onended = () => {
-            console.log('✅ [Part 7] Audio habis! Video frozen di frame terakhir.');
-            state.isPlaying = false;
-            state.part7Finished = true;
-            
-            if (dom.containerPart7) {
-                // Memudarkan layar selama 250 milidetik
-                fadeOutContainer(dom.containerPart7, 250, () => {
-                    // Setelah layar benar-benar hilang (transparan 100%),
-                    // barulah kita matikan videonya dan reset ke detik 0
-                    videos.part7.forEach(v => { 
-                        try { 
-                            v.pause(); 
-                            v.currentTime = 0;
-                        } catch (e) {} 
-                    });
-                        console.log('🧹 Layar dibersihkan dan video dimatikan.');
+    let hasFinished = false;
+    const finishPart7 = () => {
+        if (hasFinished) return;
+        hasFinished = true;
+        clearTimeout(safetyTimer);
+
+        console.log('✅ [Part 7] Selesai! Video dibersihkan.');
+        state.isPlaying = false;
+        state.part7Finished = true;
+        
+        if (dom.containerPart7) {
+            fadeOutContainer(dom.containerPart7, 250, () => {
+                videos.part7.forEach(v => { 
+                    try { 
+                        v.pause(); 
+                        v.currentTime = 0; 
+                    } catch (e) {} 
                 });
-            }
-            
-            state.isMarkerLocked = false;
-            state.lockedMarker = null;
-            
-            dom.statusBar.textContent = '✅ Part 7 selesai! Tap untuk ulang atau tekan Reset 🔄';
-            dom.statusBar.classList.remove('tracking');
-            dom.statusBar.classList.add('finished');
-        };
+                console.log('🧹 Layar dibersihkan dan video dimatikan.');
+            });
+        }
+        
+        state.isMarkerLocked = false;
+        state.lockedMarker = null;
+        
+        dom.statusBar.textContent = '✅ Part 7 selesai! Tap untuk ulang atau tekan Reset 🔄';
+        dom.statusBar.classList.remove('tracking');
+        dom.statusBar.classList.add('finished');
+    };
+
+    if (dom.soundV7) {
+        dom.soundV7.onended = finishPart7;
     }
+
+    const fallbackDur = Math.max((dom.soundV7 && dom.soundV7.duration) || 0, ...videos.part7.map(v => (v && v.duration) || 0), 12);
+    const safetyTimer = setTimeout(finishPart7, (fallbackDur + 0.5) * 1000);
 }
 
 export function initPart7() {
@@ -128,23 +135,10 @@ export function initPart7() {
             state.activeMarkerDetection = 7;
             state.markerIgnoreUntil = now + state.MARKER_IGNORE_DURATION;
             
-            if (dom.target1) dom.target1.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target2) dom.target2.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target3) dom.target3.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target4) dom.target4.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target5) dom.target5.setAttribute('mindar-image-target', 'enabled: false');
-            if (dom.target6) dom.target6.setAttribute('mindar-image-target', 'enabled: false');
-            
             playPart7();
             
             setTimeout(() => {
                 if (!state.isPlaying) {
-                    if (dom.target1) dom.target1.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target2) dom.target2.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target3) dom.target3.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target4) dom.target4.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target5) dom.target5.setAttribute('mindar-image-target', 'enabled: true');
-                    if (dom.target6) dom.target6.setAttribute('mindar-image-target', 'enabled: true');
                     state.activeMarkerDetection = null;
                 }
             }, state.MARKER_IGNORE_DURATION);

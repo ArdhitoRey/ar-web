@@ -96,19 +96,19 @@ allVideos.forEach((video, index) => {
 dom.startButton.addEventListener("click", async () => {
     if (!state.allFullyBuffered) return;
 
-    try {
-        const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7];
-        for (let sound of sounds) {
+    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
+    for (let sound of sounds) {
+        try {
             sound.muted = true;
             await sound.play();
             sound.pause();
             sound.currentTime = 0;
             sound.muted = false;
+        } catch (e) {
+            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
         }
-        state.audioEnabled = true;
-    } catch (e) {
-        state.audioEnabled = false;
     }
+    state.audioEnabled = true;
 
     dom.loadingOverlay.classList.add("hidden");
     dom.arScene.classList.add("ready");

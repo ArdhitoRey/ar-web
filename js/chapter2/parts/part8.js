@@ -122,11 +122,8 @@ async function startPart8Videos() {
         console.warn('⚠️ [Part 8] Audio tidak jalan atau belum tersedia, beralih ke durasi video:', e); 
     }
 
-    // Fallback durasi jika tidak ada audio narasi
-    if (!audioPlayed) {
-        const fallbackDuration = 19.5;
-        setTimeout(finishPart8, fallbackDuration * 1000);
-    }
+    const fallbackDuration = Math.max((dom.soundV8 && dom.soundV8.duration) || 0, ...videos.part8.map(v => (v && v.duration) || 0), 19.5);
+    setTimeout(finishPart8, (fallbackDuration + 0.5) * 1000);
 }
 
 export function initPart8() {
@@ -148,15 +145,10 @@ export function initPart8() {
             state.activeMarkerDetection = 8;
             state.markerIgnoreUntil = now + state.MARKER_IGNORE_DURATION;
             
-            // Matikan deteksi marker lain sementara
-            const otherTargets = [dom.target1, dom.target2, dom.target3, dom.target4, dom.target5, dom.target6, dom.target7];
-            otherTargets.forEach(t => { if (t) t.setAttribute('mindar-image-target', 'enabled: false'); });
-            
             playPart8();
             
             setTimeout(() => {
                 if (!state.isPlaying) {
-                    otherTargets.forEach(t => { if (t) t.setAttribute('mindar-image-target', 'enabled: true'); });
                     state.activeMarkerDetection = null;
                 }
             }, state.MARKER_IGNORE_DURATION);
