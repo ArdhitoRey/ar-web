@@ -89,15 +89,14 @@ async function startPart8Videos() {
         state.lockedMarker = null;
         console.log('🔓 [Part 8] Marker UNLOCKED');
         
-        dom.statusBar.textContent = '👉 Tap tombol play di kerang untuk ke Quiz! 🐚';
+        dom.statusBar.textContent = '👉 Ketuk Kerang untuk Mulai Kuis! 🐚';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
-
-        const quizBtn = document.getElementById('quizButton');
-        if (quizBtn) {
-            quizBtn.classList.add('visible');
-            quizBtn.style.display = 'block';
-        }
+        dom.statusBar.style.cursor = 'pointer';
+        dom.statusBar.onclick = () => {
+            console.log('🐚 [Part 8] Status bar ditekan! Menuju kuis...');
+            window.location.href = './quiz.html';
+        };
     };
     
     let audioPlayed = false;
@@ -126,28 +125,34 @@ async function startPart8Videos() {
 export function initPart8() {
     if (!dom.target8) return; // Sabuk pengaman
 
-    // Pasang handler klik pada kerang untuk navigasi ke quiz
-    const kerangEl = document.getElementById('video-kerang-part8-v1');
-    if (kerangEl) {
-        const handleKerangClick = (e) => {
-            if (e) e.stopPropagation();
-            console.log('🐚 [Part 8] Video kerang / tombol play ditekan! Navigasi ke quiz...');
-            window.location.href = './quiz.html';
-        };
-        kerangEl.addEventListener('click', handleKerangClick);
-        kerangEl.addEventListener('touchend', handleKerangClick);
-    }
+    // Navigasi ke kuis saat video kerang / tombol play di kerang ditekan
+    const navigateToQuiz = (e) => {
+        if (e) {
+            e.stopPropagation();
+            if (e.preventDefault) e.preventDefault();
+        }
+        console.log('🐚 [Part 8] Video kerang / tombol play ditekan! Menuju kuis...');
+        window.location.href = './quiz.html';
+    };
 
-    const quizBtn = document.getElementById('quizButton');
-    if (quizBtn) {
-        quizBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.location.href = './quiz.html';
-        });
-        quizBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.location.href = './quiz.html';
+    const kerangEl = document.getElementById('video-kerang-part8-v1');
+    const planePlay = document.getElementById('plane-kerang-play');
+
+    [kerangEl, planePlay].forEach(el => {
+        if (!el) return;
+        el.addEventListener('click', navigateToQuiz);
+        el.addEventListener('touchend', navigateToQuiz);
+        el.addEventListener('mousedown', navigateToQuiz);
+    });
+
+    // Listener pada scene canvas sebagai fallback jika part8 selesai
+    const sceneEl = document.getElementById('arScene');
+    if (sceneEl) {
+        sceneEl.addEventListener('click', () => {
+            if (state.part8Finished && state.currentPart === 8) {
+                console.log('🐚 [Part 8] Ketukan pada layar saat kerang terbuka! Menuju kuis...');
+                window.location.href = './quiz.html';
+            }
         });
     }
 

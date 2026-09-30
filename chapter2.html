@@ -29,12 +29,6 @@
 
     <div class="reset-button" id="resetButton">🔄 Reset ke Part 1</div>
 
-    <button class="next-button" id="quizButton" type="button" aria-label="Mulai Kuis">
-        <div style="background: linear-gradient(135deg, #ff9800 0%, #e91e63 100%); color: white; font-weight: bold; font-size: 18px; padding: 14px 30px; border-radius: 50px; box-shadow: 0 6px 25px rgba(0,0,0,0.4); border: 2px solid white; display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px;">
-            <span>Mulai Kuis 🐚</span>
-        </div>
-    </button>
-
     <a-scene id="arScene" mindar-image="
             imageTargetSrc: ./targets-mind/targets-chapter2.mind;
             filterMinCF: 0.0001;
@@ -44,7 +38,7 @@
             maxTrack: 8;
         " color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights: true, antialias: true"
         vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-        <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse" raycaster="objects: .clickable, a-video"></a-camera>
+        <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse" raycaster="objects: .clickable, a-video, a-plane"></a-camera>
 
         <!-- Part 1 -->
         <a-entity id="target1" mindar-image-target="targetIndex: 0">
@@ -172,6 +166,8 @@
                     material="shader: chromakey-magenta; src: #vid-rumput-part8-v1; transparent: true; side: double"></a-video>
                 <a-video id="video-kerang-part8-v1" class="clickable" src="#vid-kerang-part8-v1" position="0 0 0.20" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-kerang-part8-v1; transparent: true; side: double"></a-video>
+                <a-plane id="plane-kerang-play" class="clickable" position="0.16 -0.31 0.35" width="0.5" height="0.5"
+                    material="opacity: 0.0; transparent: true"></a-plane>
                 <a-video id="video-kapal-part8-v1" src="#vid-kapal-part8-v1" position="0 0 0.25" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-kapal-part8-v1; transparent: true; side: double"></a-video>
             </a-entity>

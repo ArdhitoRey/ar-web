@@ -7,295 +7,57 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Kuis Bawah Laut - Babak 1</title>
+    <title>Kuis Petualangan AR - Marker 8</title>
+
+    <!-- A-Frame & MindAR -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <link rel="stylesheet" href="./style.css">
     <style>
+        /* Quiz Specific Styling */
         :root {
-            --sea-dark: #071326;
-            --sea-mid: #0d2847;
-            --sea-teal: #00bcd4;
-            --sea-cyan: #00e5ff;
-            --correct-green: #4caf50;
-            --wrong-coral: #ff5252;
+            --quiz-cyan: #00e5ff;
+            --quiz-green: #4caf50;
+            --quiz-red: #ff5252;
+            --quiz-dark: #0a192f;
         }
 
-        body.quiz-page {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at 50% 25%, #133966 0%, #091a33 55%, #040c1a 100%);
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            position: relative;
-        }
-
-        /* Ambient animated undersea bubbles */
-        .bubble-bg {
-            position: absolute;
+        /* 2D Touch Choice Layer (Zero transition & Zero animation as requested) */
+        .quiz-choice-touch-layer {
+            position: fixed;
             inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .bubble {
-            position: absolute;
-            bottom: -60px;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), rgba(0, 229, 255, 0.15) 60%, rgba(255, 255, 255, 0) 70%);
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            animation: riseUp linear infinite;
-        }
-
-        @keyframes riseUp {
-            0% {
-                transform: translateY(0) scale(0.8);
-                opacity: 0;
-            }
-            15% {
-                opacity: 0.6;
-            }
-            85% {
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(-110vh) scale(1.2);
-                opacity: 0;
-            }
-        }
-
-        /* Top Header */
-        .quiz-header {
-            position: absolute;
-            top: 16px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 100;
-            pointer-events: auto;
-        }
-
-        .btn-nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 600;
-            padding: 10px 18px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-            transition: all 0.25s ease;
-        }
-
-        .btn-nav-back:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .quiz-title-badge {
-            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 150, 136, 0.2));
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 229, 255, 0.4);
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #e0f7fa;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Quiz Stage Area */
-        .quiz-container {
-            position: relative;
-            z-index: 10;
-            width: min(92vw, 80vh, 600px);
-            height: min(92vw, 80vh, 600px);
-            aspect-ratio: 1 / 1;
-            border-radius: 28px;
-            background: radial-gradient(circle at 50% 50%, #153b66 0%, #0d2645 60%, #071526 100%);
-            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(0, 229, 255, 0.25);
-            border: 3px solid rgba(0, 229, 255, 0.45);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        /* WebGL Canvas */
-        #quizCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            z-index: 2;
-        }
-
-        /* Question Banner Overlay */
-        .quiz-question-banner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            pointer-events: none;
-            z-index: 4;
-        }
-
-        /* Hit Areas for User Choices */
-        /* PENTING: Sesuai permintaan user, JANGAN ADA EFEK APAPUN saat button muncul */
-        /* agar tampak seamless menyatu dengan video */
-        .quiz-choices-layer {
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            pointer-events: none;
-            /* Default hidden */
+            z-index: 500;
             display: none;
-        }
-
-        .quiz-choices-layer.active {
-            display: block;
             pointer-events: auto;
         }
 
-        .choice-btn {
-            position: absolute;
+        .quiz-choice-touch-layer.active {
+            display: flex;
+        }
+
+        .touch-half {
+            flex: 1;
+            height: 100%;
             background: transparent;
             border: none;
             outline: none;
             cursor: pointer;
-            border-radius: 24px;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
             padding: 0;
             margin: 0;
-            /* ZERO transition & ZERO animation */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            /* ZERO transition & ZERO animation agar menyatu dengan video */
             transition: none !important;
             animation: none !important;
-        }
-
-        /* Koordinat presisi piksel berdasarkan analisa frame 9.25s */
-        .choice-btn.benar {
-            left: 12.5%;
-            top: 36.5%;
-            width: 34.5%;
-            height: 29.5%;
-        }
-
-        .choice-btn.salah {
-            left: 53.0%;
-            top: 36.5%;
-            width: 35.5%;
-            height: 29.5%;
-        }
-
-        /* Visual pointer cursor on desktop hover without appearance animation */
-        @media (hover: hover) {
-            .choice-btn:hover {
-                cursor: pointer;
-            }
-        }
-
-        /* Subtitle / Status Guide below stage */
-        .quiz-status-guide {
-            position: relative;
-            z-index: 10;
-            margin-top: 18px;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: 15px;
-            font-weight: 500;
-            text-align: center;
-            max-width: 90vw;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-
-        .quiz-status-guide.prompt {
-            border-color: #00e5ff;
-            color: #e0f7fa;
-        }
-
-        .quiz-status-guide.correct {
-            border-color: #4caf50;
-            color: #a5d6a7;
-        }
-
-        .quiz-status-guide.wrong {
-            border-color: #ff5252;
-            color: #ffcdd2;
-        }
-
-        /* Autoplay Start Overlay (hanya jika browser memblokir autoplay) */
-        .start-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 50;
-            background: rgba(4, 12, 26, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        .start-overlay.hidden {
-            display: none;
-        }
-
-        .btn-start-play {
-            background: linear-gradient(135deg, #00e5ff 0%, #00838f 100%);
-            color: white;
-            font-size: 22px;
-            font-weight: 700;
-            padding: 18px 42px;
-            border: 3px solid #ffffff;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 8px 30px rgba(0, 229, 255, 0.45);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .btn-start-play:active {
-            transform: scale(0.96);
         }
 
         /* Result Popup Modal */
         .result-modal {
             position: fixed;
             inset: 0;
-            z-index: 200;
-            background: rgba(3, 9, 20, 0.85);
+            z-index: 2000;
+            background: rgba(4, 14, 28, 0.88);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             display: none;
@@ -306,13 +68,13 @@
 
         .result-modal.active {
             display: flex;
-            animation: modalFadeIn 0.35s ease-out forwards;
+            animation: modalPop 0.35s ease-out forwards;
         }
 
-        @keyframes modalFadeIn {
+        @keyframes modalPop {
             from {
                 opacity: 0;
-                transform: scale(0.94);
+                transform: scale(0.92);
             }
             to {
                 opacity: 1;
@@ -333,15 +95,16 @@
             flex-direction: column;
             align-items: center;
             gap: 16px;
+            color: #ffffff;
         }
 
         .result-card.card-correct {
-            border-color: rgba(76, 175, 80, 0.8);
+            border-color: rgba(76, 175, 80, 0.85);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(76, 175, 80, 0.4);
         }
 
         .result-card.card-wrong {
-            border-color: rgba(255, 82, 82, 0.8);
+            border-color: rgba(255, 82, 82, 0.85);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(255, 82, 82, 0.4);
         }
 
@@ -423,54 +186,61 @@
         .btn-action.btn-home:hover {
             color: #ffffff;
         }
+
+        /* Marker 8 Badge */
+        .marker-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: #e0f7fa;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 
-<body class="quiz-page">
-    <!-- Bubble Background Particles -->
-    <div class="bubble-bg" id="bubbleBg"></div>
+<body>
+    <!-- Top Nav Back -->
+    <a href="chapter2.html" class="back-button">🔙 Bab 2</a>
 
-    <!-- Header Navigation -->
-    <div class="quiz-header">
-        <a href="./chapter2.html" class="btn-nav-back" title="Kembali ke Chapter 2">
-            <span>⬅️ Bab 2</span>
-        </a>
-        <div class="quiz-title-badge">
-            <span>KUIS PETUALANGAN AR</span> 🐚
-        </div>
+    <!-- Marker 8 Badge -->
+    <div class="marker-badge">
+        <span>Target: Marker 8</span> 🎯
     </div>
 
-    <!-- Main 1:1 Quiz Stage Container -->
-    <div class="quiz-container" id="quizContainer">
-        <!-- Hardware Accelerated WebGL Chromakey Canvas -->
-        <canvas id="quizCanvas" width="1080" height="1080"></canvas>
-
-        <!-- Question Banner Overlay (KAPAN KITA SIKAT GIGI?) -->
-        <img src="./compressed_ultra-videos/chapter2/quiz/quiz1/pertanyaan.PNG" alt="Pertanyaan Kuis" class="quiz-question-banner" id="questionBanner" />
-
-        <!-- Choice Hit Areas (Appears at 9.25s instantly with NO effect) -->
-        <div class="quiz-choices-layer" id="quizChoicesLayer">
-            <!-- Left Card Hit Area: SIKAT GIGI PAGI DAN MALAM (BENAR) -->
-            <button class="choice-btn benar" id="btnChoiceBenar" aria-label="Sikat Gigi Pagi dan Malam (Benar)"></button>
-            <!-- Right Card Hit Area: TIDAK MAU SIKAT GIGI (SALAH) -->
-            <button class="choice-btn salah" id="btnChoiceSalah" aria-label="Tidak Mau Sikat Gigi (Salah)"></button>
-        </div>
-
-        <!-- Autoplay Unlock Overlay (shown only if required by browser) -->
-        <div class="start-overlay" id="startOverlay">
-            <button class="btn-start-play" id="btnStartQuiz">
-                ▶ Mulai Kuis 🎮
-            </button>
-            <p style="font-size: 14px; opacity: 0.8; margin: 0;">Ketuk untuk memulai kuis bawah laut!</p>
-        </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">Kuis Bawah Laut</div>
+        <div class="loading-message" id="loadingMessage">Mempersiapkan Kamera AR & Kuis...</div>
+        <div class="loading-progress" id="loadingProgress">●●</div>
+        <div class="loading-detail" id="loadingDetail">Memuat video kuis & marker...</div>
+        <div class="loading-tip">Pastikan izin kamera diaktifkan</div>
+        <button class="start-button" id="startButton" disabled>Tunggu Sebentar...</button>
     </div>
 
-    <!-- Status Guidance Text -->
-    <div class="quiz-status-guide prompt" id="statusGuide">
-        🎬 Memuat video kuis...
+    <!-- Status Bar -->
+    <div class="status-bar" id="statusBar">Arahkan kamera ke Marker 8... 📷</div>
+
+    <!-- Transparent 2D Hit Layer for Mobile Touch (Zero animation/Zero effect at 9.25s) -->
+    <div class="quiz-choice-touch-layer" id="quizTouchLayer">
+        <!-- Left half: Benar -->
+        <button class="touch-half" id="btnTouchBenar" aria-label="Pilih Benar"></button>
+        <!-- Right half: Salah -->
+        <button class="touch-half" id="btnTouchSalah" aria-label="Pilih Salah"></button>
     </div>
 
-    <!-- Result Feedback Modal -->
+    <!-- Result Popup Modal -->
     <div class="result-modal" id="resultModal">
         <div class="result-card" id="resultCard">
             <div class="result-icon" id="resultIcon">🎉</div>
@@ -483,7 +253,7 @@
                     🔄 Ulangi Kuis
                 </button>
                 <a href="./chapter2.html" class="btn-action btn-chapter">
-                    📖 Kembali ke Cerita (Chapter 2)
+                    📖 Kembali ke Cerita (Bab 2)
                 </a>
                 <a href="./index.html" class="btn-action btn-home">
                     🏠 Halaman Utama
@@ -492,11 +262,53 @@
         </div>
     </div>
 
-    <!-- Hidden Raw Video Elements -->
-    <video id="vidBenar" src="./compressed_ultra-videos/chapter2/quiz/quiz1/video/benar.mp4" preload="auto" playsinline webkit-playsinline muted crossorigin="anonymous" style="display: none;"></video>
-    <video id="vidSalah" src="./compressed_ultra-videos/chapter2/quiz/quiz1/video/salah.mp4" preload="auto" playsinline webkit-playsinline muted crossorigin="anonymous" style="display: none;"></video>
+    <!-- AR Scene Tracking Marker 8 (targetIndex: 7) -->
+    <a-scene id="arScene" mindar-image="
+            imageTargetSrc: ./targets-mind/targets-chapter2.mind;
+            filterMinCF: 0.0001;
+            filterBeta: 0.001;
+            warmupTolerance: 3;
+            missTolerance: 5;
+            maxTrack: 8;
+        " color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights: true, antialias: true"
+        vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
-    <!-- Quiz Logic Script -->
+        <a-camera position="0 0 0" look-controls="enabled: false" cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-camera>
+
+        <!-- Target Index 7 corresponds to Marker 8 in Chapter 2 targets -->
+        <a-entity id="targetQuiz" mindar-image-target="targetIndex: 7">
+            <a-entity id="video-container-quiz" visible="false">
+                <!-- Question Banner -->
+                <a-image id="quiz-pertanyaan" src="#img-quiz-pertanyaan" position="0 0 0.12" height="1" width="1"
+                    material="transparent: true; alphaTest: 0.05; side: double"></a-image>
+
+                <!-- Video Benar: Left card (Sikat Gigi Pagi dan Malam) -->
+                <a-video id="video-quiz-benar" class="clickable" src="#vid-quiz-benar" position="0 0 0.10" height="1" width="1"
+                    material="shader: chromakey-magenta; src: #vid-quiz-benar; transparent: true; side: double"></a-video>
+
+                <!-- Video Salah: Right card (Tidak Mau Sikat Gigi) -->
+                <a-video id="video-quiz-salah" class="clickable" src="#vid-quiz-salah" position="0 0 0.11" height="1" width="1"
+                    material="shader: chromakey-magenta; src: #vid-quiz-salah; transparent: true; side: double"></a-video>
+
+                <!-- 3D Choice Clickable Planes (Active at 9.25s) -->
+                <!-- Left card: Benar -->
+                <a-plane id="btn-choice-benar-3d" class="clickable" position="-0.20 -0.012 0.20" width="0.36" height="0.30"
+                    material="opacity: 0.0; transparent: true" visible="false"></a-plane>
+
+                <!-- Right card: Salah -->
+                <a-plane id="btn-choice-salah-3d" class="clickable" position="0.20 -0.012 0.20" width="0.36" height="0.30"
+                    material="opacity: 0.0; transparent: true" visible="false"></a-plane>
+            </a-entity>
+        </a-entity>
+
+        <a-assets>
+            <img id="img-quiz-pertanyaan" src="./compressed_ultra-videos/chapter2/quiz/quiz1/pertanyaan.PNG" crossorigin="anonymous" />
+            <video id="vid-quiz-benar" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline></video>
+            <video id="vid-quiz-salah" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+        </a-assets>
+    </a-scene>
+
+    <script src="./js/shaders.js"></script>
     <script type="module" src="./js/quiz.js"></script>
 </body>
 
