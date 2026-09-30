@@ -433,23 +433,29 @@ AFRAME.registerShader('chromakey-magenta', {
                 void main() {
                     vec4 color = texture2D(tex, vUv);
 
-                    // Target warna chroma: #D201D9 (RGB: 210, 1, 217 -> vec3(0.8235, 0.0039, 0.8510))
-                    // Dalam kompresi video MP4 terdeteksi sebagai vec3(0.7529, 0.0, 0.8196)
-                    const vec3 targetChromaUser = vec3(0.8235, 0.0039, 0.8510);
-                    const vec3 targetChromaVideo = vec3(0.7529, 0.0, 0.8196);
+                    // Target warna chroma ungu: #B200B8 dan #D201D9
+                    // - #B200B8 (RGB: 178, 0, 184): dalam kompresi video terdeteksi sebagai vec3(0.6431, 0.0, 0.6980)
+                    // - #D201D9 (RGB: 210, 1, 217): dalam kompresi video terdeteksi sebagai vec3(0.7529, 0.0, 0.8196)
+                    const vec3 targetB2_video = vec3(0.6431, 0.0, 0.6980);
+                    const vec3 targetB2_user  = vec3(0.6980, 0.0, 0.7216);
+                    const vec3 targetD2_video = vec3(0.7529, 0.0, 0.8196);
+                    const vec3 targetD2_user  = vec3(0.8235, 0.0039, 0.8510);
 
-                    // Hitung jarak warna terdekat ke warna chroma
-                    float d1 = length(color.rgb - targetChromaVideo);
-                    float d2 = length(color.rgb - targetChromaUser);
-                    float dChroma = min(d1, d2);
+                    // Hitung jarak warna terdekat ke palet chroma ungu
+                    float d1 = length(color.rgb - targetB2_video);
+                    float d2 = length(color.rgb - targetB2_user);
+                    float d3 = length(color.rgb - targetD2_video);
+                    float d4 = length(color.rgb - targetD2_user);
+                    float dChroma = min(min(d1, d2), min(d3, d4));
 
                     // Transisi halus presisi:
                     // - Latar chroma dan tepian anti-aliasing berada pada dChroma <= 0.04
-                    // - Corak pada baju dan elemen objek lainnya berada pada dChroma >= 0.12 (tetap solid opaque 100%)
-                    float alpha = smoothstep(0.035, 0.085, dChroma);
+                    // - Menghilangkan border garis tepi samping gambar secara bersih
+                    // - Corak pada baju dan elemen objek lainnya tetap solid opaque 100%
+                    float alpha = smoothstep(0.038, 0.088, dChroma);
 
                     // Pengaman hard-cut untuk piksel latar belakang murni
-                    if (dChroma < 0.035) {
+                    if (dChroma < 0.038) {
                         alpha = 0.0;
                     }
 
