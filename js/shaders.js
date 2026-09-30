@@ -194,32 +194,33 @@ AFRAME.registerShader('chromakey-blue', {
                 void main() {
                     vec4 color = texture2D(tex, vUv);
                     
-                    // Hitung dominasi warna BIRU (Blue Dominance)
+                    // Dominasi warna biru terhadap merah dan hijau
                     float blueDominance = color.b - max(color.r, color.g);
-                    float isBlue = 0.0;
                     
-                    // Deteksi warna biru
-                    if (color.b > 0.4 && color.b > color.r * 1.2 && color.b > color.g * 1.2) isBlue = 1.0;
-                    if (color.b > 0.6 && blueDominance > 0.2) isBlue = 1.0;
-                    if (blueDominance > 0.15 && color.b > 0.35) isBlue = 1.0;
+                    // Kalibrasi presisi blue screen (#083EF6 / #093DF4):
+                    // - Blue screen asli: B >= 0.94, R <= 0.045, G <= 0.28, blueDominance > 0.67
+                    // - Objek seperti permen lolipop & pola pada baju: R >= 0.05 atau B < 0.92 atau blueDominance < 0.62
+                    float domFactor = smoothstep(0.62, 0.69, blueDominance);
+                    float rFactor = 1.0 - smoothstep(0.035, 0.065, color.r);
+                    float bFactor = smoothstep(0.90, 0.94, color.b);
+                    
+                    float isBlue = domFactor * rFactor * bFactor;
+                    
+                    // Hard-cut pengaman untuk piksel blue screen murni
+                    if (color.b > 0.935 && blueDominance > 0.67 && color.r < 0.045) {
+                        isBlue = 1.0;
+                    }
                     
                     float alpha = 1.0 - isBlue;
                     
-                    // Transisi halus untuk area semi-transparan
-                    if (blueDominance > 0.1 && blueDominance < 0.25 && color.b > 0.3) {
-                        float smoothFactor = smoothstep(0.1, 0.25, blueDominance);
-                        alpha = 1.0 - smoothFactor;
-                    }
-                    
-                    // Despill (Menghilangkan pantulan cahaya biru di tepian objek)
+                    // Despill lembut hanya pada tepian semi-transparan untuk hilangkan pantulan biru
                     vec3 finalColor = color.rgb;
-                    if (alpha > 0.1 && alpha < 0.9 && blueDominance > 0.05) {
+                    if (alpha > 0.05 && alpha < 0.95 && blueDominance > 0.1) {
                         float despillStrength = (1.0 - alpha) * 0.7;
-                        // Campurkan warna biru dengan rata-rata merah & hijau agar menjadi warna netral
-                        finalColor.b = mix(finalColor.b, (finalColor.r + finalColor.g) * 0.5, despillStrength);
+                        float maxRG = max(finalColor.r, finalColor.g);
+                        finalColor.b = mix(finalColor.b, maxRG, despillStrength);
                     }
                     
-                    if (alpha > 0.5 && blueDominance > 0.05) finalColor.b *= 0.9;
                     if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
