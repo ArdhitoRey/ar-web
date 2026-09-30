@@ -216,6 +216,11 @@ export function restartFromBeginning() {
 const handleInteraction = (e) => {
     if (e.type === "touchend") e.preventDefault();
     if (!state.isPlaying) {
+        if (state.part8Finished) {
+            console.log('🐚 [Interaction] Part 8 selesai, tap layar menuju kuis...');
+            window.location.href = './quiz.html';
+            return;
+        }
         if (state.lastScannedMarker > 0 && state.lastScannedMarker === state.currentPart) {
             replayPart(state.lastScannedMarker);
         } else if (state.currentPart >= 1 && state.currentPart <= 8 && state[`part${state.currentPart}Finished`]) {

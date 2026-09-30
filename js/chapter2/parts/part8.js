@@ -80,27 +80,24 @@ async function startPart8Videos() {
         state.isPlaying = false;
         state.part8Finished = true;
         
+        // Biarkan video kerang tetap terlihat di frame terakhir (tombol play terbuka pada kerang)
         if (dom.containerPart8) {
-            fadeOutContainer(dom.containerPart8, 250, () => {
-                videos.part8.forEach(v => { 
-                    try { 
-                        if (v) {
-                            v.pause(); 
-                            v.currentTime = 0; 
-                        }
-                    } catch (e) {} 
-                });
-                console.log('🧹 Layar dibersihkan dan video dimatikan.');
-            });
+            dom.containerPart8.setAttribute('visible', true);
         }
         
         state.isMarkerLocked = false;
         state.lockedMarker = null;
         console.log('🔓 [Part 8] Marker UNLOCKED');
         
-        dom.statusBar.textContent = '✅ Part 8 selesai! Tap layar untuk ulang atau tekan Reset 🔄';
+        dom.statusBar.textContent = '👉 Tap tombol play di kerang untuk ke Quiz! 🐚';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
+
+        const quizBtn = document.getElementById('quizButton');
+        if (quizBtn) {
+            quizBtn.classList.add('visible');
+            quizBtn.style.display = 'block';
+        }
     };
     
     let audioPlayed = false;
@@ -129,6 +126,31 @@ async function startPart8Videos() {
 export function initPart8() {
     if (!dom.target8) return; // Sabuk pengaman
 
+    // Pasang handler klik pada kerang untuk navigasi ke quiz
+    const kerangEl = document.getElementById('video-kerang-part8-v1');
+    if (kerangEl) {
+        const handleKerangClick = (e) => {
+            if (e) e.stopPropagation();
+            console.log('🐚 [Part 8] Video kerang / tombol play ditekan! Navigasi ke quiz...');
+            window.location.href = './quiz.html';
+        };
+        kerangEl.addEventListener('click', handleKerangClick);
+        kerangEl.addEventListener('touchend', handleKerangClick);
+    }
+
+    const quizBtn = document.getElementById('quizButton');
+    if (quizBtn) {
+        quizBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = './quiz.html';
+        });
+        quizBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = './quiz.html';
+        });
+    }
+
     dom.target8.addEventListener('targetFound', () => {
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 8) return;
@@ -138,7 +160,7 @@ export function initPart8() {
             return;
         }
         
-        // Catatan: Part 8 adalah part terakhir saat ini
+        // Catatan: Part 8 adalah part terakhir sebelum kuis
         
         if (state.part7Finished && !state.part8Finished && !state.isPlaying && !state.isTransitioning) {
             console.log('🎯 [Part 8] Marker 8 Terdeteksi!');
@@ -156,7 +178,7 @@ export function initPart8() {
         } else if (!state.part7Finished) {
             dom.statusBar.textContent = '⚠️ Selesaikan Part 7 dulu';
         } else if (state.part8Finished && state.currentPart === 8 && !state.isPlaying) {
-            dom.statusBar.textContent = '⚠️ Tap layar untuk ulang Part 8';
+            dom.statusBar.textContent = '👉 Tap tombol play di kerang untuk ke Quiz! 🐚';
             state.lastScannedMarker = 8;
         }
     });
