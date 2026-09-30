@@ -242,3 +242,73 @@ const handleReset = (e) => {
 
 dom.resetButton.addEventListener("click", handleReset);
 dom.resetButton.addEventListener("touchend", handleReset);
+
+// 7. TESTING & DIRECT JUMP UTILITIES
+export function jumpToPart(partNumber) {
+    if (partNumber < 1 || partNumber > 8) return;
+    console.log(`🧪 [Test] Langsung melompat ke Chapter 2 Part ${partNumber}...`);
+
+    state.isPlaying = false;
+    state.isTransitioning = false;
+    state.isMarkerLocked = false;
+    state.lockedMarker = null;
+
+    // Buka semua part sebelum part tujuan
+    for (let i = 1; i < partNumber; i++) {
+        state[`part${i}Finished`] = true;
+    }
+    state[`part${partNumber}Finished`] = false;
+    state.currentPart = partNumber - 1;
+
+    // Matikan semua suara dan video
+    [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].forEach(s => {
+        if (s) { s.pause(); s.currentTime = 0; }
+    });
+    allVideos.forEach(v => {
+        if (v) { v.pause(); v.currentTime = 0; }
+    });
+
+    // Sembunyikan kontainer lainnya
+    const allContainers = [
+        dom.containerPart1, dom.containerPart2, dom.containerPart3,
+        dom.containerPart4, dom.containerPart5, dom.containerPart6,
+        dom.containerPart7, dom.containerPart8
+    ];
+    allContainers.forEach((c, idx) => {
+        if (c && idx + 1 !== partNumber) c.setAttribute("visible", false);
+    });
+
+    const playActions = {
+        1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4,
+        5: playPart5, 6: playPart6, 7: playPart7, 8: playPart8
+    };
+    if (playActions[partNumber]) {
+        playActions[partNumber]();
+    }
+}
+window.jumpToPart = jumpToPart;
+
+export function unlockAllParts() {
+    console.log("🔓 [Test] Membuka semua marker Chapter 2...");
+    for (let i = 1; i <= 8; i++) {
+        state[`part${i}Finished`] = true;
+    }
+    state.isMarkerLocked = false;
+    state.lockedMarker = null;
+    dom.statusBar.textContent = "🔓 Semua marker terbuka! Anda bisa scan marker Part 1 s/d 8.";
+}
+window.unlockAllParts = unlockAllParts;
+
+// Deteksi URL Query Param: ?jump=X atau ?part=X
+const urlParams = new URLSearchParams(window.location.search);
+const jumpTarget = parseInt(urlParams.get('jump') || urlParams.get('part'), 10);
+if (jumpTarget && jumpTarget >= 1 && jumpTarget <= 8) {
+    const doAutoJump = () => {
+        setTimeout(() => jumpToPart(jumpTarget), 400);
+    };
+    if (dom.arScene && dom.arScene.classList.contains('ready')) {
+        doAutoJump();
+    } else if (dom.startButton) {
+        dom.startButton.addEventListener('click', doAutoJump, { once: true });
+    }
+}
