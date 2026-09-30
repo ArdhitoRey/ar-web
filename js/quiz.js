@@ -1,5 +1,5 @@
 // Quiz AR Logic - Marker 8 MindAR Experience
-// Video sync, magenta chromakey, 9.25s pause with seamless instant button tap
+// Video sync, green chromakey (chromakey-advanced), 9.25s pause with seamless instant button tap
 
 const cacheBuster = Date.now();
 console.log('🔄 [Quiz AR] Inisialisasi kuis AR dengan Marker 8. Cache buster:', cacheBuster);
