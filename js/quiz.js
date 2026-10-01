@@ -1,32 +1,180 @@
 // Quiz AR Logic - Marker 8 MindAR Experience
-// Video sync, green chromakey (chromakey-advanced), 9.25s pause with seamless instant button tap
-// Synchronized voiceover audio for question (stops at 9.25s), correct answer, and wrong answer
+// Mendukung Quiz 1, 2, 3, 4, 5 dengan alur dan fungsionalitas identik:
+// - Sinkronisasi video ganda (Benar & Salah)
+// - Pause presisi di detik 9.25 dengan transisi tombol instan (Zero animation/Zero clipping)
+// - Pemutaran voiceover pertanyaan (berhenti di 9.25s) serta feedback suara benar dan salah
+// - Penyesuaian tata letak kartu kiri/kanan dinamis per kuis
+// - Penyesuaian shader chromakey (magenta vs green) per video kuis
+// - Navigasi kuis berurutan (Kuis 1 -> 2 -> 3 -> 4 -> 5)
 
+export const QUIZ_CONFIG = {
+    1: {
+        id: 1,
+        title: "Kuis 1: Menjaga Kesehatan Gigi",
+        questionText: "MANA CARA YANG BAIK MENJAGA KESEHATAN GIGI?",
+        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz1/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz1/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz1/video/salah.mp4",
+        shaderBenar: "chromakey-magenta",
+        shaderSalah: "chromakey-advanced",
+        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz1/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz1/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz1/sound/salah.mp3",
+        leftChoice: "benar",
+        rightChoice: "salah",
+        labelLeft: "Sikat Gigi Pagi & Malam",
+        labelRight: "Tidak Mau Sikat Gigi",
+        promptStatusText: "👉 Ketuk jawabanmu: SIKAT GIGI PAGI & MALAM atau TIDAK MAU SIKAT GIGI!",
+        statusBenar: "🎉 Hebat! Pilihanmu benar: Sikat Gigi Pagi dan Malam! ✨",
+        statusSalah: "❌ Kurang tepat! Dengarkan penjelasannya... 💡",
+        descBenar: "Jawabanmu benar! Kita harus menyikat gigi di pagi hari setelah sarapan dan malam hari sebelum tidur agar gigi tetap bersih dan sehat.",
+        descSalah: "Jangan malas menyikat gigi ya! Tidak mau sikat gigi bisa membuat kuman berkembang biak dan merusak gigi hingga berlubang."
+    },
+    2: {
+        id: 2,
+        title: "Kuis 2: Cara Sikat Gigi yang Benar",
+        questionText: "MANA CARA SIKAT GIGI YANG BENAR?",
+        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz2/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz2/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz2/video/salah.mp4",
+        shaderBenar: "chromakey-magenta",
+        shaderSalah: "chromakey-advanced",
+        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz2/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz2/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz2/sound/salah.mp3",
+        // Pada Kuis 2: Kartu kiri adalah Salah, Kartu kanan adalah Benar
+        leftChoice: "salah",
+        rightChoice: "benar",
+        labelLeft: "Sikat Bagian Depan Saja",
+        labelRight: "Sikat Semua Bagian Gigi",
+        promptStatusText: "👉 Ketuk jawabanmu: SIKAT BAGIAN DEPAN SAJA atau SIKAT SEMUA BAGIAN GIGI!",
+        statusBenar: "🎉 Hebat! Pilihanmu benar: Sikat Semua Bagian Gigi! ✨",
+        statusSalah: "❌ Kurang tepat! Dengarkan penjelasannya... 💡",
+        descBenar: "Jawabanmu benar! Sikat seluruh permukaan gigi mulai dari depan, samping, hingga bagian dalam dan permukaan kunyah agar bersih menyeluruh.",
+        descSalah: "Menyikat bagian depan saja tidak cukup! Kuman dan sisa makanan bisa bersembunyi di sela-sela serta permukaan gigi bagian samping dan belakang."
+    },
+    3: {
+        id: 3,
+        title: "Kuis 3: Jadwal ke Dokter Gigi",
+        questionText: "KAPAN KITA HARUS KE DOKTER GIGI?",
+        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz3/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz3/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz3/video/salah.mp4",
+        shaderBenar: "chromakey-magenta",
+        shaderSalah: "chromakey-magenta", // Kuis 3 video salah berlatar magenta
+        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz3/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz3/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz3/sound/salah.mp3",
+        leftChoice: "benar",
+        rightChoice: "salah",
+        labelLeft: "Setiap Enam Bulan Sekali",
+        labelRight: "Tidak Pernah Karena Takut",
+        promptStatusText: "👉 Ketuk jawabanmu: SETIAP ENAM BULAN SEKALI atau TIDAK PERNAH KARENA TAKUT!",
+        statusBenar: "🎉 Hebat! Pilihanmu benar: Setiap Enam Bulan Sekali! ✨",
+        statusSalah: "❌ Kurang tepat! Dengarkan penjelasannya... 💡",
+        descBenar: "Jawabanmu benar! Kita harus rutin memeriksakan gigi ke dokter gigi setiap 6 bulan sekali agar gigi selalu terawat dan sehat.",
+        descSalah: "Jangan takut ke dokter gigi ya! Dokter gigi adalah sahabat yang membantu kita merawat gigi agar terhindar dari sakit gigi."
+    },
+    4: {
+        id: 4,
+        title: "Kuis 4: Kebiasaan Setelah Makan",
+        questionText: "SETELAH MAKAN KITA SEBAIKNYA?",
+        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz4/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz4/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz4/video/salah.mp4",
+        shaderBenar: "chromakey-magenta",
+        shaderSalah: "chromakey-advanced",
+        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz4/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz4/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz4/sound/salah.mp3",
+        leftChoice: "benar",
+        rightChoice: "salah",
+        labelLeft: "Berkumur",
+        labelRight: "Langsung Tidur",
+        promptStatusText: "👉 Ketuk jawabanmu: BERKUMUR atau LANGSUNG TIDUR!",
+        statusBenar: "🎉 Hebat! Pilihanmu benar: Berkumur! ✨",
+        statusSalah: "❌ Kurang tepat! Dengarkan penjelasannya... 💡",
+        descBenar: "Jawabanmu benar! Berkumur setelah makan membantu membersihkan sisa-sisa makanan yang menempel di sela gigi.",
+        descSalah: "Jangan langsung tidur setelah makan ya! Sisa makanan yang tertinggal akan menjadi makanan bagi kuman perusak gigi."
+    },
+    5: {
+        id: 5,
+        title: "Kuis 5: Teman Baik Gigi",
+        questionText: "SIAPA YANG JADI TEMAN BAIK GIGI KITA?",
+        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz5/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz5/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz5/video/salah.mp4",
+        shaderBenar: "chromakey-magenta",
+        shaderSalah: "chromakey-magenta", // Kuis 5 video salah berlatar magenta
+        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz5/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz5/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz5/sound/salah.mp3",
+        leftChoice: "benar",
+        rightChoice: "salah",
+        labelLeft: "Bakteri Baik",
+        labelRight: "Bakteri Jahat",
+        promptStatusText: "👉 Ketuk jawabanmu: BAKTERI BAIK atau BAKTERI JAHAT!",
+        statusBenar: "🎉 Hebat! Pilihanmu benar: Bakteri Baik! ✨",
+        statusSalah: "❌ Kurang tepat! Dengarkan penjelasannya... 💡",
+        descBenar: "Jawabanmu benar! Bakteri baik di dalam mulut membantu menjaga keseimbangan dan melindungi gigi dari kuman jahat.",
+        descSalah: "Bakteri jahat adalah musuh gigi kita! Mereka menghasilkan asam dari sisa gula yang bisa membuat gigi berlubang."
+    }
+};
+
+// Deteksi kuis aktif dari URL parameter (?quiz=1..5)
+const urlParams = new URLSearchParams(window.location.search);
+let currentQuizId = parseInt(urlParams.get('quiz') || urlParams.get('id') || '1', 10);
+if (isNaN(currentQuizId) || currentQuizId < 1 || currentQuizId > 5) {
+    currentQuizId = 1;
+}
+
+const currentQuiz = QUIZ_CONFIG[currentQuizId];
 const cacheBuster = Date.now();
-console.log('🔄 [Quiz AR] Inisialisasi kuis AR dengan Marker 8. Cache buster:', cacheBuster);
+
+console.log(`🔄 [Quiz AR] Inisialisasi ${currentQuiz.title} (Marker 8). Cache buster:`, cacheBuster);
 
 // Video Elements
 const vidBenar = document.getElementById('vid-quiz-benar');
 const vidSalah = document.getElementById('vid-quiz-salah');
-
-// Source paths for videos
-if (vidBenar) vidBenar.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/video/benar.mp4?t=${cacheBuster}`;
-if (vidSalah) vidSalah.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/video/salah.mp4?t=${cacheBuster}`;
 
 // Audio Elements
 const soundPertanyaan = document.getElementById('sound-quiz-pertanyaan');
 const soundBenar = document.getElementById('sound-quiz-benar');
 const soundSalah = document.getElementById('sound-quiz-salah');
 
-// Source paths for sounds
-if (soundPertanyaan) soundPertanyaan.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/sound/pertanyaan.mp3?t=${cacheBuster}`;
-if (soundBenar) soundBenar.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/sound/benar.mp3?t=${cacheBuster}`;
-if (soundSalah) soundSalah.src = `./compressed_ultra-videos/chapter2/quiz/quiz1/sound/salah.mp3?t=${cacheBuster}`;
+// Image Banner
+const imgQuizPertanyaan = document.getElementById('img-quiz-pertanyaan');
+const quizPertanyaanAframe = document.getElementById('quiz-pertanyaan');
+
+// Set asset sources with cache buster
+if (vidBenar) vidBenar.src = `${currentQuiz.videoBenar}?t=${cacheBuster}`;
+if (vidSalah) vidSalah.src = `${currentQuiz.videoSalah}?t=${cacheBuster}`;
+
+if (soundPertanyaan) soundPertanyaan.src = `${currentQuiz.soundPertanyaan}?t=${cacheBuster}`;
+if (soundBenar) soundBenar.src = `${currentQuiz.soundBenar}?t=${cacheBuster}`;
+if (soundSalah) soundSalah.src = `${currentQuiz.soundSalah}?t=${cacheBuster}`;
+
+if (imgQuizPertanyaan) imgQuizPertanyaan.src = `${currentQuiz.bannerImg}?t=${cacheBuster}`;
+if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('src', `${currentQuiz.bannerImg}?t=${cacheBuster}`);
+
+// A-Frame video elements
+const videoQuizBenar = document.getElementById('video-quiz-benar');
+const videoQuizSalah = document.getElementById('video-quiz-salah');
+
+// Set shaders dynamically
+if (videoQuizBenar) {
+    videoQuizBenar.setAttribute('material', `shader: ${currentQuiz.shaderBenar}; src: #vid-quiz-benar; transparent: true; side: double`);
+}
+if (videoQuizSalah) {
+    videoQuizSalah.setAttribute('material', `shader: ${currentQuiz.shaderSalah}; src: #vid-quiz-salah; transparent: true; side: double`);
+}
 
 const allSounds = [soundPertanyaan, soundBenar, soundSalah].filter(Boolean);
+const allVideos = [vidBenar, vidSalah].filter(Boolean);
 
 // DOM Elements
 const loadingOverlay = document.getElementById('loadingOverlay');
+const loadingTitle = document.getElementById('loadingTitle');
 const loadingMessage = document.getElementById('loadingMessage');
 const loadingDetail = document.getElementById('loadingDetail');
 const loadingProgress = document.getElementById('loadingProgress');
@@ -37,22 +185,23 @@ const arScene = document.getElementById('arScene');
 const targetQuiz = document.getElementById('targetQuiz');
 const videoContainer = document.getElementById('video-container-quiz');
 
-const videoQuizBenar = document.getElementById('video-quiz-benar');
-const videoQuizSalah = document.getElementById('video-quiz-salah');
+// 3D Clickable Planes (Left & Right)
+const btnChoiceLeft3D = document.getElementById('btn-choice-left-3d') || document.getElementById('btn-choice-benar-3d');
+const btnChoiceRight3D = document.getElementById('btn-choice-right-3d') || document.getElementById('btn-choice-salah-3d');
 
-const btnChoiceBenar3D = document.getElementById('btn-choice-benar-3d');
-const btnChoiceSalah3D = document.getElementById('btn-choice-salah-3d');
-
+// 2D Touch Zones
 const quizTouchLayer = document.getElementById('quizTouchLayer');
-const btnTouchBenar = document.getElementById('btnTouchBenar');
-const btnTouchSalah = document.getElementById('btnTouchSalah');
+const btnTouchLeft = document.getElementById('btnTouchLeft') || document.getElementById('btnTouchBenar');
+const btnTouchRight = document.getElementById('btnTouchRight') || document.getElementById('btnTouchSalah');
 
+// Modal Elements
 const resultModal = document.getElementById('resultModal');
 const resultCard = document.getElementById('resultCard');
 const resultIcon = document.getElementById('resultIcon');
 const resultTitle = document.getElementById('resultTitle');
 const resultDesc = document.getElementById('resultDesc');
 const btnReplayQuiz = document.getElementById('btnReplayQuiz');
+const btnNextQuiz = document.getElementById('btnNextQuiz');
 
 // State Machine
 // States: 'LOADING' | 'READY_WAIT_START' | 'WAIT_MARKER' | 'INTRO_PLAYING' | 'WAITING_CHOICE' | 'RESULT_PLAYING' | 'FINISHED'
@@ -61,11 +210,13 @@ let isTargetFound = false;
 let choiceHandled = false;
 let audioCtx = null;
 
+// Update UI info
+if (loadingTitle) loadingTitle.textContent = currentQuiz.title;
+if (loadingDetail) loadingDetail.textContent = `Memuat aset kuis ${currentQuizId} & mempersiapkan AR...`;
+
 // -----------------------------------------------------------------------------
 // Force Load Video & Audio Assets
 // -----------------------------------------------------------------------------
-const allVideos = [vidBenar, vidSalah].filter(Boolean);
-
 allSounds.forEach(s => {
     if (s) {
         s.load();
@@ -131,7 +282,7 @@ function unlockStartButton() {
     if (loadingDetail) loadingDetail.textContent = 'Ketuk Mulai Kuis untuk membuka kamera AR';
     if (startButton) {
         startButton.disabled = false;
-        startButton.textContent = 'Mulai Kuis 🎮';
+        startButton.textContent = `Mulai Kuis ${currentQuizId} 🎮`;
         startButton.style.background = '#4caf50';
         startButton.style.color = '#ffffff';
     }
@@ -166,8 +317,8 @@ setTimeout(() => {
 // Start button user gesture
 if (startButton) {
     startButton.addEventListener('click', async () => {
-        console.log('🚀 [Quiz AR] Tombol Mulai ditekan. Membuka AR dan audio context...');
-        
+        console.log(`🚀 [Quiz AR] Tombol Mulai Kuis ${currentQuizId} ditekan. Membuka AR dan audio context...`);
+
         // Prime audio context
         try {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -224,15 +375,15 @@ if (startButton) {
 // -----------------------------------------------------------------------------
 if (targetQuiz) {
     targetQuiz.addEventListener('targetFound', () => {
-        console.log('🎯 [Quiz AR] Marker 8 Terdeteksi!');
+        console.log(`🎯 [Quiz AR] Marker 8 Terdeteksi untuk Kuis ${currentQuizId}!`);
         isTargetFound = true;
 
         if (quizState === 'WAIT_MARKER') {
             startQuizPlayback();
         } else if (quizState === 'INTRO_PLAYING') {
-            if (statusBar) statusBar.textContent = '🎬 Kuis dimulai! Simak pertanyaannya... 🎯';
+            if (statusBar) statusBar.textContent = `🎬 Kuis ${currentQuizId} dimulai! Simak pertanyaannya... 🎯`;
         } else if (quizState === 'WAITING_CHOICE') {
-            if (statusBar) statusBar.textContent = '👉 Ketuk jawabanmu: SIKAT GIGI PAGI & MALAM atau TIDAK MAU SIKAT GIGI!';
+            if (statusBar) statusBar.textContent = currentQuiz.promptStatusText;
         }
     });
 
@@ -252,9 +403,9 @@ async function startQuizPlayback() {
     quizState = 'INTRO_PLAYING';
     choiceHandled = false;
 
-    console.log('🎬 [Quiz AR] Memulai pemutaran video kuis & audio pertanyaan...');
+    console.log(`🎬 [Quiz AR] Memulai pemutaran kuis ${currentQuizId} & audio pertanyaan...`);
     if (statusBar) {
-        statusBar.textContent = '🎬 Kuis dimulai! Simak pertanyaannya... 🎯';
+        statusBar.textContent = `🎬 Kuis ${currentQuizId} dimulai! Simak pertanyaannya... 🎯`;
         statusBar.classList.add('tracking');
         statusBar.classList.remove('finished');
     }
@@ -265,8 +416,8 @@ async function startQuizPlayback() {
     if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
 
     // Pastikan tombol pilihan tersembunyi selama intro
-    if (btnChoiceBenar3D) btnChoiceBenar3D.setAttribute('visible', false);
-    if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', false);
+    if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
+    if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
     if (quizTouchLayer) quizTouchLayer.classList.remove('active');
 
     // Reset dan mulai kedua video dari 0s
@@ -342,7 +493,7 @@ function startTimelineMonitor() {
 // Dipanggil tepat pada detik 9.25
 function reachDecisionPoint() {
     if (quizState !== 'INTRO_PLAYING') return;
-    console.log('⏸️ [Quiz AR] Mencapai detik 9.25! Menjeda video dan audio pertanyaan...');
+    console.log(`⏸️ [Quiz AR] Kuis ${currentQuizId}: Mencapai detik 9.25! Menjeda video dan audio pertanyaan...`);
     quizState = 'WAITING_CHOICE';
 
     if (monitorRaf) {
@@ -364,30 +515,30 @@ function reachDecisionPoint() {
         }
     }
 
-    // Hentikan pertanyaan.mp3 tepat di detik 9.25 sesuai permintaan user
+    // Hentikan pertanyaan.mp3 tepat di detik 9.25 sesuai alur Quiz 1
     if (soundPertanyaan) {
         soundPertanyaan.pause();
         soundPertanyaan.currentTime = 9.25;
     }
 
     // AKTIFKAN TOMBOL PILIHAN DENGAN ZERO EFEK/ANIMASI
-    // Sesuai permintaan: tombol muncul instan menyatu dengan video tanpa clipping
-    if (btnChoiceBenar3D) {
-        btnChoiceBenar3D.setAttribute('visible', true);
-        const mesh = btnChoiceBenar3D.getObject3D('mesh');
+    // Tombol muncul instan menyatu dengan video tanpa clipping (depthWrite: false)
+    if (btnChoiceLeft3D) {
+        btnChoiceLeft3D.setAttribute('visible', true);
+        const mesh = btnChoiceLeft3D.getObject3D('mesh');
         if (mesh && mesh.material) mesh.material.depthWrite = false;
     }
-    if (btnChoiceSalah3D) {
-        btnChoiceSalah3D.setAttribute('visible', true);
-        const mesh = btnChoiceSalah3D.getObject3D('mesh');
+    if (btnChoiceRight3D) {
+        btnChoiceRight3D.setAttribute('visible', true);
+        const mesh = btnChoiceRight3D.getObject3D('mesh');
         if (mesh && mesh.material) mesh.material.depthWrite = false;
     }
 
-    // Aktifkan juga overlay 2D touch transparan untuk kemudahan klik di layar HP
+    // Aktifkan juga overlay 2D touch transparan untuk kemudahan interaksi di layar HP
     if (quizTouchLayer) quizTouchLayer.classList.add('active');
 
     if (statusBar) {
-        statusBar.textContent = '👉 Ketuk jawabanmu: SIKAT GIGI PAGI & MALAM atau TIDAK MAU SIKAT GIGI!';
+        statusBar.textContent = currentQuiz.promptStatusText;
         statusBar.classList.remove('tracking');
         statusBar.classList.add('finished');
     }
@@ -401,7 +552,7 @@ function selectChoice(choice) {
     choiceHandled = true;
     quizState = 'RESULT_PLAYING';
 
-    console.log(`✨ [Quiz AR] Pengguna memilih: ${choice.toUpperCase()}`);
+    console.log(`✨ [Quiz AR] Kuis ${currentQuizId}: Pengguna memilih: ${choice.toUpperCase()}`);
 
     // Pastikan audio pertanyaan benar-benar mati
     if (soundPertanyaan) {
@@ -409,8 +560,8 @@ function selectChoice(choice) {
     }
 
     // Sembunyikan target pilihan
-    if (btnChoiceBenar3D) btnChoiceBenar3D.setAttribute('visible', false);
-    if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', false);
+    if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
+    if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
     if (quizTouchLayer) quizTouchLayer.classList.remove('active');
 
     const isBenar = (choice === 'benar');
@@ -450,7 +601,7 @@ function selectChoice(choice) {
         }
 
         if (statusBar) {
-            statusBar.textContent = '🎉 Hebat! Pilihanmu benar: Sikat Gigi Pagi dan Malam! ✨';
+            statusBar.textContent = currentQuiz.statusBenar;
             statusBar.classList.add('tracking');
         }
 
@@ -490,7 +641,7 @@ function selectChoice(choice) {
         }
 
         if (statusBar) {
-            statusBar.textContent = '❌ Kurang tepat! Dengarkan penjelasannya... 💡';
+            statusBar.textContent = currentQuiz.statusSalah;
             statusBar.classList.add('finished');
         }
 
@@ -508,7 +659,7 @@ function waitForQuizCompletion(videoEl, soundEl, isCorrect) {
         if (hasEnded) return;
         hasEnded = true;
 
-        console.log(`🏁 [Quiz AR] Penjelasan selesai (${isCorrect ? 'Benar' : 'Salah'}).`);
+        console.log(`🏁 [Quiz AR] Penjelasan Kuis ${currentQuizId} selesai (${isCorrect ? 'Benar' : 'Salah'}).`);
         if (videoEl) videoEl.pause();
         if (soundEl) soundEl.pause();
         quizState = 'FINISHED';
@@ -573,9 +724,9 @@ function showResultModal(isCorrect) {
         if (resultIcon) resultIcon.textContent = '🎉';
         if (resultTitle) resultTitle.textContent = 'Hebat Sekali!';
         if (resultDesc) {
-            resultDesc.textContent = 'Jawabanmu benar! Kita harus menyikat gigi di pagi hari setelah sarapan dan malam hari sebelum tidur agar gigi tetap bersih dan sehat.';
+            resultDesc.textContent = currentQuiz.descBenar;
         }
-        if (statusBar) statusBar.textContent = '✅ Kuis selesai! Kamu menjawab dengan benar! 🏆';
+        if (statusBar) statusBar.textContent = `✅ Kuis ${currentQuizId} selesai! Kamu menjawab dengan benar! 🏆`;
     } else {
         if (resultCard) {
             resultCard.className = 'result-card card-wrong';
@@ -583,9 +734,33 @@ function showResultModal(isCorrect) {
         if (resultIcon) resultIcon.textContent = '😅';
         if (resultTitle) resultTitle.textContent = 'Yah, Masih Kurang Tepat!';
         if (resultDesc) {
-            resultDesc.textContent = 'Jangan malas menyikat gigi ya! Tidak mau sikat gigi bisa membuat kuman berkembang biak dan merusak gigi hingga berlubang.';
+            resultDesc.textContent = currentQuiz.descSalah;
         }
-        if (statusBar) statusBar.textContent = '💡 Kuis selesai! Pelajari penjelasannya ya! 🌟';
+        if (statusBar) statusBar.textContent = `💡 Kuis ${currentQuizId} selesai! Pelajari penjelasannya ya! 🌟`;
+    }
+
+    // Tombol Kuis Selanjutnya
+    if (btnNextQuiz) {
+        if (currentQuizId < 5) {
+            const nextQuizId = currentQuizId + 1;
+            btnNextQuiz.style.display = 'flex';
+            btnNextQuiz.textContent = `➡️ Lanjut ke Kuis ${nextQuizId}`;
+            btnNextQuiz.onclick = () => {
+                window.location.href = `./quiz.html?quiz=${nextQuizId}`;
+            };
+        } else {
+            // Sudah kuis terakhir (Kuis 5)
+            btnNextQuiz.style.display = 'flex';
+            btnNextQuiz.style.background = 'linear-gradient(135deg, #ff007f 0%, #7928ca 100%)';
+            btnNextQuiz.textContent = '🏆 Selesai Semua Kuis! (Ulangi dari Kuis 1)';
+            btnNextQuiz.onclick = () => {
+                window.location.href = './quiz.html?quiz=1';
+            };
+        }
+    }
+
+    if (btnReplayQuiz) {
+        btnReplayQuiz.textContent = `🔄 Ulangi Kuis ${currentQuizId}`;
     }
 
     resultModal.classList.add('active');
@@ -594,21 +769,21 @@ function showResultModal(isCorrect) {
 // -----------------------------------------------------------------------------
 // Event Listeners untuk Interaksi Pemilihan
 // -----------------------------------------------------------------------------
-// 3D Planes
-if (btnChoiceBenar3D) {
-    btnChoiceBenar3D.addEventListener('click', (e) => {
+// 3D Planes (Left & Right)
+if (btnChoiceLeft3D) {
+    btnChoiceLeft3D.addEventListener('click', (e) => {
         if (e) e.stopPropagation();
-        selectChoice('benar');
+        selectChoice(currentQuiz.leftChoice);
     });
 }
-if (btnChoiceSalah3D) {
-    btnChoiceSalah3D.addEventListener('click', (e) => {
+if (btnChoiceRight3D) {
+    btnChoiceRight3D.addEventListener('click', (e) => {
         if (e) e.stopPropagation();
-        selectChoice('salah');
+        selectChoice(currentQuiz.rightChoice);
     });
 }
 
-// Video planes fallback (jika mengklik langsung pada video)
+// Video planes fallback (jika mengklik langsung pada video entity)
 if (videoQuizBenar) {
     videoQuizBenar.addEventListener('click', (e) => {
         if (quizState === 'WAITING_CHOICE') {
@@ -627,38 +802,38 @@ if (videoQuizSalah) {
 }
 
 // 2D Touch Zones (Layar sentuh HP)
-if (btnTouchBenar) {
-    btnTouchBenar.addEventListener('click', (e) => {
+if (btnTouchLeft) {
+    btnTouchLeft.addEventListener('click', (e) => {
         if (e) e.stopPropagation();
-        selectChoice('benar');
+        selectChoice(currentQuiz.leftChoice);
     });
-    btnTouchBenar.addEventListener('touchstart', (e) => {
+    btnTouchLeft.addEventListener('touchstart', (e) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        selectChoice('benar');
+        selectChoice(currentQuiz.leftChoice);
     }, { passive: false });
 }
 
-if (btnTouchSalah) {
-    btnTouchSalah.addEventListener('click', (e) => {
+if (btnTouchRight) {
+    btnTouchRight.addEventListener('click', (e) => {
         if (e) e.stopPropagation();
-        selectChoice('salah');
+        selectChoice(currentQuiz.rightChoice);
     });
-    btnTouchSalah.addEventListener('touchstart', (e) => {
+    btnTouchRight.addEventListener('touchstart', (e) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        selectChoice('salah');
+        selectChoice(currentQuiz.rightChoice);
     }, { passive: false });
 }
 
-// Tombol Ulangi Kuis
+// Tombol Ulangi Kuis (Reset in-place tanpa reload seluruh halaman)
 if (btnReplayQuiz) {
     btnReplayQuiz.addEventListener('click', () => {
-        console.log('🔄 [Quiz AR] Mengulangi kuis...');
+        console.log(`🔄 [Quiz AR] Mengulangi Kuis ${currentQuizId}...`);
         if (resultModal) resultModal.classList.remove('active');
 
         // Reset video
@@ -687,8 +862,8 @@ if (btnReplayQuiz) {
 
         if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
         if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
-        if (btnChoiceBenar3D) btnChoiceBenar3D.setAttribute('visible', false);
-        if (btnChoiceSalah3D) btnChoiceSalah3D.setAttribute('visible', false);
+        if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
+        if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
         if (quizTouchLayer) quizTouchLayer.classList.remove('active');
 
         choiceHandled = false;

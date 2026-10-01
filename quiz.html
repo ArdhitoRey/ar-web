@@ -23,6 +23,123 @@
             --quiz-dark: #0a192f;
         }
 
+        /* Top Bar Layout */
+        .quiz-top-bar {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1200;
+            pointer-events: none;
+        }
+
+        .quiz-top-bar > * {
+            pointer-events: auto;
+        }
+
+        /* Quiz Navigation Pills */
+        .quiz-nav-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(4, 14, 28, 0.82);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .quiz-nav-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: #94a3b8;
+            margin-right: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quiz-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 700;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-pill:hover {
+            background: rgba(0, 229, 255, 0.25);
+            border-color: #00e5ff;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .quiz-pill.active {
+            background: linear-gradient(135deg, #00e5ff 0%, #00838f 100%);
+            color: #051326;
+            font-weight: 900;
+            border-color: #ffffff;
+            box-shadow: 0 0 16px rgba(0, 229, 255, 0.7);
+            transform: scale(1.08);
+        }
+
+        /* Marker 8 Badge */
+        .marker-badge {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: #e0f7fa;
+            padding: 9px 16px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        @media (max-width: 720px) {
+            .quiz-top-bar {
+                top: 14px;
+                padding: 0 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .quiz-nav-container {
+                order: 3;
+                margin: 6px auto 0;
+                padding: 4px 10px;
+            }
+            .quiz-pill {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+            .quiz-nav-label {
+                display: none;
+            }
+            .marker-badge {
+                padding: 7px 12px;
+                font-size: 12px;
+            }
+        }
+
         /* 2D Touch Choice Layer (Zero transition & Zero animation as requested) */
         .quiz-choice-touch-layer {
             position: fixed;
@@ -153,6 +270,18 @@
             transition: all 0.25s ease;
         }
 
+        .btn-action.btn-next {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.35);
+        }
+
+        .btn-action.btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+        }
+
         .btn-action.btn-replay {
             background: linear-gradient(135deg, #00e5ff 0%, #00838f 100%);
             color: #ffffff;
@@ -186,58 +315,60 @@
         .btn-action.btn-home:hover {
             color: #ffffff;
         }
-
-        /* Marker 8 Badge */
-        .marker-badge {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 229, 255, 0.4);
-            color: #e0f7fa;
-            padding: 10px 18px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 700;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
     </style>
+
+    <script>
+        // Inisialisasi awal ID Kuis dari URL parameter (?quiz=1..5)
+        const __params = new URLSearchParams(window.location.search);
+        let __initialQuizId = parseInt(__params.get('quiz') || __params.get('id') || '1', 10);
+        if (isNaN(__initialQuizId) || __initialQuizId < 1 || __initialQuizId > 5) __initialQuizId = 1;
+        window.__CURRENT_QUIZ_ID__ = __initialQuizId;
+        document.title = `Kuis Petualangan AR - Babak ${__initialQuizId} (Marker 8)`;
+    </script>
 </head>
 
 <body>
-    <!-- Top Nav Back -->
-    <a href="chapter2.html" class="back-button">🔙 Bab 2</a>
+    <!-- Top Navigation Bar -->
+    <div class="quiz-top-bar">
+        <!-- Back to Chapter 2 -->
+        <a href="chapter2.html" class="back-button" style="position: static;">🔙 Bab 2</a>
 
-    <!-- Marker 8 Badge -->
-    <div class="marker-badge">
-        <span>Target: Marker 8</span> 🎯
+        <!-- Quiz Selector Pills (1 - 5) -->
+        <div class="quiz-nav-container" id="quizNavContainer">
+            <span class="quiz-nav-label">Kuis:</span>
+            <a href="./quiz.html?quiz=1" class="quiz-pill" data-quiz="1">1</a>
+            <a href="./quiz.html?quiz=2" class="quiz-pill" data-quiz="2">2</a>
+            <a href="./quiz.html?quiz=3" class="quiz-pill" data-quiz="3">3</a>
+            <a href="./quiz.html?quiz=4" class="quiz-pill" data-quiz="4">4</a>
+            <a href="./quiz.html?quiz=5" class="quiz-pill" data-quiz="5">5</a>
+        </div>
+
+        <!-- Marker 8 Badge -->
+        <div class="marker-badge">
+            <span>Target: Marker 8</span> 🎯
+        </div>
     </div>
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-title">Kuis Bawah Laut</div>
+        <div class="loading-title" id="loadingTitle">Kuis Bawah Laut</div>
         <div class="loading-message" id="loadingMessage">Mempersiapkan Kamera AR & Kuis...</div>
         <div class="loading-progress" id="loadingProgress">●●</div>
         <div class="loading-detail" id="loadingDetail">Memuat video kuis & marker...</div>
-        <div class="loading-tip">Pastikan izin kamera diaktifkan</div>
+        <div class="loading-tip">Pastikan izin kamera diaktifkan & arahkan ke Marker 8</div>
         <button class="start-button" id="startButton" disabled>Tunggu Sebentar...</button>
     </div>
 
     <!-- Status Bar -->
     <div class="status-bar" id="statusBar">Arahkan kamera ke Marker 8... 📷</div>
 
-    <!-- Transparent 2D Hit Layer for Mobile Touch (Zero animation/Zero effect at 9.25s) -->
+    <!-- Transparent 2D Hit Layer for Mobile Touch (Zero animation/Zero latency at 9.25s) -->
     <div class="quiz-choice-touch-layer" id="quizTouchLayer">
-        <!-- Left half: Benar -->
-        <button class="touch-half" id="btnTouchBenar" aria-label="Pilih Benar"></button>
-        <!-- Right half: Salah -->
-        <button class="touch-half" id="btnTouchSalah" aria-label="Pilih Salah"></button>
+        <!-- Left half -->
+        <button class="touch-half" id="btnTouchLeft" aria-label="Pilih Kiri"></button>
+        <!-- Right half -->
+        <button class="touch-half" id="btnTouchRight" aria-label="Pilih Kanan"></button>
     </div>
 
     <!-- Result Popup Modal -->
@@ -246,9 +377,13 @@
             <div class="result-icon" id="resultIcon">🎉</div>
             <h2 class="result-title" id="resultTitle">Hebat Sekali!</h2>
             <p class="result-desc" id="resultDesc">
-                Jawabanmu benar! Kita harus menyikat gigi di pagi hari dan malam hari sebelum tidur agar gigi tetap bersih dan sehat.
+                Jawabanmu benar!
             </p>
             <div class="result-actions">
+                <!-- Tombol Kuis Selanjutnya (Hanya muncul jika quizId < 5) -->
+                <button class="btn-action btn-next" id="btnNextQuiz" style="display: none;">
+                    ➡️ Lanjut ke Kuis Selanjutnya
+                </button>
                 <button class="btn-action btn-replay" id="btnReplayQuiz">
                     🔄 Ulangi Kuis
                 </button>
@@ -282,21 +417,21 @@
                 <a-image id="quiz-pertanyaan" src="#img-quiz-pertanyaan" position="0 0 0.12" height="1" width="1"
                     material="transparent: true; alphaTest: 0.05; side: double"></a-image>
 
-                <!-- Video Benar: Left card (Sikat Gigi Pagi dan Malam - Ungu/Magenta) -->
+                <!-- Video Benar: card video (Ungu/Magenta di semua quiz) -->
                 <a-video id="video-quiz-benar" class="clickable" src="#vid-quiz-benar" position="0 0 0.10" height="1" width="1"
                     material="shader: chromakey-magenta; src: #vid-quiz-benar; transparent: true; side: double"></a-video>
 
-                <!-- Video Salah: Right card (Tidak Mau Sikat Gigi - Hijau/Green) -->
+                <!-- Video Salah: card video (Green di quiz 1,2,4; Magenta di quiz 3,5) -->
                 <a-video id="video-quiz-salah" class="clickable" src="#vid-quiz-salah" position="0 0 0.11" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-quiz-salah; transparent: true; side: double"></a-video>
 
                 <!-- 3D Choice Clickable Planes (Active at 9.25s) -->
-                <!-- Left card: Benar -->
-                <a-plane id="btn-choice-benar-3d" class="clickable" position="-0.20 -0.012 0.20" width="0.36" height="0.30"
+                <!-- Left card 3D plane -->
+                <a-plane id="btn-choice-left-3d" class="clickable" position="-0.20 -0.012 0.20" width="0.36" height="0.30"
                     material="opacity: 0.0; transparent: true" visible="false"></a-plane>
 
-                <!-- Right card: Salah -->
-                <a-plane id="btn-choice-salah-3d" class="clickable" position="0.20 -0.012 0.20" width="0.36" height="0.30"
+                <!-- Right card 3D plane -->
+                <a-plane id="btn-choice-right-3d" class="clickable" position="0.20 -0.012 0.20" width="0.36" height="0.30"
                     material="opacity: 0.0; transparent: true" visible="false"></a-plane>
             </a-entity>
         </a-entity>
@@ -313,8 +448,23 @@
         </a-assets>
     </a-scene>
 
+    <script>
+        // Update shader attribute for video-quiz-salah immediately based on current quiz ID
+        (function() {
+            const qId = window.__CURRENT_QUIZ_ID__ || 1;
+            const salahShader = (qId === 3 || qId === 5) ? 'chromakey-magenta' : 'chromakey-advanced';
+            const vidSalahEl = document.getElementById('video-quiz-salah');
+            if (vidSalahEl) {
+                vidSalahEl.setAttribute('material', `shader: ${salahShader}; src: #vid-quiz-salah; transparent: true; side: double`);
+            }
+            // Highlight active navigation pill
+            const activePill = document.querySelector(`.quiz-pill[data-quiz="${qId}"]`);
+            if (activePill) activePill.classList.add('active');
+        })();
+    </script>
+
     <script src="./js/shaders.js"></script>
-    <script type="module" src="./js/quiz.js?v=20260930_2"></script>
+    <script type="module" src="./js/quiz.js?v=20261001_1"></script>
 </body>
 
 </html>
