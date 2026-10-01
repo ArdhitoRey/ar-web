@@ -397,11 +397,15 @@ if (targetQuiz) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Start Quiz Playback (0s to 9.25s)
 // -----------------------------------------------------------------------------
+let introStartTime = 0;
+
 async function startQuizPlayback() {
     quizState = 'INTRO_PLAYING';
     choiceHandled = false;
+    introStartTime = performance.now();
 
     console.log(`🎬 [Quiz AR] Memulai pemutaran kuis ${currentQuizId} & audio pertanyaan...`);
     if (statusBar) {
@@ -423,15 +427,11 @@ async function startQuizPlayback() {
     // Reset dan mulai kedua video dari 0s
     if (vidBenar) {
         vidBenar.muted = true;
-        if (vidBenar.currentTime !== 0) {
-            try { vidBenar.currentTime = 0; } catch (e) {}
-        }
+        try { vidBenar.currentTime = 0; } catch (e) {}
     }
     if (vidSalah) {
         vidSalah.muted = true;
-        if (vidSalah.currentTime !== 0) {
-            try { vidSalah.currentTime = 0; } catch (e) {}
-        }
+        try { vidSalah.currentTime = 0; } catch (e) {}
     }
 
     // Reset audio feedback jika ada yang sedang berjalan
@@ -475,11 +475,17 @@ function startTimelineMonitor() {
     const checkTime = () => {
         if (quizState !== 'INTRO_PLAYING') return;
 
-        const currentVidT = vidBenar ? vidBenar.currentTime : (vidSalah ? vidSalah.currentTime : 0);
-        const currentSoundT = soundPertanyaan ? soundPertanyaan.currentTime : 0;
+        // Ambil waktu dari video yang berjalan (cek kedua video agar sinkron)
+        const tBenar = (vidBenar && !isNaN(vidBenar.currentTime)) ? vidBenar.currentTime : 0;
+        const tSalah = (vidSalah && !isNaN(vidSalah.currentTime)) ? vidSalah.currentTime : 0;
+        const maxVidT = Math.max(tBenar, tSalah);
+        const currentSoundT = (soundPertanyaan && !isNaN(soundPertanyaan.currentTime)) ? soundPertanyaan.currentTime : 0;
 
-        // Berhenti jika video atau audio pertanyaan mencapai 9.25 detik
-        if (currentVidT >= 9.25 || currentSoundT >= 9.25) {
+        // Safety guard: pastikan intro sudah berjalan minimal 1.5 detik
+        // Mencegah premature trigger akibat latency seeking asinkron saat reset
+        const elapsedSinceStart = (performance.now() - introStartTime) / 1000;
+
+        if (elapsedSinceStart >= 1.5 && (maxVidT >= 9.25 || currentSoundT >= 9.25)) {
             reachDecisionPoint();
             return;
         }
@@ -504,13 +510,14 @@ function reachDecisionPoint() {
     // Jeda kedua video tepat di detik 9.25
     if (vidBenar) {
         vidBenar.pause();
-        if (Math.abs(vidBenar.currentTime - 9.25) > 0.4) {
+        // Hanya re-seek jika posisi jeda jauh dari 9.25s (> 0.8s) agar tidak memicu decoding stall
+        if (Math.abs(vidBenar.currentTime - 9.25) > 0.8) {
             try { vidBenar.currentTime = 9.25; } catch (e) {}
         }
     }
     if (vidSalah) {
         vidSalah.pause();
-        if (Math.abs(vidSalah.currentTime - 9.25) > 0.4) {
+        if (Math.abs(vidSalah.currentTime - 9.25) > 0.8) {
             try { vidSalah.currentTime = 9.25; } catch (e) {}
         }
     }
@@ -581,7 +588,9 @@ function selectChoice(choice) {
         if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
         if (vidBenar) {
             vidBenar.muted = true;
-            if (vidBenar.currentTime < 9.0 || vidBenar.currentTime > 9.5) {
+            // Video sudah di-pause di ~9.25s. TIDAK PERLU seek ulang jika sudah di rentang 8.5s - 10.5s!
+            // Menghindari stall decoder akibat seeking bersamaan dengan .play()
+            if (vidBenar.currentTime < 8.5 || vidBenar.currentTime > 10.5 || vidBenar.ended) {
                 try { vidBenar.currentTime = 9.25; } catch (e) {}
             }
             const p = vidBenar.play();
@@ -621,7 +630,8 @@ function selectChoice(choice) {
         if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
         if (vidSalah) {
             vidSalah.muted = true;
-            if (vidSalah.currentTime < 9.0 || vidSalah.currentTime > 9.5) {
+            // Video sudah di-pause di ~9.25s. TIDAK PERLU seek ulang jika sudah di rentang 8.5s - 10.5s!
+            if (vidSalah.currentTime < 8.5 || vidSalah.currentTime > 10.5 || vidSalah.ended) {
                 try { vidSalah.currentTime = 9.25; } catch (e) {}
             }
             const p = vidSalah.play();
