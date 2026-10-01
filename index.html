@@ -3,82 +3,316 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Halaman Utama - Augmented Reality</title>
+    <title>Menyelam Melawan Karies - Petualangan AR Bawah Laut</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary-blue: #0284c7;
+            --primary-cyan: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Allow vertical and horizontal scrolling */
+        html {
+            min-height: 100%;
+            overflow: auto;
+            scroll-behavior: smooth;
+            background-color: #040d1a;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #040d1a;
+            color: #ffffff;
+            overflow: auto;
+        }
+
+        /* Full Background Canvas - Strictly follows 900x1600 image without any crop or white space */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            /* Proportional expansion to guarantee 100% full background and zero cropping */
+            width: max(100vw, calc(100vh * 900 / 1600));
+            height: max(100vh, calc(100vw * 1600 / 900));
+            width: max(100vw, calc(100dvh * 900 / 1600));
+            height: max(100dvh, calc(100vw * 1600 / 900));
+            aspect-ratio: 900 / 1600;
+            background-image: url('./background_early.jpeg');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center top;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            justify-content: flex-end;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        /* Screen reader only */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Bottom menu section covering ONLY the sandy seabed area */
+        .menu-section {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            background: linear-gradient(to top, 
+                rgba(3, 14, 28, 0.96) 0%, 
+                rgba(3, 14, 28, 0.86) 65%, 
+                rgba(3, 14, 28, 0.3) 90%, 
+                transparent 100%);
+            padding: 24px 16px max(20px, env(safe-area-inset-bottom, 20px));
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .menu-header {
             text-align: center;
+            margin-bottom: 2px;
         }
 
-        h1 {
-            font-size: 36px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        .menu-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            padding: 3px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
         }
 
-        p {
-            font-size: 18px;
-            margin-bottom: 40px;
-            opacity: 0.9;
+        /* 2-Column Grid for Chapters 1 & 2 */
+        .chapters-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
 
+        /* Base button styling */
         .btn-chapter {
-            display: inline-block;
-            padding: 15px 40px;
-            margin: 10px;
-            font-size: 20px;
-            font-weight: bold;
-            background-color: white;
-            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-decoration: none;
-            border-radius: 50px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+            padding: 12px 14px;
+            border-radius: 16px;
+            transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            user-select: none;
+            cursor: pointer;
         }
 
         .btn-chapter:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
         }
 
-        .btn-disabled {
-            background-color: rgba(255, 255, 255, 0.3);
-            color: rgba(255, 255, 255, 0.7);
-            cursor: not-allowed;
-            box-shadow: none;
+        .btn-chapter:active {
+            transform: scale(0.97);
         }
 
-        .btn-disabled:hover {
-            transform: none;
+        /* Chapter Buttons - Clean, high contrast */
+        .btn-ch {
+            background: #ffffff;
+            color: #0b1e36;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            gap: 10px;
+        }
+
+        .btn-ch1:hover {
+            border-color: #00b4d8;
+            box-shadow: 0 8px 24px rgba(0, 180, 216, 0.4);
+        }
+
+        .btn-ch2:hover {
+            border-color: #10b981;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-ch .btn-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .btn-ch .btn-text-wrap {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .btn-ch .btn-main-title {
+            font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.15;
+            color: #0b1e36;
+        }
+
+        .btn-ch .btn-sub-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #0284c7;
+            margin-top: 2px;
+        }
+
+        .btn-ch2 .btn-sub-label {
+            color: #059669;
+        }
+
+        /* Quiz Button - Vibrant Aqua Ribbon */
+        .btn-quiz {
+            background: linear-gradient(135deg, #00d2ff 0%, #0072ff 100%);
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4);
+            justify-content: space-between;
+            padding: 12px 18px;
+        }
+
+        .btn-quiz:hover {
+            box-shadow: 0 8px 26px rgba(0, 210, 255, 0.6);
+        }
+
+        .btn-quiz-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-quiz-icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .btn-quiz-title {
+            font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-quiz-badge {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Testing Hub Link - Low profile dev utility */
+        .btn-test {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.2s ease;
+        }
+
+        .btn-test:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.25);
         }
     </style>
 </head>
 
 <body>
-    <h1>Petualangan AR Bawah Laut</h1>
-    <p>Silakan pilih bagian cerita yang ingin kamu mainkan</p>
+    <!-- Main Portrait Canvas -->
+    <main class="main-container">
+        <h1 class="sr-only">Menyelam Melawan Karies - Petualangan AR Bawah Laut</h1>
 
-    <a href="chapter1.html" class="btn-chapter">▶ Chapter 1</a>
+        <!-- Bottom Action Menu -->
+        <section class="menu-section">
+            <div class="menu-header">
+                <span class="menu-badge">✨ Petualangan Cerita AR</span>
+            </div>
 
-    <a href="chapter2.html" class="btn-chapter">▶ Chapter 2</a>
+            <!-- Chapter 1 & Chapter 2 side-by-side -->
+            <div class="chapters-row">
+                <a href="chapter1.html" class="btn-chapter btn-ch btn-ch1" id="btnChapter1">
+                    <span class="btn-icon">🌊</span>
+                    <div class="btn-text-wrap">
+                        <span class="btn-main-title">Chapter 1</span>
+                        <span class="btn-sub-label">Batu & Kapal ➔</span>
+                    </div>
+                </a>
 
-    <a href="quiz.html" class="btn-chapter" style="background: linear-gradient(135deg, #00e5ff 0%, #00838f 100%); color: white;">🐚 Kuis Interaktif AR (1-5)</a>
+                <a href="chapter2.html" class="btn-chapter btn-ch btn-ch2" id="btnChapter2">
+                    <span class="btn-icon">🦷</span>
+                    <div class="btn-text-wrap">
+                        <span class="btn-main-title">Chapter 2</span>
+                        <span class="btn-sub-label">Lawan Karies ➔</span>
+                    </div>
+                </a>
+            </div>
 
-    <a href="test.html" class="btn-chapter" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 100%); color: white; margin-top: 15px;">🧪 Hub Testing (Semua Part)</a>
+            <!-- Kuis Interaktif Button -->
+            <a href="quiz.html" class="btn-chapter btn-quiz" id="btnQuiz">
+                <div class="btn-quiz-left">
+                    <span class="btn-quiz-icon">🐚</span>
+                    <span class="btn-quiz-title">Kuis Interaktif AR</span>
+                </div>
+                <span class="btn-quiz-badge">1 - 5 ➔</span>
+            </a>
+
+            <!-- Developer Testing Hub Button -->
+            <a href="test.html" class="btn-test" id="btnTestHub">
+                <span>🧪</span> Hub Testing & Simulator (Semua Part)
+            </a>
+        </section>
+    </main>
 </body>
 
 </html>
