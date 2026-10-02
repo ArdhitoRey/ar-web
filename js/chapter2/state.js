@@ -95,7 +95,8 @@ export const videos = {
     ],
     part8: [
         document.getElementById('vid-air-part8-v1'), document.getElementById('vid-rumput-part8-v1'),
-        document.getElementById('vid-kerang-part8-v1'), document.getElementById('vid-kapal-part8-v1')
+        document.getElementById('vid-kerang-part8-v1'), document.getElementById('vid-kapal-part8-v1'),
+        document.getElementById('vid-teks-quiz-part8-v1')
     ]
 };
 

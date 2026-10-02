@@ -65,6 +65,7 @@ document.getElementById("vid-air-part8-v1").src = `./compressed_ultra-videos/cha
 document.getElementById("vid-rumput-part8-v1").src = `./compressed_ultra-videos/chapter2/part8/rumput.mp4?t=${cacheBuster}`;
 document.getElementById("vid-kerang-part8-v1").src = `./compressed_ultra-videos/chapter2/part8/kerang.mp4?t=${cacheBuster}`;
 document.getElementById("vid-kapal-part8-v1").src = `./compressed_ultra-videos/chapter2/part8/kapal.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-quiz-part8-v1").src = `./compressed_ultra-videos/chapter2/part8/teks-quiz.mp4?t=${cacheBuster}`;
 
 // FORCE LOAD AUDIO & VIDEO
 [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].forEach((s) => {
@@ -72,8 +73,8 @@ document.getElementById("vid-kapal-part8-v1").src = `./compressed_ultra-videos/c
 });
 
 allVideos.forEach((v, index) => {
-    if (v) { 
-        v.load(); 
+    if (v) {
+        v.load();
         v.preload = "auto";
     } else {
         console.error(`❌ ERROR: Video urutan ke-${index} di dalam allVideos bernilai NULL! Cek state.js kamu dan pastikan ID-nya ada di HTML.`);
@@ -101,7 +102,7 @@ allVideos.forEach((video) => {
     if (!video) return;
 
     const onBuffered = () => {
-        state.videosBuffered++; 
+        state.videosBuffered++;
         if (dom.loadingDetail) {
             dom.loadingDetail.textContent = state.videosBuffered >= totalVideos ? "Siap!" : "Harap bersabar sebentar";
         }
@@ -117,7 +118,7 @@ allVideos.forEach((video) => {
     }
 
     video.addEventListener("loadeddata", () => {
-        state.videosLoaded++; 
+        state.videosLoaded++;
         if (dom.loadingProgress) {
             const dots = "●".repeat(Math.min(state.videosLoaded, totalVideos)) + "○".repeat(Math.max(0, totalVideos - state.videosLoaded));
             dom.loadingProgress.textContent = dots;
@@ -153,12 +154,12 @@ dom.startButton.addEventListener("click", async () => {
     dom.loadingOverlay.classList.add("hidden");
     dom.arScene.classList.add("ready");
 
-    initPart1(); 
+    initPart1();
     initPart2();
-    initPart3(); 
-    initPart4(); 
-    initPart5(); 
-    initPart6(); 
+    initPart3();
+    initPart4();
+    initPart5();
+    initPart6();
     initPart7();
     initPart8();
 });
@@ -177,15 +178,15 @@ export function replayPart(partNumber) {
     const stateKey = stateKeys[partNumber];
     const wasFinished = state[stateKey];
     state[stateKey] = false;
-    
-    if(partNumber === 1) state.currentPart = 0; 
+
+    if (partNumber === 1) state.currentPart = 0;
 
     playActions[partNumber]();
 
     setTimeout(() => {
         if (!state.isPlaying) {
             state[stateKey] = wasFinished;
-            if(partNumber === 1) state.currentPart = 1;
+            if (partNumber === 1) state.currentPart = 1;
         }
     }, 100);
 }
@@ -225,7 +226,7 @@ const handleInteraction = (e) => {
             replayPart(state.lastScannedMarker);
         } else if (state.currentPart >= 1 && state.currentPart <= 8 && state[`part${state.currentPart}Finished`]) {
             replayPart(state.currentPart);
-        } 
+        }
         else if (state.part8Finished && state.currentPart === 0) {
             restartFromBeginning();
         }

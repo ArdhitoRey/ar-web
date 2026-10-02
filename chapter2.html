@@ -4,11 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Bagian 2</title>
 
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
+    <script src="./js/shaders.js"></script>
     <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -179,22 +182,18 @@
         <!-- Part 8 -->
         <a-entity id="target8" mindar-image-target="targetIndex: 7">
             <a-entity id="video-container-part8" visible="false">
-                <!-- 1. Layer Paling Bawah: Air (BG) -->
                 <a-video id="video-air-part8-v1" src="#vid-air-part8-v1" position="0 0 0.10" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-air-part8-v1; transparent: true; side: double"></a-video>
-
-                <!-- 2. Di Atasnya: Rumput -->
                 <a-video id="video-rumput-part8-v1" src="#vid-rumput-part8-v1" position="0 0 0.15" height="1" width="1"
                     material="shader: chromakey-magenta; src: #vid-rumput-part8-v1; transparent: true; side: double"></a-video>
-
-                <!-- 3. Di Atasnya: Kapal Selam -->
                 <a-video id="video-kapal-part8-v1" src="#vid-kapal-part8-v1" position="0 0 0.20" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-kapal-part8-v1; transparent: true; side: double"></a-video>
-
-                <!-- 4. Di Atasnya: Kerang (Clickable saat selesai menuju kuis) -->
                 <a-video id="video-kerang-part8-v1" class="clickable" src="#vid-kerang-part8-v1" position="0 0 0.25"
                     height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-kerang-part8-v1; transparent: true; side: double"></a-video>
+                <a-video id="video-teks-quiz-part8-v1" src="#vid-teks-quiz-part8-v1" position="0 0 0.28" height="1"
+                    width="1"
+                    material="shader: chromakey-neon; src: #vid-teks-quiz-part8-v1; transparent: true; side: double"></a-video>
             </a-entity>
         </a-entity>
 
@@ -289,6 +288,8 @@
                 muted></video>
             <video id="vid-kapal-part8-v1" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline
                 muted></video>
+            <video id="vid-teks-quiz-part8-v1" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline
+                muted></video>
 
             <!-- AUDIO -->
             <audio id="sound-v1" src="./sounds/chapter2/output-sounds/sound-v1.MP3" preload="auto"></audio>
@@ -302,7 +303,6 @@
         </a-assets>
     </a-scene>
 
-    <script src="./js/shaders.js"></script>
     <script type="module" src="./js/chapter2/main.js"></script>
     <script src="./js/devToolbar.js"></script>
 </body>

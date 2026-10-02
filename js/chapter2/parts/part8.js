@@ -42,17 +42,30 @@ async function startPart8Videos() {
     dom.statusBar.classList.add('tracking');
     dom.statusBar.classList.remove('finished');
     
+    console.log(`📋 [Part 8] Memeriksa daftar video (Total: ${videos.part8.length} video):`);
+    
     // Reset video ke awal
-    videos.part8.forEach(v => { 
+    videos.part8.forEach((v, idx) => { 
         if (v) {
             v.pause(); 
             v.currentTime = 0; 
+            console.log(`   [${idx + 1}/${videos.part8.length}] Resetting: #${v.id} (src: ${v.src})`);
+        } else {
+            console.warn(`   ⚠️ [${idx + 1}/${videos.part8.length}] Elemen video bernilai NULL! Cek ID di HTML.`);
         }
     });
     
-    const playPromises = videos.part8.map(v => v ? v.play().catch(e => console.error('❌ [Part 8] Video play error:', e)) : Promise.resolve());
+    const playPromises = videos.part8.map(async (v, idx) => {
+        if (!v) return;
+        try {
+            await v.play();
+            console.log(`   ▶️ [Part 8 Video OK] #${v.id} sedang berjalan (durasi: ${v.duration ? v.duration.toFixed(2) + 's' : 'loading...'})`);
+        } catch (e) {
+            console.error(`   ❌ [Part 8 Video ERROR] Gagal memutar #${v.id}:`, e);
+        }
+    });
     await Promise.all(playPromises);
-    console.log('📹 [Part 8] Semua video berjalan.');
+    console.log('📹 [Part 8] Seluruh video Part 8 telah dimulai.');
     
     // FREEZE FRAME
     videos.part8.forEach(v => {
@@ -60,6 +73,7 @@ async function startPart8Videos() {
         v.addEventListener('timeupdate', function preventBlackScreen() {
             if (this.duration && (this.duration - this.currentTime <= 0.5)) {
                 this.pause();
+                console.log(`⏸️ [Part 8 Freeze Frame] #${this.id} di-freeze pada detik ${this.currentTime.toFixed(2)}s`);
                 this.removeEventListener('timeupdate', preventBlackScreen);
             }
         });

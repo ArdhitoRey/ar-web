@@ -1,6 +1,7 @@
 raw-videos/
 sounds/**/raw-sounds
-
+start_server.bat
+stop_server.bat
 .DS_Store
 Thumbs.db
 node_modules/

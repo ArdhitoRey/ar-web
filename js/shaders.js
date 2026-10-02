@@ -481,3 +481,68 @@ AFRAME.registerShader('chromakey-magenta', {
         });
     }
 });
+
+// CHROMAKEY Shader - Khusus Neon Lime / Yellow-Green Screen (#C6F439 / #CFF35E / RGB: ~198-208, ~240-245, ~57-105)
+AFRAME.registerShader('chromakey-neon', {
+    schema: { src: {type: 'map'} },
+    init: function(data) {
+        const videoTexture = new THREE.VideoTexture(data.src);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBAFormat;
+        videoTexture.generateMipmaps = false;
+        videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+        videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+        this.material = new THREE.ShaderMaterial({
+            uniforms: { tex: {value: videoTexture} },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tex;
+                varying vec2 vUv;
+
+                void main() {
+                    vec4 color = texture2D(tex, vUv);
+
+                    // Deteksi warna Neon Lime/Yellow-Green (#C6F439 / #CFF35E):
+                    // - Karakteristik neon: G sangat tinggi (> 0.80), R cukup tinggi (> 0.60), B rendah (< 0.55)
+                    // - G selalu lebih tinggi dari R (grDiff: 0.05 - 0.20) dan jauh lebih tinggi dari B (gbDiff: 0.35 - 0.75)
+                    float gbDiff = color.g - color.b;
+                    float grDiff = color.g - color.r;
+
+                    // Transisi halus presisi & toleran terhadap variasi kompresi H.264
+                    float isNeon = smoothstep(0.03, 0.08, grDiff) * smoothstep(0.30, 0.45, gbDiff) * smoothstep(0.70, 0.85, color.g);
+
+                    // Hard-cut pengaman untuk mengeliminasi kedipan bintik sisa macroblock neon
+                    if (grDiff > 0.05 && gbDiff > 0.38 && color.g > 0.80 && color.r > 0.60 && color.b < 0.55) {
+                        isNeon = 1.0;
+                    }
+
+                    float alpha = 1.0 - isNeon;
+
+                    vec3 finalColor = color.rgb;
+
+                    // Despill lembut di tepian objek agar tidak ada pantulan cahaya neon kuning-hijau
+                    if (alpha > 0.0 && alpha < 0.95 && isNeon > 0.05) {
+                        float despillStrength = (1.0 - alpha) * 0.9;
+                        finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
+                    }
+
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+
+                    gl_FragColor = vec4(finalColor, alpha);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            blending: THREE.NormalBlending
+        });
+    }
+});

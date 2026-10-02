@@ -71,22 +71,23 @@ export const videos = {
     ],
     part3: [
         document.getElementById('vid-kapal3'), document.getElementById('vid-mascot3'),
-        document.getElementById('vid-sikat')
+        document.getElementById('vid-sikat'), document.getElementById('vid-teks-part3')
     ],
     part4: [
         document.getElementById('vid-kapal4'), document.getElementById('vid-mascot4'),
-        document.getElementById('vid-sikat4')
+        document.getElementById('vid-sikat4'), document.getElementById('vid-teks-part4')
     ],
     part5: [
         document.getElementById('vid-orang5'), document.getElementById('vid-tangan')
     ],
     part6: [
         document.getElementById('vid-kapal6'), document.getElementById('vid-mascot2-6'),
-        document.getElementById('vid-mascot6')
+        document.getElementById('vid-mascot6'), document.getElementById('vid-teks-part6')
     ],
     part7: [
         document.getElementById('vid-coral7'), document.getElementById('vid-laut7'),
-        document.getElementById('vid-mascot7'), document.getElementById('vid-orang7')
+        document.getElementById('vid-mascot7'), document.getElementById('vid-orang7'),
+        document.getElementById('vid-teks-part7')
     ]
 };
 
