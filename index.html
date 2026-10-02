@@ -12,13 +12,16 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Fredoka:wght@600;700&display=swap"
+        rel="stylesheet">
 
     <style>
         :root {
-            --primary-blue: #0284c7;
-            --primary-cyan: #06b6d4;
-            --accent-glow: rgba(6, 182, 212, 0.5);
+            --bg-deep: #040d1a;
+            --accent-cyan: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.4);
+            --primary-orange: #ff9800;
         }
 
         * {
@@ -28,291 +31,612 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Allow vertical and horizontal scrolling */
-        html {
-            min-height: 100%;
-            overflow: auto;
-            scroll-behavior: smooth;
-            background-color: #040d1a;
-        }
-
+        html,
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            background: #040d1a;
-            color: #ffffff;
-            overflow: auto;
-        }
-
-        /* Full Background Canvas - Strictly follows 900x1600 image without any crop or white space */
-        .main-container {
-            position: relative;
-            z-index: 1;
-            /* Proportional expansion to guarantee 100% full background and zero cropping */
-            width: max(100vw, calc(100vh * 900 / 1600));
-            height: max(100vh, calc(100vw * 1600 / 900));
-            width: max(100vw, calc(100dvh * 900 / 1600));
-            height: max(100dvh, calc(100vw * 1600 / 900));
-            aspect-ratio: 900 / 1600;
-            background-image: url('./background_early.jpeg');
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: center top;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            box-sizing: border-box;
-            margin: 0 auto;
-        }
-
-        /* Screen reader only */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-        }
-
-        /* Bottom menu section covering ONLY the sandy seabed area */
-        .menu-section {
             width: 100%;
-            max-width: 520px;
-            margin: 0 auto;
-            background: linear-gradient(to top, 
-                rgba(3, 14, 28, 0.96) 0%, 
-                rgba(3, 14, 28, 0.86) 65%, 
-                rgba(3, 14, 28, 0.3) 90%, 
-                transparent 100%);
-            padding: 24px 16px max(20px, env(safe-area-inset-bottom, 20px));
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-sizing: border-box;
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-        }
-
-        .menu-header {
-            text-align: center;
-            margin-bottom: 2px;
-        }
-
-        .menu-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-deep);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #ffffff;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.2px;
-            padding: 3px 12px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
         }
 
-        /* 2-Column Grid for Chapters 1 & 2 */
-        .chapters-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        /* Ambient Underwater Background Particle Effect */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(circle at 50% 30%, #0d274d 0%, #06152b 50%, #020812 100%);
+            overflow: hidden;
+            pointer-events: none;
         }
 
-        /* Base button styling */
-        .btn-chapter {
+        /* 9:16 Aspect Ratio Main Stage */
+        .game-stage {
+            position: relative;
+            z-index: 10;
+            width: min(100vw, calc(100dvh * 9 / 16));
+            height: min(100dvh, calc(100vw * 16 / 9));
+            aspect-ratio: 9 / 16;
+            max-height: 100dvh;
+            max-width: 100vw;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 180, 216, 0.2);
+            overflow: hidden;
+            background: #000;
+            border-radius: 0;
+        }
+
+        @media (min-width: 600px) and (min-height: 700px) {
+            .game-stage {
+                border-radius: 20px;
+                border: 2px solid rgba(0, 229, 255, 0.25);
+            }
+        }
+
+        /* Common Screen Overlay Base */
+        .screen-view {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ==========================================================================
+           1. TITLE SCREEN
+           ========================================================================== */
+        #titleScreen {
+            background-image: url('./addon-image/main-menu/title-screen.PNG');
+            z-index: 20;
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        #titleScreen.hidden {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        /* Pulsing Heartbeat Play Button */
+        .play-button-wrap {
+            position: absolute;
+            left: 47.59%;
+            top: 69.48%;
+            width: 50.28%;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-decoration: none;
-            padding: 12px 14px;
-            border-radius: 16px;
-            transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-            user-select: none;
             cursor: pointer;
+            z-index: 30;
+            touch-action: manipulation;
         }
 
-        .btn-chapter:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+        .play-button-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transform-origin: center center;
+            animation: heartbeatPulse 1.8s infinite ease-in-out;
+            filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+            transition: filter 0.25s ease;
         }
 
-        .btn-chapter:active {
-            transform: scale(0.97);
+        /* Motion Frame / Heartbeat Keyframe Animation */
+        @keyframes heartbeatPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            14% {
+                transform: scale(1.10);
+                filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.85)) drop-shadow(0 10px 28px rgba(0, 0, 0, 0.5));
+            }
+
+            28% {
+                transform: scale(0.97);
+            }
+
+            42% {
+                transform: scale(1.08);
+                filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.65)) drop-shadow(0 8px 22px rgba(0, 0, 0, 0.4));
+            }
+
+            70% {
+                transform: scale(1);
+                filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
-        /* Chapter Buttons - Clean, high contrast */
-        .btn-ch {
-            background: #ffffff;
-            color: #0b1e36;
-            border: 2px solid rgba(255, 255, 255, 0.95);
-            gap: 10px;
+        .play-button-wrap:hover .play-button-img {
+            animation-play-state: paused;
+            transform: scale(1.12);
+            filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.9)) drop-shadow(0 12px 30px rgba(0, 0, 0, 0.6));
         }
 
-        .btn-ch1:hover {
-            border-color: #00b4d8;
-            box-shadow: 0 8px 24px rgba(0, 180, 216, 0.4);
+        .play-button-wrap:active .play-button-img {
+            transform: scale(0.92);
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+            transition: transform 0.1s ease;
         }
 
-        .btn-ch2:hover {
-            border-color: #10b981;
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-ch .btn-icon {
-            font-size: 24px;
-            line-height: 1;
-        }
-
-        .btn-ch .btn-text-wrap {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-        }
-
-        .btn-ch .btn-main-title {
-            font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
-            font-size: 17px;
+        /* Tap hint subtitle below title */
+        .tap-hint {
+            position: absolute;
+            left: 50%;
+            bottom: 3.5%;
+            transform: translateX(-50%);
+            font-size: 13px;
             font-weight: 700;
-            line-height: 1.15;
-            color: #0b1e36;
-        }
-
-        .btn-ch .btn-sub-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #0284c7;
-            margin-top: 2px;
-        }
-
-        .btn-ch2 .btn-sub-label {
-            color: #059669;
-        }
-
-        /* Quiz Button - Vibrant Aqua Ribbon */
-        .btn-quiz {
-            background: linear-gradient(135deg, #00d2ff 0%, #0072ff 100%);
-            color: #ffffff;
-            border: 1.5px solid rgba(255, 255, 255, 0.45);
-            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4);
-            justify-content: space-between;
-            padding: 12px 18px;
-        }
-
-        .btn-quiz:hover {
-            box-shadow: 0 8px 26px rgba(0, 210, 255, 0.6);
-        }
-
-        .btn-quiz-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .btn-quiz-icon {
-            font-size: 22px;
-            line-height: 1;
-        }
-
-        .btn-quiz-title {
-            font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-
-        .btn-quiz-badge {
-            background: rgba(255, 255, 255, 0.25);
-            padding: 3px 10px;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 16px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            letter-spacing: 0.5px;
+            animation: floatHint 2s infinite ease-in-out;
+            pointer-events: none;
         }
 
-        /* Testing Hub Link - Low profile dev utility */
-        .btn-test {
-            display: flex;
+        @keyframes floatHint {
+
+            0%,
+            100% {
+                transform: translate(-50%, 0);
+                opacity: 0.85;
+            }
+
+            50% {
+                transform: translate(-50%, -4px);
+                opacity: 1;
+            }
+        }
+
+        /* ==========================================================================
+           2. MAIN MENU SCREEN
+           ========================================================================== */
+        #mainMenuScreen {
+            background-image: url('./addon-image/main-menu/main-menu.PNG');
+            z-index: 15;
+            opacity: 0;
+            transform: scale(0.96);
+            pointer-events: none;
+        }
+
+        #mainMenuScreen.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        /* Menu Item Hotspots */
+        .menu-btn {
+            position: absolute;
+            display: block;
+            cursor: pointer;
+            text-decoration: none;
+            touch-action: manipulation;
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.22s ease;
+        }
+
+        .menu-btn-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .menu-btn:hover .menu-btn-img {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.7)) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45));
+        }
+
+        .menu-btn:active .menu-btn-img {
+            transform: scale(0.95);
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Staggered entrance for menu buttons */
+        #mainMenuScreen.active .menu-btn {
+            animation: menuBounceIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        #mainMenuScreen.active #menuBtn1 {
+            animation-delay: 0.10s;
+        }
+
+        #mainMenuScreen.active #menuBtn2 {
+            animation-delay: 0.20s;
+        }
+
+        #mainMenuScreen.active #menuBtn3 {
+            animation-delay: 0.30s;
+        }
+
+        #mainMenuScreen.active #menuBtn4 {
+            animation-delay: 0.40s;
+        }
+
+        @keyframes menuBounceIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Precise Coordinate Positioning for Menus 1-4 */
+        #menuBtn1 {
+            left: 20.37%;
+            top: 33.23%;
+            width: 59.35%;
+        }
+
+        #menuBtn2 {
+            left: 20.56%;
+            top: 46.46%;
+            width: 59.35%;
+        }
+
+        #menuBtn3 {
+            left: 20.00%;
+            top: 60.00%;
+            width: 59.35%;
+        }
+
+        #menuBtn4 {
+            left: 20.46%;
+            top: 73.18%;
+            width: 59.35%;
+        }
+
+        /* ==========================================================================
+           3. AQUATIC BUBBLE CONTROLS (Back Button & Sound Toggle)
+           ========================================================================== */
+        .btn-bubble-control {
+            position: absolute;
+            z-index: 60;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
+            padding: 8px 16px;
+            background: linear-gradient(180deg, #ffffff 0%, #def6fb 40%, #b2ebf6 82%, #8cdbef 100%);
+            border: 2.5px solid #ffffff;
+            border-radius: 999px;
+            color: #205882;
+            font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(2, 32, 60, 0.35),
+                inset 0 2.5px 3px rgba(255, 255, 255, 0.95),
+                inset 0 -3.5px 4px rgba(70, 165, 195, 0.4);
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                filter 0.22s ease,
+                box-shadow 0.22s ease,
+                color 0.2s ease;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            touch-action: manipulation;
+            user-select: none;
             text-decoration: none;
+        }
+
+        .btn-bubble-control:hover {
+            transform: scale(1.06);
+            filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.9)) drop-shadow(0 8px 18px rgba(0, 40, 80, 0.35));
+            color: #124063;
+        }
+
+        .btn-bubble-control:active {
+            transform: scale(0.94);
+            box-shadow: 0 2px 6px rgba(2, 32, 60, 0.4), inset 0 2px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Back to Title Button (Inside Main Menu) */
+        .btn-back-bubble {
+            top: 18px;
+            left: 18px;
+            animation: menuBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            animation-delay: 0.05s;
+        }
+
+        .btn-back-bubble .bubble-arrow-icon {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-back-bubble:hover .bubble-arrow-icon {
+            transform: translateX(-3px);
+        }
+
+        /* Sound Toggle Button */
+        .btn-sound-bubble {
+            top: 18px;
+            right: 18px;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            font-size: 16px;
+        }
+
+        /* Bottom Floating Dev Link */
+        .btn-dev-hub {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            background: rgba(3, 10, 22, 0.75);
+            backdrop-filter: blur(6px);
+            border: 1px dashed rgba(0, 229, 255, 0.4);
             color: rgba(255, 255, 255, 0.75);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 7px 12px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             transition: all 0.2s ease;
         }
 
-        .btn-test:hover {
+        .btn-dev-hub:hover {
+            color: #00e5ff;
+            border-color: #00e5ff;
+            background: rgba(4, 20, 45, 0.9);
+        }
+
+        /* Toast Notification (Untuk Chapter 3 & 4) */
+        .toast-notification {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(8, 28, 56, 0.95);
+            backdrop-filter: blur(12px);
+            border: 2px solid #ff9800;
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(255, 255, 255, 0.25);
+            font-size: 14px;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 152, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 999;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>
 
 <body>
-    <!-- Main Portrait Canvas -->
-    <main class="main-container">
-        <h1 class="sr-only">Menyelam Melawan Karies - Petualangan AR Bawah Laut</h1>
+    <!-- Ambient Backdrop -->
+    <div class="ambient-bg"></div>
 
-        <!-- Bottom Action Menu -->
-        <section class="menu-section">
-            <div class="menu-header">
-                <span class="menu-badge">✨ Petualangan Cerita AR</span>
+    <!-- Background Music Player (Autoplay & Looping) -->
+    <audio id="bgmAudio" src="./sounds/main-menu/sound.mp3" preload="auto" loop autoplay></audio>
+
+    <!-- Main 9:16 Game Stage -->
+    <div class="game-stage">
+
+        <!-- Sound Toggle Control (Aquatic Bubble Theme) -->
+        <button class="btn-bubble-control btn-sound-bubble" id="btnSoundToggle" title="Matikan / Nyalakan Musik"
+            aria-label="Musik BGM">
+            <span id="soundIcon">🔊</span>
+        </button>
+
+        <!-- Toast Notification -->
+        <div class="toast-notification" id="toastNotification">
+            <span id="toastIcon">🚧</span>
+            <span id="toastMsg">Chapter segera hadir!</span>
+        </div>
+
+        <!-- ==========================================
+             SCREEN 1: TITLE SCREEN
+             ========================================== -->
+        <section class="screen-view" id="titleScreen">
+            <div class="play-button-wrap" id="btnPlay" role="button" tabindex="0" aria-label="Mulai Petualangan">
+                <img src="./addon-image/main-menu/play-button-crop.png" alt="Tombol Mulai" class="play-button-img"
+                    draggable="false" />
             </div>
+        </section>
 
-            <!-- Chapter 1 & Chapter 2 side-by-side -->
-            <div class="chapters-row">
-                <a href="chapter1.html" class="btn-chapter btn-ch btn-ch1" id="btnChapter1">
-                    <span class="btn-icon">🌊</span>
-                    <div class="btn-text-wrap">
-                        <span class="btn-main-title">Chapter 1</span>
-                        <span class="btn-sub-label">Batu & Kapal ➔</span>
-                    </div>
-                </a>
+        <!-- ==========================================
+             SCREEN 2: MAIN MENU SCREEN
+             ========================================== -->
+        <section class="screen-view" id="mainMenuScreen">
+            <!-- Back to Title Screen (Aquatic Bubble Aesthetic) -->
+            <button class="btn-bubble-control btn-back-bubble" id="btnBackTitle" title="Kembali ke Layar Judul"
+                aria-label="Kembali ke Layar Judul">
+                <svg class="bubble-arrow-icon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                </svg>
+            </button>
 
-                <a href="chapter2.html" class="btn-chapter btn-ch btn-ch2" id="btnChapter2">
-                    <span class="btn-icon">🦷</span>
-                    <div class="btn-text-wrap">
-                        <span class="btn-main-title">Chapter 2</span>
-                        <span class="btn-sub-label">Lawan Karies ➔</span>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Kuis Interaktif Button -->
-            <a href="quiz.html" class="btn-chapter btn-quiz" id="btnQuiz">
-                <div class="btn-quiz-left">
-                    <span class="btn-quiz-icon">🐚</span>
-                    <span class="btn-quiz-title">Kuis Interaktif AR</span>
-                </div>
-                <span class="btn-quiz-badge">1 - 5 ➔</span>
+            <!-- Menu 1: Apa Penyebab Karies? -> Chapter 1 -->
+            <a href="chapter1.html" class="menu-btn" id="menuBtn1" aria-label="Menu 1: Apa Penyebab Karies?">
+                <img src="./addon-image/main-menu/menu-1-crop.png" alt="Apa Penyebab Karies?" class="menu-btn-img"
+                    draggable="false" />
             </a>
 
-            <!-- Developer Testing Hub Button -->
-            <a href="test.html" class="btn-test" id="btnTestHub">
-                <span>🧪</span> Hub Testing & Simulator (Semua Part)
+            <!-- Menu 2: Bagaimana Karies Terbentuk? -> Chapter 2 -->
+            <a href="chapter2.html" class="menu-btn" id="menuBtn2" aria-label="Menu 2: Bagaimana Karies Terbentuk?">
+                <img src="./addon-image/main-menu/menu-2-crop.png" alt="Bagaimana Karies Terbentuk?"
+                    class="menu-btn-img" draggable="false" />
+            </a>
+
+            <!-- Menu 3: Apa Dampak Karies? -> # (Chapter 3 Placeholder) -->
+            <a href="#" class="menu-btn" id="menuBtn3" aria-label="Menu 3: Apa Dampak Karies?">
+                <img src="./addon-image/main-menu/menu-3-crop.png" alt="Apa Dampak Karies?" class="menu-btn-img"
+                    draggable="false" />
+            </a>
+
+            <!-- Menu 4: Bagaimana Mencegah Karies? -> # (Chapter 4 Placeholder) -->
+            <a href="#" class="menu-btn" id="menuBtn4" aria-label="Menu 4: Bagaimana Mencegah Karies?">
+                <img src="./addon-image/main-menu/menu-4-crop.png" alt="Bagaimana Mencegah Karies?" class="menu-btn-img"
+                    draggable="false" />
             </a>
         </section>
-    </main>
+
+        <!-- Testing Hub Link -->
+        <a href="test.html" class="btn-dev-hub" id="btnDevHub" title="Hub Pengujian Developer">
+            <span>🧪</span> Test Hub
+        </a>
+    </div>
+
+    <!-- Script Controller -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const titleScreen = document.getElementById('titleScreen');
+            const mainMenuScreen = document.getElementById('mainMenuScreen');
+            const btnPlay = document.getElementById('btnPlay');
+            const btnBackTitle = document.getElementById('btnBackTitle');
+            const bgmAudio = document.getElementById('bgmAudio');
+            const btnSoundToggle = document.getElementById('btnSoundToggle');
+            const soundIcon = document.getElementById('soundIcon');
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMsg');
+
+            let isMuted = false;
+            let audioStarted = false;
+
+            // 1. AUTO-PLAY BGM SAAT HALAMAN DIBUKA / DIRELOAD
+            function playBGM() {
+                if (audioStarted && !bgmAudio.paused) return;
+                bgmAudio.loop = true;
+                bgmAudio.volume = 0.7;
+
+                const playPromise = bgmAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        audioStarted = true;
+                        console.log('🎵 BGM berhasil diputar otomatis di Title Screen');
+                    }).catch((err) => {
+                        console.log('ℹ️ Browser policy: Menunggu interaksi pertama user untuk memutar audio');
+                        // Fallback: Aktifkan pada interaksi/tap pertama apapun di halaman
+                        const unlockAudio = () => {
+                            bgmAudio.play().then(() => {
+                                audioStarted = true;
+                                console.log('🎵 BGM aktif setelah interaksi pertama');
+                            }).catch(() => { });
+                            ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(evt => {
+                                document.removeEventListener(evt, unlockAudio);
+                            });
+                        };
+                        ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(evt => {
+                            document.addEventListener(evt, unlockAudio, { once: true });
+                        });
+                    });
+                }
+            }
+
+            // Jalankan segera saat script dieksekusi & saat DOM selesai dimuat
+            playBGM();
+            window.addEventListener('load', playBGM, { once: true });
+
+            // 2. TRANSISI LAYAR SAAT TOMBOL PLAY DIKLIK
+            function startExperience() {
+                playBGM();
+                // Smooth Screen Transition
+                titleScreen.classList.add('hidden');
+                setTimeout(() => {
+                    mainMenuScreen.classList.add('active');
+                }, 150);
+            }
+
+            btnPlay.addEventListener('click', startExperience);
+            btnPlay.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    startExperience();
+                }
+            });
+
+            // 2. BACK TO TITLE SCREEN
+            btnBackTitle.addEventListener('click', () => {
+                mainMenuScreen.classList.remove('active');
+                setTimeout(() => {
+                    titleScreen.classList.remove('hidden');
+                }, 150);
+            });
+
+            // 3. SOUND TOGGLE (MUTE / UNMUTE)
+            btnSoundToggle.addEventListener('click', () => {
+                if (!audioStarted) {
+                    bgmAudio.play();
+                    audioStarted = true;
+                }
+                isMuted = !isMuted;
+                bgmAudio.muted = isMuted;
+                soundIcon.textContent = isMuted ? '🔇' : '🔊';
+            });
+
+            // 4. SAFETY LOOPING LISTENER
+            bgmAudio.addEventListener('ended', () => {
+                bgmAudio.currentTime = 0;
+                bgmAudio.play();
+            });
+
+            // 5. TOAST NOTIFICATION UNTUK CHAPTER 3 & 4
+            function showToast(message) {
+                toastMsg.textContent = message;
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2400);
+            }
+
+            document.getElementById('menuBtn3').addEventListener('click', (e) => {
+                e.preventDefault();
+                showToast('🚧 Chapter 3 ("Apa Dampak Karies?") Segera Hadir!');
+            });
+
+            document.getElementById('menuBtn4').addEventListener('click', (e) => {
+                e.preventDefault();
+                showToast('🚧 Chapter 4 ("Bagaimana Mencegah Karies?") Segera Hadir!');
+            });
+        });
+    </script>
 </body>
 
 </html>
