@@ -79,14 +79,24 @@ async function startPart7Videos() {
     await new Promise(r => setTimeout(r, 50));
     
     try {
-        if (state.audioEnabled && dom.soundV7) {
+        if (dom.soundV7) {
             dom.soundV7.pause();
             dom.soundV7.currentTime = 0;
-            dom.soundV7.volume = 0;
-            await dom.soundV7.play();
-            fadeAudioIn(dom.soundV7, 400);
+            dom.soundV7.muted = false;
+            const p = dom.soundV7.play();
+            if (p !== undefined) {
+                p.then(() => fadeAudioIn(dom.soundV7, 400)).catch((err) => {
+                    console.warn('⚠️ [Part 7] Audio play deferred:', err);
+                    const resumeAudio = () => {
+                        dom.soundV7.muted = false;
+                        dom.soundV7.play().then(() => fadeAudioIn(dom.soundV7, 400)).catch(() => {});
+                    };
+                    document.addEventListener('click', resumeAudio, { once: true });
+                    document.addEventListener('touchend', resumeAudio, { once: true });
+                });
+            }
         } else {
-            console.warn('⚠️ [Part 7] Audio belum diizinkan / tidak ditemukan.');
+            console.warn('⚠️ [Part 7] Elemen sound-v7 tidak ditemukan.');
         }
     } catch (e) { 
         console.error('❌ [Part 7] Audio error:', e); 
@@ -136,6 +146,12 @@ export function initPart7() {
     if (!dom.target7) return;
     
     dom.target7.addEventListener('targetFound', () => {
+        state.isTargetInView[7] = true;
+        if (!state.hasStarted) {
+            state.pendingPart = 7;
+            return;
+        }
+
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 7) return;
         
@@ -166,6 +182,13 @@ export function initPart7() {
         } else if (state.part7Finished && state.currentPart === 7 && !state.isPlaying) {
             dom.statusBar.textContent = '⚠️ Tap untuk ulang Part 7';
             state.lastScannedMarker = 7;
+        }
+    });
+
+    dom.target7.addEventListener('targetLost', () => {
+        state.isTargetInView[7] = false;
+        if (state.pendingPart === 7) {
+            state.pendingPart = null;
         }
     });
 }

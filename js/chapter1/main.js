@@ -60,9 +60,21 @@ document.getElementById("vid-mascot7").src = `./compressed_ultra-videos/chapter1
 document.getElementById("vid-orang7").src = `./compressed_ultra-videos/chapter1/part7/ORANG-v7.mp4?t=${cacheBuster}`;
 document.getElementById("vid-teks-part7").src = `./compressed_ultra-videos/chapter1/part7/teks-part7.mp4?t=${cacheBuster}`;
 
-// 2. FORCE LOAD AUDIO & VIDEO
-[dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].forEach((s) => {
-    s.load(); s.preload = "auto";
+// 2. DYNAMIC CACHE BUSTING & FORCE LOAD AUDIO & VIDEO
+[
+    { el: dom.soundV1, id: 'sound-v1' },
+    { el: dom.soundV2, id: 'sound-v2' },
+    { el: dom.soundV3, id: 'sound-v3' },
+    { el: dom.soundV4, id: 'sound-v4' },
+    { el: dom.soundV5, id: 'sound-v5' },
+    { el: dom.soundV6, id: 'sound-v6' },
+    { el: dom.soundV7, id: 'sound-v7' }
+].forEach(item => {
+    if (item.el) {
+        item.el.src = `./sounds/chapter1/output-sounds/${item.id}.MP3?t=${cacheBuster}`;
+        item.el.load();
+        item.el.preload = "auto";
+    }
 });
 
 allVideos.forEach((v) => {
@@ -122,29 +134,61 @@ setTimeout(() => {
     }
 }, 3500);
 
-// 4. START BUTTON (UNLOCK AUDIO CONTEXT)
-dom.startButton.addEventListener("click", async () => {
-    if (!state.allFullyBuffered) return;
+// Inisialisasi seluruh listener marker dan UI sejak awal agar targetFound tidak terlewat
+initPart1(); initPart2(); initPart3(); initPart4(); initPart5(); initPart6(); initPart7();
+initNextButton();
 
-    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
-    for (let sound of sounds) {
-        try {
-            sound.muted = true;
-            await sound.play();
-            sound.pause();
-            sound.currentTime = 0;
-            sound.muted = false;
-        } catch (e) {
-            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
+function checkAndTriggerActiveMarker() {
+    // 1. Cek apakah ada marker yang sudah terdeteksi saat overlay loading aktif
+    if (state.pendingPart) {
+        const p = state.pendingPart;
+        state.pendingPart = null;
+        if (p === 1 && !state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+            playPart1();
+            return;
         }
     }
+    // 2. Cek apakah target 1 sedang terlihat di kamera (object3D.visible = true)
+    if (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible) {
+        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+            playPart1();
+            return;
+        }
+    }
+    // 3. Cek flag isTargetInView untuk Part 1
+    if (state.isTargetInView && state.isTargetInView[1]) {
+        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+            playPart1();
+        }
+    }
+}
+
+// 4. START BUTTON (UNLOCK AUDIO CONTEXT & ACTIVATE AR)
+dom.startButton.addEventListener("click", () => {
+    state.hasStarted = true;
     state.audioEnabled = true;
+
+    // Buka kunci audio untuk semua sound secara paralel & non-blocking
+    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
+    sounds.forEach(async (sound) => {
+        try {
+            sound.muted = true;
+            const p = sound.play();
+            if (p !== undefined) await p;
+            sound.pause();
+            sound.currentTime = 0;
+        } catch (e) {
+            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
+        } finally {
+            sound.muted = false;
+        }
+    });
 
     dom.loadingOverlay.classList.add("hidden");
     dom.arScene.classList.add("ready");
 
-    initPart1(); initPart2(); initPart3(); initPart4(); initPart5(); initPart6(); initPart7();
-    initNextButton();
+    // Langsung putar Part 1 jika marker sudah berada di depan kamera
+    checkAndTriggerActiveMarker();
 });
 
 // 5. GLOBAL CONTROL LOGIC
@@ -227,10 +271,15 @@ export function jumpToPart(partNumber) {
     if (partNumber < 1 || partNumber > 7) return;
     console.log(`🧪 [Test] Langsung melompat ke Chapter 1 Part ${partNumber}...`);
 
+    state.hasStarted = true;
+    state.audioEnabled = true;
     state.isPlaying = false;
     state.isTransitioning = false;
     state.isMarkerLocked = false;
     state.lockedMarker = null;
+
+    if (dom.loadingOverlay) dom.loadingOverlay.classList.add("hidden");
+    if (dom.arScene) dom.arScene.classList.add("ready");
 
     // Buka semua status part sebelum part target
     for (let i = 1; i < partNumber; i++) {
@@ -241,7 +290,7 @@ export function jumpToPart(partNumber) {
 
     // Matikan semua suara dan video
     [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].forEach(s => {
-        if (s) { s.pause(); s.currentTime = 0; }
+        if (s) { s.pause(); s.currentTime = 0; s.muted = false; }
     });
     allVideos.forEach(v => {
         if (v) { v.pause(); v.currentTime = 0; }

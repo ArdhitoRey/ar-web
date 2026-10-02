@@ -42,20 +42,28 @@ export function fadeInContainer(container, duration) {
 }
 
 export function fadeAudioIn(audio, duration) {
-    const steps = 30;
-    const stepDuration = duration / steps;
-    const volumeStep = 1.0 / steps;
-    let currentStep = 0;
-    
-    const fadeInterval = setInterval(() => {
-        currentStep++;
-        audio.volume = Math.min(currentStep * volumeStep, 1.0);
-        
-        if (currentStep >= steps) {
-            clearInterval(fadeInterval);
-            audio.volume = 1.0;
-        }
-    }, stepDuration);
+    if (!audio) return;
+    try {
+        audio.muted = false;
+        const steps = 20;
+        const stepDuration = duration / steps;
+        let currentStep = 0;
+        try { audio.volume = 0.2; } catch (e) {}
+
+        const fadeInterval = setInterval(() => {
+            currentStep++;
+            try {
+                audio.volume = Math.min(0.2 + (currentStep / steps) * 0.8, 1.0);
+            } catch (e) {}
+
+            if (currentStep >= steps) {
+                clearInterval(fadeInterval);
+                try { audio.volume = 1.0; } catch (e) {}
+            }
+        }, stepDuration);
+    } catch (e) {
+        try { audio.volume = 1.0; } catch (err) {}
+    }
 }
 
 export function fadeAudioOut(audio, duration) {

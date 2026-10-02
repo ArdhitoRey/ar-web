@@ -67,12 +67,16 @@ async function startPart3Videos() {
     await new Promise(r => setTimeout(r, 50));
     
     try {
-        if (state.audioEnabled && dom.soundV3) {
+        if (dom.soundV3) {
             dom.soundV3.pause();
             dom.soundV3.currentTime = 0;
-            dom.soundV3.volume = 0;
-            await dom.soundV3.play();
-            fadeAudioIn(dom.soundV3, 400);
+            dom.soundV3.muted = false;
+            const p = dom.soundV3.play();
+            if (p !== undefined) {
+                p.then(() => fadeAudioIn(dom.soundV3, 400)).catch((err) => {
+                    console.warn('⚠️ [Part 3] Audio play deferred:', err);
+                });
+            }
         }
     } catch (e) { console.error('❌ [Part 3] Audio error:', e); }
     
@@ -175,6 +179,12 @@ export function initPart3() {
     if (!dom.target3) return;
 
     dom.target3.addEventListener('targetFound', () => {
+        state.isTargetInView[3] = true;
+        if (!state.hasStarted) {
+            state.pendingPart = 3;
+            return;
+        }
+
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 3) return;
         
@@ -207,6 +217,13 @@ export function initPart3() {
             }
         } else if (!state.part2Finished) {
             dom.statusBar.textContent = '⚠️ Selesaikan Part 2 dulu';
+        }
+    });
+
+    dom.target3.addEventListener('targetLost', () => {
+        state.isTargetInView[3] = false;
+        if (state.pendingPart === 3) {
+            state.pendingPart = null;
         }
     });
 }

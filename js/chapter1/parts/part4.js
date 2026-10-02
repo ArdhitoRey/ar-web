@@ -79,14 +79,18 @@ async function startPart4Videos() {
     await new Promise(r => setTimeout(r, 50));
     
     try {
-        if (state.audioEnabled && dom.soundV4) {
+        if (dom.soundV4) {
             dom.soundV4.pause();
             dom.soundV4.currentTime = 0;
-            dom.soundV4.volume = 0;
-            await dom.soundV4.play();
-            fadeAudioIn(dom.soundV4, 400);
+            dom.soundV4.muted = false;
+            const p = dom.soundV4.play();
+            if (p !== undefined) {
+                p.then(() => fadeAudioIn(dom.soundV4, 400)).catch((err) => {
+                    console.warn('⚠️ [Part 4] Audio play deferred:', err);
+                });
+            }
         } else {
-             console.warn('⚠️ [Part 4] Audio belum diizinkan / tidak ditemukan.');
+            console.warn('⚠️ [Part 4] Audio tidak ditemukan.');
         }
     } catch (e) { console.error('❌ [Part 4] Audio error:', e); }
     
@@ -134,6 +138,12 @@ export function initPart4() {
     if (!dom.target4) return;
 
     dom.target4.addEventListener('targetFound', () => {
+        state.isTargetInView[4] = true;
+        if (!state.hasStarted) {
+            state.pendingPart = 4;
+            return;
+        }
+
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 4) return;
         
@@ -164,6 +174,13 @@ export function initPart4() {
         } else if (state.part4Finished && state.currentPart === 4 && !state.isPlaying) {
             dom.statusBar.textContent = '⚠️ Tap untuk ulang Part 4';
             state.lastScannedMarker = 4;
+        }
+    });
+
+    dom.target4.addEventListener('targetLost', () => {
+        state.isTargetInView[4] = false;
+        if (state.pendingPart === 4) {
+            state.pendingPart = null;
         }
     });
 }

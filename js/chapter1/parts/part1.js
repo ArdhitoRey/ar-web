@@ -61,14 +61,18 @@ async function startPart1Videos() {
     else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
     
     try {
-        if (state.audioEnabled && dom.soundV1) {
+        if (dom.soundV1) {
             dom.soundV1.pause();
             dom.soundV1.currentTime = 0;
-            dom.soundV1.volume = 0;
-            await dom.soundV1.play();
-            fadeAudioIn(dom.soundV1, 400);
+            dom.soundV1.muted = false;
+            const p = dom.soundV1.play();
+            if (p !== undefined) {
+                p.then(() => fadeAudioIn(dom.soundV1, 400)).catch((err) => {
+                    console.warn('⚠️ [Part 1] Audio play deferred:', err);
+                });
+            }
         } else {
-            console.warn('⚠️ [Part 1] Audio belum diizinkan / tidak ditemukan.');
+            console.warn('⚠️ [Part 1] Audio tidak ditemukan.');
         }
     } catch (e) { 
         console.error('❌ [Part 1] Audio error:', e); 
@@ -118,6 +122,12 @@ export function initPart1() {
     if (!dom.target1) return;
 
     dom.target1.addEventListener('targetFound', () => {
+        state.isTargetInView[1] = true;
+        if (!state.hasStarted) {
+            state.pendingPart = 1;
+            return;
+        }
+
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 1) return;
         
@@ -132,7 +142,7 @@ export function initPart1() {
             return;
         }
         
-        if (!state.part1Finished && state.currentPart === 0 && !state.isPlaying && !state.isTransitioning) {
+        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
             state.activeMarkerDetection = 1;
             state.markerIgnoreUntil = now + state.MARKER_IGNORE_DURATION;
             
@@ -147,6 +157,13 @@ export function initPart1() {
         } else if (state.part1Finished && state.currentPart === 1 && !state.isPlaying) {
             dom.statusBar.textContent = '⚠️ Tap layar untuk ulang Part 1';
             state.lastScannedMarker = 1;
+        }
+    });
+
+    dom.target1.addEventListener('targetLost', () => {
+        state.isTargetInView[1] = false;
+        if (state.pendingPart === 1) {
+            state.pendingPart = null;
         }
     });
 }
