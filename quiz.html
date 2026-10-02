@@ -319,12 +319,19 @@
     </style>
 
     <script>
-        // Inisialisasi awal ID Kuis dari URL parameter (?quiz=1..5)
+        // Inisialisasi awal ID Kuis dari URL parameter (?quiz=1..5 atau ?quiz=score)
         const __params = new URLSearchParams(window.location.search);
-        let __initialQuizId = parseInt(__params.get('quiz') || __params.get('id') || '1', 10);
-        if (isNaN(__initialQuizId) || __initialQuizId < 1 || __initialQuizId > 5) __initialQuizId = 1;
+        const __rawParam = (__params.get('quiz') || __params.get('id') || '1').toLowerCase();
+        let __initialQuizId;
+        if (__rawParam === 'score' || __rawParam === 'final' || __rawParam === '6') {
+            __initialQuizId = 'score';
+            document.title = `Kuis Petualangan AR - Skor Akhir (Marker 8)`;
+        } else {
+            __initialQuizId = parseInt(__rawParam, 10);
+            if (isNaN(__initialQuizId) || __initialQuizId < 1 || __initialQuizId > 5) __initialQuizId = 1;
+            document.title = `Kuis Petualangan AR - Babak ${__initialQuizId} (Marker 8)`;
+        }
         window.__CURRENT_QUIZ_ID__ = __initialQuizId;
-        document.title = `Kuis Petualangan AR - Babak ${__initialQuizId} (Marker 8)`;
 
         // Register A-Frame Component for Reliable 3D Next Button Clicking
         if (typeof AFRAME !== 'undefined') {
@@ -345,6 +352,24 @@
                     el.addEventListener('mousedown', triggerNext);
                 }
             });
+
+            AFRAME.registerComponent('quiz-home-trigger', {
+                init: function () {
+                    const el = this.el;
+                    const triggerHome = (evt) => {
+                        if (evt) {
+                            evt.stopPropagation();
+                        }
+                        console.log('🎯 [A-Frame Component] quiz-home-trigger berhasil diklik pada Marker 8!');
+                        if (window.__triggerHomeFromScore) {
+                            window.__triggerHomeFromScore();
+                        }
+                    };
+                    el.addEventListener('click', triggerHome);
+                    el.addEventListener('touchend', triggerHome);
+                    el.addEventListener('mousedown', triggerHome);
+                }
+            });
         }
     </script>
 </head>
@@ -355,7 +380,7 @@
         <!-- Back to Chapter 2 -->
         <a href="chapter2.html" class="back-button" style="position: static;">🔙 Bab 2</a>
 
-        <!-- Quiz Selector Pills (1 - 5) -->
+        <!-- Quiz Selector Pills (1 - 5 + Final Score) -->
         <div class="quiz-nav-container" id="quizNavContainer">
             <span class="quiz-nav-label">Kuis:</span>
             <a href="./quiz.html?quiz=1" class="quiz-pill" data-quiz="1">1</a>
@@ -363,6 +388,7 @@
             <a href="./quiz.html?quiz=3" class="quiz-pill" data-quiz="3">3</a>
             <a href="./quiz.html?quiz=4" class="quiz-pill" data-quiz="4">4</a>
             <a href="./quiz.html?quiz=5" class="quiz-pill" data-quiz="5">5</a>
+            <a href="./quiz.html?quiz=score" class="quiz-pill" data-quiz="score" title="Skor Akhir">🏆</a>
         </div>
 
         <!-- Marker 8 Badge -->
@@ -446,6 +472,10 @@
                 <a-video id="video-quiz-salah" class="clickable" src="#vid-quiz-salah" position="0 0 0.11" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-quiz-salah; transparent: true; side: double"></a-video>
 
+                <!-- Video Final Score: Video Skor Akhir Petualangan (Lavender/Lilac Screen #B38BDD) -->
+                <a-video id="video-quiz-score" class="clickable" src="#vid-quiz-score" position="0 0 0.15" height="1.15" width="1.15"
+                    material="shader: chromakey-score; src: #vid-quiz-score; transparent: true; side: double" visible="false"></a-video>
+
                 <!-- 3D Choice Clickable Planes (Active at 9.25s) -->
                 <!-- Left card 3D plane -->
                 <a-plane id="btn-choice-left-3d" class="clickable" position="-0.20 -0.012 0.20" width="0.36" height="0.30"
@@ -465,19 +495,33 @@
                 <!-- Transparent hit plane for 3D Next Button (High touch responsiveness) -->
                 <a-plane id="btn-next-plane-3d" class="clickable" quiz-next-trigger position="0 -0.38 0.24" width="0.36" height="0.32"
                     material="opacity: 0.001; transparent: true; depthWrite: false" visible="false"></a-plane>
+
+                <!-- 3D Home Button (Menimpa mutiara pada kerang di video score.mp4 dengan posisi pas di bawah kiri) -->
+                <a-image id="btn-home-score-3d" class="clickable" quiz-home-trigger src="#img-quiz-home-btn" position="-0.024 -0.112 0.20" height="0.155" width="0.155"
+                    material="transparent: true; opacity: 0; alphaTest: 0.01; side: double; depthWrite: false" visible="false"
+                    animation__fade="property: material.opacity; from: 0; to: 1; dur: 450; easing: easeOutCubic; startEvents: home-fade-in"
+                    animation__scale="property: scale; from: 0.2 0.2 0.2; to: 1 1 1; dur: 550; easing: easeOutBack; startEvents: home-fade-in"
+                    animation__pulse="property: scale; dir: alternate; dur: 850; easing: easeInOutSine; loop: true; to: 1.08 1.08 1; startEvents: home-pulse-start"></a-image>
+
+                <!-- Transparent hit plane for 3D Home Button (Sentuhan responsif di layar) -->
+                <a-plane id="btn-home-score-plane" class="clickable" quiz-home-trigger position="-0.024 -0.112 0.22" width="0.25" height="0.25"
+                    material="opacity: 0.001; transparent: true; depthWrite: false" visible="false"></a-plane>
             </a-entity>
         </a-entity>
 
         <a-assets>
             <img id="img-quiz-pertanyaan" src="./compressed_ultra-videos/chapter2/quiz/quiz1/pertanyaan.PNG" crossorigin="anonymous" />
             <img id="img-quiz-next-btn" src="./addon-image/quiz/next-button-crop.png" crossorigin="anonymous" />
+            <img id="img-quiz-home-btn" src="./addon-image/quiz/home-button-crop.png" crossorigin="anonymous" />
             <video id="vid-quiz-benar" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
             <video id="vid-quiz-salah" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+            <video id="vid-quiz-score" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
 
             <!-- Audio Voiceover Kuis -->
             <audio id="sound-quiz-pertanyaan" src="./compressed_ultra-videos/chapter2/quiz/quiz1/sound/pertanyaan.mp3" preload="auto"></audio>
             <audio id="sound-quiz-benar" src="./compressed_ultra-videos/chapter2/quiz/quiz1/sound/benar.mp3" preload="auto"></audio>
             <audio id="sound-quiz-salah" src="./compressed_ultra-videos/chapter2/quiz/quiz1/sound/salah.mp3" preload="auto"></audio>
+            <audio id="sound-quiz-score" src="./compressed_ultra-videos/chapter2/quiz/final-scores/sound/sound.mp3" preload="auto"></audio>
         </a-assets>
     </a-scene>
 

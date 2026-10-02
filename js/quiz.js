@@ -1,11 +1,11 @@
 // Quiz AR Logic - Marker 8 MindAR Experience
-// Mendukung Quiz 1, 2, 3, 4, 5 dengan alur dan fungsionalitas identik:
+// Mendukung Quiz 1, 2, 3, 4, 5 dan Final Score:
 // - Sinkronisasi video ganda (Benar & Salah)
 // - Pause presisi di detik 9.25 dengan transisi tombol instan (Zero animation/Zero clipping)
 // - Pemutaran voiceover pertanyaan (berhenti di 9.25s) serta feedback suara benar dan salah
 // - Penyesuaian tata letak kartu kiri/kanan dinamis per kuis
-// - Penyesuaian shader chromakey (magenta vs green) per video kuis
-// - Navigasi kuis berurutan (Kuis 1 -> 2 -> 3 -> 4 -> 5)
+// - Penyesuaian shader chromakey (magenta vs green vs score lavender) per video kuis
+// - Navigasi kuis berurutan (Kuis 1 -> 2 -> 3 -> 4 -> 5 -> Skor Akhir)
 
 export const QUIZ_CONFIG = {
     1: {
@@ -118,17 +118,40 @@ export const QUIZ_CONFIG = {
         statusSalah: "❌ Kurang tepat! Dengarkan penjelasannya... 💡",
         descBenar: "Jawabanmu benar! Bakteri baik di dalam mulut membantu menjaga keseimbangan dan melindungi gigi dari kuman jahat.",
         descSalah: "Bakteri jahat adalah musuh gigi kita! Mereka menghasilkan asam dari sisa gula yang bisa membuat gigi berlubang."
+    },
+    'score': {
+        id: 'score',
+        isFinalScore: true,
+        title: "Skor Akhir: Petualangan Kuis AR",
+        questionText: "SELAMAT! KAMU TELAH MENYELESAIKAN SEMUA KUIS!",
+        bannerImg: "",
+        videoScore: "./compressed_ultra-videos/chapter2/quiz/final-scores/video/score.mp4",
+        soundScore: "./compressed_ultra-videos/chapter2/quiz/final-scores/sound/sound.mp3",
+        shaderScore: "chromakey-score",
+        promptStatusText: "🏆 Selamat! Simak pesan akhir dari Profesor Gurita... ✨",
+        statusScore: "🎉 Selamat! Kamu telah menyelesaikan semua petualangan kuis! 🌟",
+        descScore: "Luar biasa! Kamu telah mempelajari semua cara menjaga kesehatan gigi dan berhasil menyelesaikan seluruh tantangan kuis!"
     }
 };
 
-// Deteksi kuis aktif dari URL parameter (?quiz=1..5)
+QUIZ_CONFIG[6] = QUIZ_CONFIG['score'];
+QUIZ_CONFIG['final'] = QUIZ_CONFIG['score'];
+
+// Deteksi kuis aktif dari URL parameter (?quiz=1..5 atau ?quiz=score)
 const urlParams = new URLSearchParams(window.location.search);
-let currentQuizId = parseInt(urlParams.get('quiz') || urlParams.get('id') || '1', 10);
-if (isNaN(currentQuizId) || currentQuizId < 1 || currentQuizId > 5) {
-    currentQuizId = 1;
+const rawQuizParam = (urlParams.get('quiz') || urlParams.get('id') || '1').toLowerCase();
+let currentQuizId;
+if (rawQuizParam === 'score' || rawQuizParam === 'final' || rawQuizParam === '6') {
+    currentQuizId = 'score';
+} else {
+    currentQuizId = parseInt(rawQuizParam, 10);
+    if (isNaN(currentQuizId) || currentQuizId < 1 || currentQuizId > 5) {
+        currentQuizId = 1;
+    }
 }
 
 const currentQuiz = QUIZ_CONFIG[currentQuizId];
+const isFinalScore = !!currentQuiz.isFinalScore;
 const cacheBuster = Date.now();
 
 console.log(`🔄 [Quiz AR] Inisialisasi ${currentQuiz.title} (Marker 8). Cache buster:`, cacheBuster);
@@ -136,41 +159,62 @@ console.log(`🔄 [Quiz AR] Inisialisasi ${currentQuiz.title} (Marker 8). Cache 
 // Video Elements
 const vidBenar = document.getElementById('vid-quiz-benar');
 const vidSalah = document.getElementById('vid-quiz-salah');
+const vidScore = document.getElementById('vid-quiz-score');
 
 // Audio Elements
 const soundPertanyaan = document.getElementById('sound-quiz-pertanyaan');
 const soundBenar = document.getElementById('sound-quiz-benar');
 const soundSalah = document.getElementById('sound-quiz-salah');
+const soundScore = document.getElementById('sound-quiz-score');
 
 // Image Banner
 const imgQuizPertanyaan = document.getElementById('img-quiz-pertanyaan');
 const quizPertanyaanAframe = document.getElementById('quiz-pertanyaan');
 
-// Set asset sources with cache buster
-if (vidBenar) vidBenar.src = `${currentQuiz.videoBenar}?t=${cacheBuster}`;
-if (vidSalah) vidSalah.src = `${currentQuiz.videoSalah}?t=${cacheBuster}`;
-
-if (soundPertanyaan) soundPertanyaan.src = `${currentQuiz.soundPertanyaan}?t=${cacheBuster}`;
-if (soundBenar) soundBenar.src = `${currentQuiz.soundBenar}?t=${cacheBuster}`;
-if (soundSalah) soundSalah.src = `${currentQuiz.soundSalah}?t=${cacheBuster}`;
-
-if (imgQuizPertanyaan) imgQuizPertanyaan.src = `${currentQuiz.bannerImg}?t=${cacheBuster}`;
-if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('src', `${currentQuiz.bannerImg}?t=${cacheBuster}`);
-
 // A-Frame video elements
 const videoQuizBenar = document.getElementById('video-quiz-benar');
 const videoQuizSalah = document.getElementById('video-quiz-salah');
+const videoQuizScore = document.getElementById('video-quiz-score');
 
-// Set shaders dynamically
-if (videoQuizBenar) {
-    videoQuizBenar.setAttribute('material', `shader: ${currentQuiz.shaderBenar}; src: #vid-quiz-benar; transparent: true; side: double`);
-}
-if (videoQuizSalah) {
-    videoQuizSalah.setAttribute('material', `shader: ${currentQuiz.shaderSalah}; src: #vid-quiz-salah; transparent: true; side: double`);
+// Set asset sources with cache buster
+const imgQuizNextBtn = document.getElementById('img-quiz-next-btn');
+if (imgQuizNextBtn) imgQuizNextBtn.src = `./addon-image/quiz/next-button-crop.png?t=${cacheBuster}`;
+
+const imgQuizHomeBtn = document.getElementById('img-quiz-home-btn');
+if (imgQuizHomeBtn) imgQuizHomeBtn.src = `./addon-image/quiz/home-button-crop.png?t=${cacheBuster}`;
+
+if (isFinalScore) {
+    if (vidScore) vidScore.src = `${currentQuiz.videoScore}?t=${cacheBuster}`;
+    if (soundScore) soundScore.src = `${currentQuiz.soundScore}?t=${cacheBuster}`;
+
+    if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('visible', false);
+    if (videoQuizBenar) videoQuizBenar.setAttribute('visible', false);
+    if (videoQuizSalah) videoQuizSalah.setAttribute('visible', false);
+    if (videoQuizScore) {
+        videoQuizScore.setAttribute('material', `shader: ${currentQuiz.shaderScore}; src: #vid-quiz-score; transparent: true; side: double`);
+    }
+} else {
+    if (vidBenar) vidBenar.src = `${currentQuiz.videoBenar}?t=${cacheBuster}`;
+    if (vidSalah) vidSalah.src = `${currentQuiz.videoSalah}?t=${cacheBuster}`;
+
+    if (soundPertanyaan) soundPertanyaan.src = `${currentQuiz.soundPertanyaan}?t=${cacheBuster}`;
+    if (soundBenar) soundBenar.src = `${currentQuiz.soundBenar}?t=${cacheBuster}`;
+    if (soundSalah) soundSalah.src = `${currentQuiz.soundSalah}?t=${cacheBuster}`;
+
+    if (imgQuizPertanyaan) imgQuizPertanyaan.src = `${currentQuiz.bannerImg}?t=${cacheBuster}`;
+    if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('src', `${currentQuiz.bannerImg}?t=${cacheBuster}`);
+
+    if (videoQuizBenar) {
+        videoQuizBenar.setAttribute('material', `shader: ${currentQuiz.shaderBenar}; src: #vid-quiz-benar; transparent: true; side: double`);
+    }
+    if (videoQuizSalah) {
+        videoQuizSalah.setAttribute('material', `shader: ${currentQuiz.shaderSalah}; src: #vid-quiz-salah; transparent: true; side: double`);
+    }
+    if (videoQuizScore) videoQuizScore.setAttribute('visible', false);
 }
 
-const allSounds = [soundPertanyaan, soundBenar, soundSalah].filter(Boolean);
-const allVideos = [vidBenar, vidSalah].filter(Boolean);
+const allSounds = (isFinalScore ? [soundScore] : [soundPertanyaan, soundBenar, soundSalah]).filter(Boolean);
+const allVideos = (isFinalScore ? [vidScore] : [vidBenar, vidSalah]).filter(Boolean);
 
 // DOM Elements
 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -207,8 +251,15 @@ const btnNextQuiz = document.getElementById('btnNextQuiz');
 const btnNextQuiz3D = document.getElementById('btn-next-quiz-3d');
 const btnNextPlane3D = document.getElementById('btn-next-plane-3d');
 
+// Home Button Elements for Final Score (3D tracking on clam/pearl in score.mp4)
+const btnHomeScore3D = document.getElementById('btn-home-score-3d');
+const btnHomeScorePlane = document.getElementById('btn-home-score-plane');
+
+let isHomeButtonActive = false;
+let isNavigatingHome = false;
+
 // State Machine
-// States: 'LOADING' | 'READY_WAIT_START' | 'WAIT_MARKER' | 'INTRO_PLAYING' | 'WAITING_CHOICE' | 'RESULT_PLAYING' | 'FINISHED'
+// States: 'LOADING' | 'READY_WAIT_START' | 'WAIT_MARKER' | 'INTRO_PLAYING' | 'WAITING_CHOICE' | 'RESULT_PLAYING' | 'FINAL_SCORE_PLAYING' | 'FINISHED'
 let quizState = 'LOADING';
 let isTargetFound = false;
 let choiceHandled = false;
@@ -216,7 +267,7 @@ let audioCtx = null;
 
 // Update UI info
 if (loadingTitle) loadingTitle.textContent = currentQuiz.title;
-if (loadingDetail) loadingDetail.textContent = `Memuat aset kuis ${currentQuizId} & mempersiapkan AR...`;
+if (loadingDetail) loadingDetail.textContent = isFinalScore ? 'Memuat video skor akhir & mempersiapkan AR...' : `Memuat aset kuis ${currentQuizId} & mempersiapkan AR...`;
 
 // -----------------------------------------------------------------------------
 // Force Load Video & Audio Assets
@@ -283,10 +334,10 @@ function unlockStartButton() {
     if (quizState !== 'LOADING') return;
     quizState = 'READY_WAIT_START';
     if (loadingMessage) loadingMessage.textContent = 'Siap Dimulai!';
-    if (loadingDetail) loadingDetail.textContent = 'Ketuk Mulai Kuis untuk membuka kamera AR';
+    if (loadingDetail) loadingDetail.textContent = isFinalScore ? 'Ketuk tombol untuk melihat skor akhir petualangan' : 'Ketuk Mulai Kuis untuk membuka kamera AR';
     if (startButton) {
         startButton.disabled = false;
-        startButton.textContent = `Mulai Kuis ${currentQuizId} 🎮`;
+        startButton.textContent = isFinalScore ? 'Buka Skor Akhir 🏆' : `Mulai Kuis ${currentQuizId} 🎮`;
         startButton.style.background = '#4caf50';
         startButton.style.color = '#ffffff';
     }
@@ -321,7 +372,7 @@ setTimeout(() => {
 // Start button user gesture
 if (startButton) {
     startButton.addEventListener('click', async () => {
-        console.log(`🚀 [Quiz AR] Tombol Mulai Kuis ${currentQuizId} ditekan. Membuka AR dan audio context...`);
+        console.log(`🚀 [Quiz AR] Tombol Mulai ${isFinalScore ? 'Skor Akhir' : 'Kuis ' + currentQuizId} ditekan. Membuka AR dan audio context...`);
 
         // Prime audio context
         try {
@@ -379,13 +430,15 @@ if (startButton) {
 // -----------------------------------------------------------------------------
 if (targetQuiz) {
     targetQuiz.addEventListener('targetFound', () => {
-        console.log(`🎯 [Quiz AR] Marker 8 Terdeteksi untuk Kuis ${currentQuizId}!`);
+        console.log(`🎯 [Quiz AR] Marker 8 Terdeteksi untuk ${isFinalScore ? 'Skor Akhir' : 'Kuis ' + currentQuizId}!`);
         isTargetFound = true;
 
         if (quizState === 'WAIT_MARKER') {
             startQuizPlayback();
         } else if (quizState === 'INTRO_PLAYING') {
             if (statusBar) statusBar.textContent = `🎬 Kuis ${currentQuizId} dimulai! Simak pertanyaannya... 🎯`;
+        } else if (quizState === 'FINAL_SCORE_PLAYING') {
+            if (statusBar) statusBar.textContent = currentQuiz.promptStatusText;
         } else if (quizState === 'WAITING_CHOICE') {
             if (statusBar) statusBar.textContent = currentQuiz.promptStatusText;
         }
@@ -402,15 +455,61 @@ if (targetQuiz) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Start Quiz Playback (0s to 9.25s)
+// Start Quiz Playback (0s to 9.25s atau Final Score)
 // -----------------------------------------------------------------------------
 let introStartTime = 0;
 
 async function startQuizPlayback() {
-    quizState = 'INTRO_PLAYING';
     choiceHandled = false;
     introStartTime = performance.now();
 
+    // Mode Khusus: Pemutaran Final Score (Skor Akhir)
+    if (isFinalScore) {
+        quizState = 'FINAL_SCORE_PLAYING';
+        console.log('🏆 [Quiz AR] Memulai pemutaran Video & Audio Final Score pada Marker 8...');
+        if (statusBar) {
+            statusBar.textContent = currentQuiz.promptStatusText;
+            statusBar.classList.add('tracking');
+            statusBar.classList.remove('finished');
+        }
+
+        // Tampilkan container kuis dan video score, sembunyikan elemen kuis lainnya
+        if (videoContainer) videoContainer.setAttribute('visible', true);
+        if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('visible', false);
+        if (videoQuizBenar) videoQuizBenar.setAttribute('visible', false);
+        if (videoQuizSalah) videoQuizSalah.setAttribute('visible', false);
+        if (videoQuizScore) videoQuizScore.setAttribute('visible', true);
+
+        if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
+        if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
+        if (quizTouchLayer) quizTouchLayer.classList.remove('active');
+        hideNextButton();
+        hideHomeScoreButton();
+
+        if (vidScore) {
+            vidScore.muted = true;
+            try { vidScore.currentTime = 0; } catch (e) {}
+            const p = vidScore.play();
+            if (p !== undefined) {
+                p.catch(e => {
+                    console.warn('⚠️ Play vidScore retry:', e);
+                    setTimeout(() => vidScore.play().catch(err => console.error('❌ Play vidScore error:', err)), 100);
+                });
+            }
+        }
+
+        if (soundScore) {
+            soundScore.pause();
+            soundScore.currentTime = 0;
+            soundScore.muted = false;
+            soundScore.play().catch(e => console.error('Play soundScore error:', e));
+        }
+
+        waitForFinalScoreCompletion(vidScore, soundScore);
+        return;
+    }
+
+    quizState = 'INTRO_PLAYING';
     console.log(`🎬 [Quiz AR] Memulai pemutaran kuis ${currentQuizId} & audio pertanyaan...`);
     if (statusBar) {
         statusBar.textContent = `🎬 Kuis ${currentQuizId} dimulai! Simak pertanyaannya... 🎯`;
@@ -420,6 +519,7 @@ async function startQuizPlayback() {
 
     // Tampilkan container kuis dan kedua video
     if (videoContainer) videoContainer.setAttribute('visible', true);
+    if (videoQuizScore) videoQuizScore.setAttribute('visible', false);
     if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
     if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
 
@@ -428,6 +528,7 @@ async function startQuizPlayback() {
     if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
     if (quizTouchLayer) quizTouchLayer.classList.remove('active');
     hideNextButton();
+    hideHomeScoreButton();
 
     // Reset dan mulai kedua video dari 0s
     if (vidBenar) {
@@ -654,6 +755,15 @@ function handleNextQuizNavigation() {
         setTimeout(() => {
             window.location.href = `./quiz.html?quiz=${nextQuizId}`;
         }, 250);
+    } else if (currentQuizId === 5) {
+        console.log(`🏆 [Quiz AR] Kuis 5 Selesai! Membuka Final Score...`);
+        if (statusBar) {
+            statusBar.textContent = `🏆 Membuka Skor Akhir Petualangan... ✨`;
+            statusBar.classList.add('finished');
+        }
+        setTimeout(() => {
+            window.location.href = `./quiz.html?quiz=score`;
+        }, 250);
     } else {
         console.log('🏆 [Quiz AR] Semua Kuis Selesai! Kembali ke Chapter 2...');
         if (statusBar) {
@@ -667,6 +777,178 @@ function handleNextQuizNavigation() {
 }
 
 window.__triggerNextQuiz = handleNextQuizNavigation;
+
+// -----------------------------------------------------------------------------
+// Home Button Display & Navigation for Final Score
+// -----------------------------------------------------------------------------
+function showHomeScoreButton() {
+    console.log('✨ [Quiz AR] Final score video & audio selesai! Memunculkan 3D Home Button di kerang dengan animasi denyut...');
+    isHomeButtonActive = true;
+    isNavigatingHome = false;
+
+    if (btnHomeScore3D) {
+        btnHomeScore3D.setAttribute('visible', true);
+        btnHomeScore3D.setAttribute('scale', '0.2 0.2 0.2');
+
+        // Reset opacity to 0 before starting fade-in
+        const mesh = btnHomeScore3D.getObject3D('mesh');
+        if (mesh) {
+            mesh.visible = true;
+            if (mesh.material) {
+                mesh.material.depthWrite = false;
+                mesh.material.transparent = true;
+                mesh.material.opacity = 0;
+            }
+        }
+
+        setTimeout(() => {
+            if (isHomeButtonActive && !isNavigatingHome) {
+                btnHomeScore3D.emit('home-fade-in', null, false);
+            }
+        }, 50);
+
+        setTimeout(() => {
+            if (isHomeButtonActive && !isNavigatingHome) {
+                btnHomeScore3D.emit('home-pulse-start', null, false);
+            }
+        }, 650);
+    }
+
+    if (btnHomeScorePlane) {
+        btnHomeScorePlane.setAttribute('visible', true);
+        const mesh = btnHomeScorePlane.getObject3D('mesh');
+        if (mesh) {
+            mesh.visible = true;
+            if (mesh.material) {
+                mesh.material.depthWrite = false;
+                mesh.material.transparent = true;
+                mesh.material.opacity = 0.001;
+            }
+        }
+    }
+
+    // Refresh A-Frame Raycaster
+    const cameraEl = document.querySelector('a-camera');
+    if (cameraEl && cameraEl.components && cameraEl.components.raycaster) {
+        cameraEl.components.raycaster.refreshObjects();
+    }
+}
+
+function hideHomeScoreButton() {
+    isHomeButtonActive = false;
+    if (btnHomeScore3D) {
+        btnHomeScore3D.setAttribute('visible', false);
+        const mesh = btnHomeScore3D.getObject3D('mesh');
+        if (mesh) mesh.visible = false;
+    }
+    if (btnHomeScorePlane) {
+        btnHomeScorePlane.setAttribute('visible', false);
+        const mesh = btnHomeScorePlane.getObject3D('mesh');
+        if (mesh) mesh.visible = false;
+    }
+}
+
+function handleHomeScoreNavigation() {
+    if (isNavigatingHome) return;
+    isNavigatingHome = true;
+
+    // Haptic & chime sound feedback
+    playChime(true);
+
+    if (btnHomeScore3D) {
+        btnHomeScore3D.setAttribute('scale', '1.25 1.25 1.25');
+    }
+
+    console.log('🏠 [Quiz AR] Tombol Home pada Final Score diklik! Kembali ke Menu Utama...');
+    if (statusBar) {
+        statusBar.textContent = '🏠 Kembali ke Menu Utama... ✨';
+        statusBar.classList.add('finished');
+    }
+
+    setTimeout(() => {
+        window.location.href = './index.html';
+    }, 300);
+}
+
+window.__triggerHomeFromScore = handleHomeScoreNavigation;
+
+// -----------------------------------------------------------------------------
+// Monitor Penyelesaian Video & Audio Final Score (Skor Akhir)
+// -----------------------------------------------------------------------------
+function waitForFinalScoreCompletion(videoEl, soundEl) {
+    let hasEnded = false;
+    let videoDone = false;
+    let soundDone = false;
+
+    const onAllDone = () => {
+        if (hasEnded) return;
+        hasEnded = true;
+
+        console.log('🏁 [Quiz AR] Final Score selesai diputar! Membekukan frame dan memunculkan tombol Home pada kerang...');
+        if (videoEl) videoEl.pause();
+        if (soundEl) soundEl.pause();
+        quizState = 'FINISHED';
+
+        if (statusBar) {
+            statusBar.textContent = `🏆 Selamat! Ketuk Mutiara Rumah di kerang untuk kembali ke Menu Utama! 🏠✨`;
+            statusBar.classList.remove('tracking');
+            statusBar.classList.add('finished');
+        }
+
+        // Freeze video and show pulsing 3D Home Button without popup modal
+        showHomeScoreButton();
+    };
+
+    const tryFinish = () => {
+        if (videoDone && soundDone) {
+            onAllDone();
+        }
+    };
+
+    const videoTimeHandler = function () {
+        // Sinkronisasi: Munculkan tombol 3D tepat di detik 4.3s saat mutiara kerang merekah di video score.mp4
+        if (this.currentTime >= 4.3 && !isHomeButtonActive && !isNavigatingHome) {
+            console.log('✨ [Quiz AR] Detik 4.3s: Mutiara kerang merekah di video score.mp4! Memunculkan tombol Home 3D secara sinkron...');
+            showHomeScoreButton();
+        }
+
+        // Freeze frame pada akhir video
+        if (this.duration && (this.duration - this.currentTime <= 0.4)) {
+            this.removeEventListener('timeupdate', videoTimeHandler);
+            this.pause();
+            videoDone = true;
+            tryFinish();
+        }
+    };
+
+    if (videoEl) {
+        videoEl.addEventListener('timeupdate', videoTimeHandler);
+        videoEl.addEventListener('ended', () => {
+            videoDone = true;
+            tryFinish();
+        }, { once: true });
+    } else {
+        videoDone = true;
+    }
+
+    if (soundEl) {
+        soundEl.addEventListener('ended', () => {
+            soundDone = true;
+            tryFinish();
+        }, { once: true });
+    } else {
+        soundDone = true;
+    }
+
+    // Safety fallback timeout: ~15 detik
+    setTimeout(() => {
+        if (!hasEnded) {
+            videoDone = true;
+            soundDone = true;
+            onAllDone();
+        }
+    }, 15000);
+}
 
 // -----------------------------------------------------------------------------
 // Multi-Layer Click & Touch Detection for 3D Next Button
@@ -728,10 +1010,70 @@ function checkNextButtonInteraction(clientX, clientY) {
     return false;
 }
 
+// -----------------------------------------------------------------------------
+// Multi-Layer Click & Touch Detection for 3D Home Button (Final Score)
+// -----------------------------------------------------------------------------
+function checkHomeScoreInteraction(clientX, clientY) {
+    if (!isHomeButtonActive || isNavigatingHome) return false;
+    if (!btnHomeScore3D || !arScene) return false;
+
+    const camera = arScene.camera;
+    if (!camera) return false;
+
+    // 1. Screen-Space Projection Distance Check (Sangat responsif di HP)
+    try {
+        const homeWorldPos = new THREE.Vector3();
+        btnHomeScore3D.object3D.getWorldPosition(homeWorldPos);
+
+        const screenPos = homeWorldPos.clone().project(camera);
+        if (screenPos.z < 1) {
+            const screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+            const screenY = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
+            const dist = Math.hypot(clientX - screenX, clientY - screenY);
+
+            if (dist < 110) {
+                console.log(`🎯 [Touch Target Match] Screen-space tap on 3D Home Button! dist=${dist.toFixed(1)}px`);
+                handleHomeScoreNavigation();
+                return true;
+            }
+        }
+    } catch (err) {
+        console.warn('Home screen projection check warning:', err);
+    }
+
+    // 2. Direct Three.js Raycaster Check
+    try {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2(
+            (clientX / window.innerWidth) * 2 - 1,
+            -(clientY / window.innerHeight) * 2 + 1
+        );
+        raycaster.setFromCamera(mouse, camera);
+
+        const targetObjects = [];
+        if (btnHomeScore3D && btnHomeScore3D.object3D) targetObjects.push(btnHomeScore3D.object3D);
+        if (btnHomeScorePlane && btnHomeScorePlane.object3D) targetObjects.push(btnHomeScorePlane.object3D);
+
+        const intersects = raycaster.intersectObjects(targetObjects, true);
+        if (intersects && intersects.length > 0) {
+            console.log('🎯 [Three.js Raycaster Match] Intersected 3D Home Button object!');
+            handleHomeScoreNavigation();
+            return true;
+        }
+    } catch (err) {
+        console.warn('Home raycaster check warning:', err);
+    }
+
+    return false;
+}
+
 // Global Touch & Click Listeners on window
 window.addEventListener('click', (e) => {
     if (isNextButtonActive && !isNavigatingNext) {
         checkNextButtonInteraction(e.clientX, e.clientY);
+    }
+    if (isHomeButtonActive && !isNavigatingHome) {
+        checkHomeScoreInteraction(e.clientX, e.clientY);
     }
 }, true);
 
@@ -739,6 +1081,13 @@ window.addEventListener('touchend', (e) => {
     if (isNextButtonActive && !isNavigatingNext && e.changedTouches && e.changedTouches.length > 0) {
         const t = e.changedTouches[0];
         const handled = checkNextButtonInteraction(t.clientX, t.clientY);
+        if (handled) {
+            e.preventDefault();
+        }
+    }
+    if (isHomeButtonActive && !isNavigatingHome && e.changedTouches && e.changedTouches.length > 0) {
+        const t = e.changedTouches[0];
+        const handled = checkHomeScoreInteraction(t.clientX, t.clientY);
         if (handled) {
             e.preventDefault();
         }
@@ -967,6 +1316,22 @@ if (btnNextPlane3D) {
     });
 }
 
+// 3D Home Button Click on Final Score (Tracking on clam/pearl in score.mp4)
+if (btnHomeScore3D) {
+    btnHomeScore3D.addEventListener('click', (e) => {
+        if (e) e.stopPropagation();
+        console.log(`🎯 [Quiz AR] Tombol 3D Home diklik pada Marker 8!`);
+        handleHomeScoreNavigation();
+    });
+}
+if (btnHomeScorePlane) {
+    btnHomeScorePlane.addEventListener('click', (e) => {
+        if (e) e.stopPropagation();
+        console.log(`🎯 [Quiz AR] Tombol 3D Home plane diklik pada Marker 8!`);
+        handleHomeScoreNavigation();
+    });
+}
+
 // Video planes fallback (jika mengklik langsung pada video entity)
 if (videoQuizBenar) {
     videoQuizBenar.addEventListener('click', (e) => {
@@ -1017,9 +1382,34 @@ if (btnTouchRight) {
 // Tombol Ulangi Kuis (Reset in-place tanpa reload seluruh halaman)
 if (btnReplayQuiz) {
     btnReplayQuiz.addEventListener('click', () => {
+        if (isFinalScore) {
+            console.log('🔄 [Quiz AR] Mengulangi Final Score...');
+            if (resultModal) resultModal.classList.remove('active');
+            hideHomeScoreButton();
+            if (vidScore) {
+                vidScore.pause();
+                vidScore.currentTime = 0;
+            }
+            if (soundScore) {
+                soundScore.pause();
+                soundScore.currentTime = 0;
+            }
+            if (isTargetFound) {
+                startQuizPlayback();
+            } else {
+                quizState = 'WAIT_MARKER';
+                if (statusBar) {
+                    statusBar.textContent = '📷 Arahkan kamera ke Marker 8...';
+                    statusBar.classList.remove('tracking', 'finished');
+                }
+            }
+            return;
+        }
+
         console.log(`🔄 [Quiz AR] Mengulangi Kuis ${currentQuizId}...`);
         if (resultModal) resultModal.classList.remove('active');
         hideNextButton();
+        hideHomeScoreButton();
 
         // Reset video
         if (vidBenar) {
@@ -1064,3 +1454,4 @@ if (btnReplayQuiz) {
         }
     });
 }
+

@@ -545,4 +545,73 @@ AFRAME.registerShader('chromakey-neon', {
             blending: THREE.NormalBlending
         });
     }
-});
+});
+
+// CHROMAKEY Shader - Khusus Final Score Lavender/Lilac Screen (#B38BDD / RGB: ~179, ~139, ~221)
+AFRAME.registerShader('chromakey-score', {
+    schema: { src: {type: 'map'} },
+    init: function(data) {
+        const videoTexture = new THREE.VideoTexture(data.src);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBAFormat;
+        videoTexture.generateMipmaps = false;
+        videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+        videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+        this.material = new THREE.ShaderMaterial({
+            uniforms: { tex: {value: videoTexture} },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tex;
+                varying vec2 vUv;
+
+                void main() {
+                    vec4 color = texture2D(tex, vUv);
+
+                    // Target background color lavender/lilac: #B38BDD (RGB: 179/255, 139/255, 221/255)
+                    vec3 keyColor = vec3(0.70196, 0.54510, 0.86667);
+                    float dist = distance(color.rgb, keyColor);
+
+                    // Transisi halus presisi (0.05 - 0.18)
+                    float alpha = smoothstep(0.05, 0.18, dist);
+
+                    // Hard-cut pengaman untuk piksel latar belakang murni
+                    if (dist < 0.05) {
+                        alpha = 0.0;
+                    }
+
+                    vec3 finalColor = color.rgb;
+
+                    // Despill lembut di tepian semi-transparan untuk hilangkan sisa pantulan warna ungu muda
+                    if (alpha > 0.0 && alpha < 0.99) {
+                        float spillFactor = 1.0 - alpha;
+                        float bExcess = max(0.0, finalColor.b - max(finalColor.r * 0.9, finalColor.g * 1.15));
+                        float rExcess = max(0.0, finalColor.r - max(finalColor.g * 1.1, finalColor.b * 0.85));
+                        finalColor.b -= bExcess * spillFactor * 1.2;
+                        finalColor.r -= rExcess * spillFactor * 0.8;
+                        finalColor = clamp(finalColor, 0.0, 1.0);
+                    }
+
+                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+
+                    gl_FragColor = vec4(finalColor, alpha);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            blending: THREE.NormalBlending
+        });
+    }
+});
+
+// Alias chromakey-lavender
+AFRAME.registerShader('chromakey-lavender', AFRAME.shaders['chromakey-score']);
+
