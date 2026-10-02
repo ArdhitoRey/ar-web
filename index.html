@@ -492,8 +492,8 @@
                 </svg>
             </button>
 
-            <!-- Menu 1: Apa Penyebab Karies? -> Chapter 1 -->
-            <a href="chapter1.html" class="menu-btn" id="menuBtn1" aria-label="Menu 1: Apa Penyebab Karies?">
+            <!-- Menu 1: Apa Penyebab Karies? -> # (Placeholder) -->
+            <a href="#" class="menu-btn" id="menuBtn1" aria-label="Menu 1: Apa Penyebab Karies?">
                 <img src="./addon-image/main-menu/menu-1-crop.png" alt="Apa Penyebab Karies?" class="menu-btn-img"
                     draggable="false" />
             </a>
@@ -504,14 +504,14 @@
                     class="menu-btn-img" draggable="false" />
             </a>
 
-            <!-- Menu 3: Apa Dampak Karies? -> # (Chapter 3 Placeholder) -->
+            <!-- Menu 3: Apa Dampak Karies? -> # (Placeholder) -->
             <a href="#" class="menu-btn" id="menuBtn3" aria-label="Menu 3: Apa Dampak Karies?">
                 <img src="./addon-image/main-menu/menu-3-crop.png" alt="Apa Dampak Karies?" class="menu-btn-img"
                     draggable="false" />
             </a>
 
-            <!-- Menu 4: Bagaimana Mencegah Karies? -> # (Chapter 4 Placeholder) -->
-            <a href="#" class="menu-btn" id="menuBtn4" aria-label="Menu 4: Bagaimana Mencegah Karies?">
+            <!-- Menu 4: Bagaimana Mencegah Karies? -> Chapter 1 -->
+            <a href="chapter1.html" class="menu-btn" id="menuBtn4" aria-label="Menu 4: Bagaimana Mencegah Karies?">
                 <img src="./addon-image/main-menu/menu-4-crop.png" alt="Bagaimana Mencegah Karies?" class="menu-btn-img"
                     draggable="false" />
             </a>
@@ -616,7 +616,7 @@
                 bgmAudio.play();
             });
 
-            // 5. TOAST NOTIFICATION UNTUK CHAPTER 3 & 4
+            // 5. TOAST NOTIFICATION UNTUK MENU YANG BELUM TERSEDIA (MENU 1 & 3)
             function showToast(message) {
                 toastMsg.textContent = message;
                 toast.classList.add('show');
@@ -626,14 +626,16 @@
                 }, 2400);
             }
 
-            document.getElementById('menuBtn3').addEventListener('click', (e) => {
+            // Menu 1: Apa Penyebab Karies? -> Placeholder Toast
+            document.getElementById('menuBtn1').addEventListener('click', (e) => {
                 e.preventDefault();
-                showToast('🚧 Chapter 3 ("Apa Dampak Karies?") Segera Hadir!');
+                showToast('🚧 Materi "Apa Penyebab Karies?" Segera Hadir!');
             });
 
-            document.getElementById('menuBtn4').addEventListener('click', (e) => {
+            // Menu 3: Apa Dampak Karies? -> Placeholder Toast
+            document.getElementById('menuBtn3').addEventListener('click', (e) => {
                 e.preventDefault();
-                showToast('🚧 Chapter 4 ("Bagaimana Mencegah Karies?") Segera Hadir!');
+                showToast('🚧 Materi "Apa Dampak Karies?" Segera Hadir!');
             });
         });
     </script>
