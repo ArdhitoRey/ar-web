@@ -198,6 +198,8 @@ export function restartFromBeginning() {
         dom.containerPart7, dom.containerPart8
     ];
     allContainers.forEach((c) => { if (c) c.setAttribute("visible", false); });
+    if (dom.btnPlayPart8_3D) dom.btnPlayPart8_3D.setAttribute("visible", false);
+    if (dom.btnPlayPart8_Plane) dom.btnPlayPart8_Plane.setAttribute("visible", false);
 
     allVideos.forEach((v) => { if (v) { v.pause(); v.currentTime = 0; } });
 
@@ -278,6 +280,10 @@ export function jumpToPart(partNumber) {
     allContainers.forEach((c, idx) => {
         if (c && idx + 1 !== partNumber) c.setAttribute("visible", false);
     });
+    if (partNumber !== 8) {
+        if (dom.btnPlayPart8_3D) dom.btnPlayPart8_3D.setAttribute("visible", false);
+        if (dom.btnPlayPart8_Plane) dom.btnPlayPart8_Plane.setAttribute("visible", false);
+    }
 
     const playActions = {
         1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4,

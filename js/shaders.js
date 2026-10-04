@@ -614,4 +614,5 @@ AFRAME.registerShader('chromakey-score', {
 
 // Alias chromakey-lavender
 AFRAME.registerShader('chromakey-lavender', AFRAME.shaders['chromakey-score']);
+
 

@@ -58,7 +58,10 @@ export const dom = {
     soundV5: document.getElementById('sound-v5'),
     soundV6: document.getElementById('sound-v6'),
     soundV7: document.getElementById('sound-v7'),
-    soundV8: document.getElementById('sound-v8')
+    soundV8: document.getElementById('sound-v8'),
+
+    btnPlayPart8_3D: document.getElementById('btn-play-part8-3d'),
+    btnPlayPart8_Plane: document.getElementById('btn-play-part8-plane')
 };
 
 export const videos = {

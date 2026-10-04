@@ -782,7 +782,11 @@ window.__triggerNextQuiz = handleNextQuizNavigation;
 // Home Button Display & Navigation for Final Score
 // -----------------------------------------------------------------------------
 function showHomeScoreButton() {
-    console.log('✨ [Quiz AR] Final score video & audio selesai! Memunculkan 3D Home Button di kerang dengan animasi denyut...');
+    if (isHomeButtonActive) {
+        // Tombol sudah aktif dan sedang berdenyut dari sinkronisasi video (detik 4.3s), jangan restart animasi muncul
+        return;
+    }
+    console.log('✨ [Quiz AR] Memunculkan 3D Home Button di kerang dengan animasi denyut...');
     isHomeButtonActive = true;
     isNavigatingHome = false;
 
@@ -895,8 +899,10 @@ function waitForFinalScoreCompletion(videoEl, soundEl) {
             statusBar.classList.add('finished');
         }
 
-        // Freeze video and show pulsing 3D Home Button without popup modal
-        showHomeScoreButton();
+        // Pastikan tombol Home aktif jika belum sempat terpicu (fallback)
+        if (!isHomeButtonActive) {
+            showHomeScoreButton();
+        }
     };
 
     const tryFinish = () => {
