@@ -163,8 +163,39 @@ function checkAndTriggerActiveMarker() {
     }
 }
 
-// 4. START BUTTON (UNLOCK AUDIO CONTEXT & ACTIVATE AR)
-dom.startButton.addEventListener("click", () => {
+// -----------------------------------------------------------------------------
+// MindAR Camera Readiness Tracking
+// -----------------------------------------------------------------------------
+let isArReady = false;
+let pendingStartTriggered = false;
+
+if (dom.arScene) {
+    dom.arScene.addEventListener('arReady', () => {
+        console.log('📷 [Chapter 1] MindAR Camera stream & AR Scene telah siap!');
+        isArReady = true;
+        if (pendingStartTriggered) {
+            executeStartChapter1();
+        }
+    });
+    dom.arScene.addEventListener('arError', (err) => {
+        console.warn('⚠️ [Chapter 1] MindAR Camera error:', err);
+        isArReady = true;
+        if (pendingStartTriggered) {
+            executeStartChapter1();
+        }
+    });
+}
+
+setTimeout(() => {
+    if (!isArReady) {
+        isArReady = true;
+        if (pendingStartTriggered) {
+            executeStartChapter1();
+        }
+    }
+}, 4500);
+
+function executeStartChapter1() {
     state.hasStarted = true;
     state.audioEnabled = true;
 
@@ -189,7 +220,23 @@ dom.startButton.addEventListener("click", () => {
 
     // Langsung putar Part 1 jika marker sudah berada di depan kamera
     checkAndTriggerActiveMarker();
-});
+}
+
+// 4. START BUTTON (UNLOCK AUDIO CONTEXT & ACTIVATE AR)
+if (dom.startButton) {
+    dom.startButton.addEventListener("click", () => {
+        if (pendingStartTriggered) return;
+
+        if (isArReady) {
+            executeStartChapter1();
+        } else {
+            pendingStartTriggered = true;
+            dom.startButton.textContent = 'Membuka Kamera...';
+            dom.startButton.disabled = true;
+            dom.startButton.classList.remove('ready');
+        }
+    });
+}
 
 // 5. GLOBAL CONTROL LOGIC
 export function replayPart(partNumber) {

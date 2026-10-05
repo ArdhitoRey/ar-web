@@ -134,21 +134,53 @@ setTimeout(() => {
     }
 }, 3500);
 
-dom.startButton.addEventListener("click", async () => {
-    if (!state.allFullyBuffered) return;
+// -----------------------------------------------------------------------------
+// MindAR Camera Readiness Tracking
+// -----------------------------------------------------------------------------
+let isArReady = false;
+let pendingStartTriggered = false;
 
-    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].filter(Boolean);
-    for (let sound of sounds) {
-        try {
-            sound.muted = true;
-            await sound.play();
-            sound.pause();
-            sound.currentTime = 0;
-            sound.muted = false;
-        } catch (e) {
-            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
+if (dom.arScene) {
+    dom.arScene.addEventListener('arReady', () => {
+        console.log('📷 [Chapter 2] MindAR Camera stream & AR Scene telah siap!');
+        isArReady = true;
+        if (pendingStartTriggered) {
+            executeStartChapter2();
+        }
+    });
+    dom.arScene.addEventListener('arError', (err) => {
+        console.warn('⚠️ [Chapter 2] MindAR Camera error:', err);
+        isArReady = true;
+        if (pendingStartTriggered) {
+            executeStartChapter2();
+        }
+    });
+}
+
+setTimeout(() => {
+    if (!isArReady) {
+        isArReady = true;
+        if (pendingStartTriggered) {
+            executeStartChapter2();
         }
     }
+}, 4500);
+
+async function executeStartChapter2() {
+    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].filter(Boolean);
+    sounds.forEach(async (sound) => {
+        try {
+            sound.muted = true;
+            const p = sound.play();
+            if (p !== undefined) await p;
+            sound.pause();
+            sound.currentTime = 0;
+        } catch (e) {
+            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
+        } finally {
+            sound.muted = false;
+        }
+    });
     state.audioEnabled = true;
 
     dom.loadingOverlay.classList.add("hidden");
@@ -162,7 +194,22 @@ dom.startButton.addEventListener("click", async () => {
     initPart6();
     initPart7();
     initPart8();
-});
+}
+
+if (dom.startButton) {
+    dom.startButton.addEventListener("click", () => {
+        if (!state.allFullyBuffered || pendingStartTriggered) return;
+
+        if (isArReady) {
+            executeStartChapter2();
+        } else {
+            pendingStartTriggered = true;
+            dom.startButton.textContent = 'Membuka Kamera...';
+            dom.startButton.disabled = true;
+            dom.startButton.classList.remove('ready');
+        }
+    });
+}
 
 export function replayPart(partNumber) {
     if (partNumber !== state.currentPart) {
