@@ -42,6 +42,37 @@
             pointer-events: auto;
         }
 
+        .quiz-top-bar .back-button {
+            position: static;
+            width: auto;
+            height: auto;
+            padding: 8px 16px;
+            background: linear-gradient(180deg, #ffffff 0%, #def6fb 40%, #b2ebf6 82%, #8cdbef 100%);
+            border: 2px solid #ffffff;
+            border-radius: 999px;
+            color: #205882;
+            font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(2, 32, 60, 0.35), inset 0 2px 3px rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .quiz-top-bar .back-button:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.9));
+            color: #124063;
+        }
+
+        .quiz-top-bar .back-button:active {
+            transform: scale(0.95);
+        }
+
         /* Quiz Navigation Pills */
         .quiz-nav-container {
             display: flex;
@@ -139,35 +170,6 @@
                 padding: 7px 12px;
                 font-size: 12px;
             }
-        }
-
-        /* 2D Touch Choice Layer (Zero transition & Zero animation as requested) */
-        .quiz-choice-touch-layer {
-            position: fixed;
-            inset: 0;
-            z-index: 500;
-            display: none;
-            pointer-events: auto;
-        }
-
-        .quiz-choice-touch-layer.active {
-            display: flex;
-        }
-
-        .touch-half {
-            flex: 1;
-            height: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 0;
-            margin: 0;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            /* ZERO transition & ZERO animation agar menyatu dengan video */
-            transition: none !important;
-            animation: none !important;
         }
 
         /* Result Popup Modal */
@@ -353,21 +355,35 @@
                 }
             });
 
-            AFRAME.registerComponent('quiz-home-trigger', {
+            AFRAME.registerComponent('quiz-choice-left', {
                 init: function () {
                     const el = this.el;
-                    const triggerHome = (evt) => {
-                        if (evt) {
-                            evt.stopPropagation();
-                        }
-                        console.log('🎯 [A-Frame Component] quiz-home-trigger berhasil diklik pada Marker 8!');
-                        if (window.__triggerHomeFromScore) {
-                            window.__triggerHomeFromScore();
+                    const triggerLeft = (evt) => {
+                        if (evt) evt.stopPropagation();
+                        console.log('🎯 [A-Frame Component] quiz-choice-left berhasil diklik pada Marker 8!');
+                        if (window.__triggerQuizChoiceLeft) {
+                            window.__triggerQuizChoiceLeft();
                         }
                     };
-                    el.addEventListener('click', triggerHome);
-                    el.addEventListener('touchend', triggerHome);
-                    el.addEventListener('mousedown', triggerHome);
+                    el.addEventListener('click', triggerLeft);
+                    el.addEventListener('touchend', triggerLeft);
+                    el.addEventListener('mousedown', triggerLeft);
+                }
+            });
+
+            AFRAME.registerComponent('quiz-choice-right', {
+                init: function () {
+                    const el = this.el;
+                    const triggerRight = (evt) => {
+                        if (evt) evt.stopPropagation();
+                        console.log('🎯 [A-Frame Component] quiz-choice-right berhasil diklik pada Marker 8!');
+                        if (window.__triggerQuizChoiceRight) {
+                            window.__triggerQuizChoiceRight();
+                        }
+                    };
+                    el.addEventListener('click', triggerRight);
+                    el.addEventListener('touchend', triggerRight);
+                    el.addEventListener('mousedown', triggerRight);
                 }
             });
         }
@@ -378,7 +394,7 @@
     <!-- Top Navigation Bar -->
     <div class="quiz-top-bar">
         <!-- Back to Chapter 2 -->
-        <a href="chapter2.html" class="back-button" style="position: static;">🔙 Bab 2</a>
+        <a href="chapter2.html" class="back-button">Bab 2</a>
 
         <!-- Quiz Selector Pills (1 - 5 + Final Score) -->
         <div class="quiz-nav-container" id="quizNavContainer">
@@ -388,36 +404,40 @@
             <a href="./quiz.html?quiz=3" class="quiz-pill" data-quiz="3">3</a>
             <a href="./quiz.html?quiz=4" class="quiz-pill" data-quiz="4">4</a>
             <a href="./quiz.html?quiz=5" class="quiz-pill" data-quiz="5">5</a>
-            <a href="./quiz.html?quiz=score" class="quiz-pill" data-quiz="score" title="Skor Akhir">🏆</a>
+            <a href="./quiz.html?quiz=score" class="quiz-pill" data-quiz="score" title="Skor Akhir">Skor</a>
         </div>
 
         <!-- Marker 8 Badge -->
         <div class="marker-badge">
-            <span>Target: Marker 8</span> 🎯
+            <span>Target: Marker 8</span>
         </div>
     </div>
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-title" id="loadingTitle">Kuis Bawah Laut</div>
-        <div class="loading-message" id="loadingMessage">Mempersiapkan Kamera AR & Kuis...</div>
-        <div class="loading-progress" id="loadingProgress">●●</div>
-        <div class="loading-detail" id="loadingDetail">Memuat video kuis & marker...</div>
-        <div class="loading-tip">Pastikan izin kamera diaktifkan & arahkan ke Marker 8</div>
-        <button class="start-button" id="startButton" disabled>Tunggu Sebentar...</button>
+        <div class="loading-card">
+            <!-- Loading Spinner Rings -->
+            <div class="loading-visual">
+                <div class="loading-ring outer-ring"></div>
+                <div class="loading-ring inner-ring"></div>
+            </div>
+
+            <!-- AR Title -->
+            <h1 class="loading-title" id="loadingTitle">Kuis Bawah Laut</h1>
+
+            <!-- Loading Progress Bar -->
+            <div class="loading-bar-container">
+                <div class="loading-bar-fill" id="loadingBarFill"></div>
+            </div>
+            <div class="loading-progress" id="loadingProgress">0%</div>
+
+            <!-- Start Button -->
+            <button class="start-button" id="startButton" disabled>Mulai</button>
+        </div>
     </div>
 
     <!-- Status Bar -->
-    <div class="status-bar" id="statusBar">Arahkan kamera ke Marker 8... 📷</div>
-
-    <!-- Transparent 2D Hit Layer for Mobile Touch (Zero animation/Zero latency at 9.25s) -->
-    <div class="quiz-choice-touch-layer" id="quizTouchLayer">
-        <!-- Left half -->
-        <button class="touch-half" id="btnTouchLeft" aria-label="Pilih Kiri"></button>
-        <!-- Right half -->
-        <button class="touch-half" id="btnTouchRight" aria-label="Pilih Kanan"></button>
-    </div>
+    <div class="status-bar" id="statusBar">Arahkan kamera ke Marker 8...</div>
 
     <!-- Result Popup Modal (Disederhanakan / Fallback) -->
     <div class="result-modal" id="resultModal">
@@ -465,25 +485,25 @@
                     material="transparent: true; alphaTest: 0.05; side: double"></a-image>
 
                 <!-- Video Benar: card video (Ungu/Magenta di semua quiz) -->
-                <a-video id="video-quiz-benar" class="clickable" src="#vid-quiz-benar" position="0 0 0.10" height="1" width="1"
+                <a-video id="video-quiz-benar" src="#vid-quiz-benar" position="0 0 0.10" height="1" width="1"
                     material="shader: chromakey-magenta; src: #vid-quiz-benar; transparent: true; side: double"></a-video>
 
                 <!-- Video Salah: card video (Green di quiz 1,2,4; Magenta di quiz 3,5) -->
-                <a-video id="video-quiz-salah" class="clickable" src="#vid-quiz-salah" position="0 0 0.11" height="1" width="1"
+                <a-video id="video-quiz-salah" src="#vid-quiz-salah" position="0 0 0.11" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-quiz-salah; transparent: true; side: double"></a-video>
 
                 <!-- Video Final Score: Video Skor Akhir Petualangan (Lavender/Lilac Screen #B38BDD) -->
-                <a-video id="video-quiz-score" class="clickable" src="#vid-quiz-score" position="0 0 0.15" height="1.15" width="1.15"
+                <a-video id="video-quiz-score" src="#vid-quiz-score" position="0 0 0.15" height="1.15" width="1.15"
                     material="shader: chromakey-score; src: #vid-quiz-score; transparent: true; side: double" visible="false"></a-video>
 
-                <!-- 3D Choice Clickable Planes (Active at 9.25s) -->
+                <!-- 3D Choice Clickable Planes (Active at 9.25s, accurately tracking Marker 8) -->
                 <!-- Left card 3D plane -->
-                <a-plane id="btn-choice-left-3d" class="clickable" position="-0.20 -0.012 0.20" width="0.36" height="0.30"
-                    material="opacity: 0.0; transparent: true" visible="false"></a-plane>
+                <a-plane id="btn-choice-left-3d" class="clickable" quiz-choice-left position="-0.20 -0.012 0.22" width="0.38" height="0.34"
+                    material="opacity: 0.001; transparent: true; depthWrite: false; side: double" visible="false"></a-plane>
 
                 <!-- Right card 3D plane -->
-                <a-plane id="btn-choice-right-3d" class="clickable" position="0.20 -0.012 0.20" width="0.36" height="0.30"
-                    material="opacity: 0.0; transparent: true" visible="false"></a-plane>
+                <a-plane id="btn-choice-right-3d" class="clickable" quiz-choice-right position="0.20 -0.012 0.22" width="0.38" height="0.34"
+                    material="opacity: 0.001; transparent: true; depthWrite: false; side: double" visible="false"></a-plane>
 
                 <!-- 3D Next Button (Muncul di bawah kartu Benar & Salah saat memilih Benar dan bergerak mengikuti Marker 8) -->
                 <a-image id="btn-next-quiz-3d" class="clickable" quiz-next-trigger src="#img-quiz-next-btn" position="0 -0.38 0.22" height="0.25" width="0.25"

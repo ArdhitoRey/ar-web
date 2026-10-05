@@ -46,12 +46,12 @@ document.getElementById("vid-teks-part4").src = `./compressed_ultra-videos/chapt
 // Part 5
 document.getElementById("vid-orang5").src = `./compressed_ultra-videos/chapter1/part5/ORANG-v5.mp4?t=${cacheBuster}`;
 document.getElementById("vid-tangan").src = `./compressed_ultra-videos/chapter1/part5/TANGAN-v5.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-part5").src = `./compressed_ultra-videos/chapter1/part5/teks-part5.mp4?t=${cacheBuster}`;
 
 // Part 6
 document.getElementById("vid-kapal6").src = `./compressed_ultra-videos/chapter1/part6/KAPAL SELAM-v6.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot2-6").src = `./compressed_ultra-videos/chapter1/part6/mascot2.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot6").src = `./compressed_ultra-videos/chapter1/part6/ORANG MASCOT-v6.mp4?t=${cacheBuster}`;
-document.getElementById("vid-teks-part6").src = `./compressed_ultra-videos/chapter1/part6/teks-part6.mp4?t=${cacheBuster}`;
 
 // Part 7
 document.getElementById("vid-coral7").src = `./compressed_ultra-videos/chapter1/part7/CORAL-v7.mp4?t=${cacheBuster}`;
@@ -87,13 +87,13 @@ function unlockStartButton() {
     if (state.allFullyBuffered) return;
     state.allFullyBuffered = true;
     state.allReady = true;
-    if (dom.loadingMessage) dom.loadingMessage.textContent = "Selesai!";
-    if (dom.loadingDetail) dom.loadingDetail.textContent = "Silakan mulai pengalaman AR";
+    const barFill = document.getElementById('loadingBarFill');
+    if (barFill) barFill.style.width = '100%';
+    if (dom.loadingProgress) dom.loadingProgress.textContent = "100%";
     if (dom.startButton) {
         dom.startButton.disabled = false;
         dom.startButton.textContent = "Mulai";
-        dom.startButton.style.background = "#4caf50";
-        dom.startButton.style.color = "white";
+        dom.startButton.classList.add("ready");
     }
 }
 
@@ -103,9 +103,6 @@ allVideos.forEach((video) => {
 
     const onBuffered = () => {
         state.videosBuffered++;
-        if (dom.loadingDetail) {
-            dom.loadingDetail.textContent = state.videosBuffered >= totalVideos ? "Siap!" : "Harap bersabar sebentar";
-        }
         if (state.videosBuffered >= totalVideos) {
             unlockStartButton();
         }
@@ -119,9 +116,12 @@ allVideos.forEach((video) => {
 
     video.addEventListener("loadeddata", () => {
         state.videosLoaded++;
+        if (state.allFullyBuffered) return;
+        const pct = Math.round((state.videosLoaded / totalVideos) * 100);
+        const barFill = document.getElementById('loadingBarFill');
+        if (barFill) barFill.style.width = `${Math.max(15, pct)}%`;
         if (dom.loadingProgress) {
-            const dots = "●".repeat(Math.min(state.videosLoaded, totalVideos)) + "○".repeat(Math.max(0, totalVideos - state.videosLoaded));
-            dom.loadingProgress.textContent = dots;
+            dom.loadingProgress.textContent = `${pct}%`;
         }
     }, { once: true });
 });

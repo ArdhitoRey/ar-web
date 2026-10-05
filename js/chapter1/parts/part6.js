@@ -35,7 +35,7 @@ async function startPart6Videos() {
     state.currentPart = 6;
     state.isPlaying = true;
     
-    dom.statusBar.textContent = '✅ Part 6 Playing! 🔊';
+    dom.statusBar.textContent = 'Part 6 diputar';
     dom.statusBar.classList.add('tracking');
     dom.statusBar.classList.remove('finished');
     
@@ -123,7 +123,7 @@ async function startPart6Videos() {
         state.isMarkerLocked = false;
         state.lockedMarker = null;
         
-        dom.statusBar.textContent = '✅ Part 6 selesai - Tap untuk ulang atau scan Marker 7 🎯';
+        dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 7';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
     };
@@ -150,12 +150,12 @@ export function initPart6() {
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 6) return;
         
         if (state.isMarkerLocked && state.lockedMarker !== 6) {
-            dom.statusBar.textContent = `⚠️ Tunggu Part ${state.lockedMarker} selesai dulu`;
+            dom.statusBar.textContent = `Tunggu Part ${state.lockedMarker} selesai dulu`;
             return;
         }
         
         if (state.currentPart > 6) {
-            dom.statusBar.textContent = '🚫 Tidak bisa balik ke Part sebelumnya! Tekan Reset jika perlu.';
+            dom.statusBar.textContent = 'Tidak bisa kembali ke Part sebelumnya. Tekan tombol Ulangi jika perlu.';
             if (dom.containerPart6) dom.containerPart6.setAttribute('visible', false);
             return;
         }
@@ -172,9 +172,9 @@ export function initPart6() {
                 }
             }, state.MARKER_IGNORE_DURATION);
         } else if (!state.part5Finished) {
-            dom.statusBar.textContent = '⚠️ Selesaikan Part 5 dulu';
+            dom.statusBar.textContent = 'Selesaikan Part 5 dulu';
         } else if (state.part6Finished && state.currentPart === 6 && !state.isPlaying) {
-            dom.statusBar.textContent = '⚠️ Tap untuk ulang Part 6';
+            dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 7';
             state.lastScannedMarker = 6;
         }
     });

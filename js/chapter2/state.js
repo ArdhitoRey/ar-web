@@ -29,8 +29,6 @@ export const dom = {
     arScene: document.getElementById('arScene'),
     loadingOverlay: document.getElementById('loadingOverlay'),
     loadingProgress: document.getElementById('loadingProgress'),
-    loadingMessage: document.getElementById('loadingMessage'),
-    loadingDetail: document.getElementById('loadingDetail'),
     startButton: document.getElementById('startButton'),
     
     containerPart1: document.querySelector('#video-container-part1'),

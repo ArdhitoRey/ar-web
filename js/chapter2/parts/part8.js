@@ -82,7 +82,7 @@ function handleNavigateToQuiz() {
     }
 
     if (dom.statusBar) {
-        dom.statusBar.textContent = '🚀 Menuju Kuis Chapter 2... ✨';
+        dom.statusBar.textContent = 'Menuju Kuis Bab 2...';
         dom.statusBar.classList.add('finished');
     }
 
@@ -181,7 +181,7 @@ async function startPart8Videos() {
     state.currentPart = 8;
     state.isPlaying = true;
     
-    dom.statusBar.textContent = '✅ Part 8 Playing! 🔊';
+    dom.statusBar.textContent = 'Part 8 diputar';
     dom.statusBar.classList.add('tracking');
     dom.statusBar.classList.remove('finished');
     
@@ -268,7 +268,7 @@ async function startPart8Videos() {
         state.lockedMarker = null;
         console.log('🔓 [Part 8] Marker UNLOCKED');
         
-        dom.statusBar.textContent = '👉 Ketuk Tombol Play di Kerang untuk Mulai Kuis! 🐚';
+        dom.statusBar.textContent = 'Tap untuk ulang, atau mulai Kuis';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
         dom.statusBar.style.cursor = 'pointer';
@@ -364,7 +364,7 @@ export function initPart8() {
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 8) return;
         
         if (state.isMarkerLocked && state.lockedMarker !== 8) {
-            dom.statusBar.textContent = `⚠️ Tunggu Part ${state.lockedMarker} selesai dulu`;
+            dom.statusBar.textContent = `Tunggu Part ${state.lockedMarker} selesai dulu`;
             return;
         }
         
@@ -384,9 +384,9 @@ export function initPart8() {
             }, state.MARKER_IGNORE_DURATION);
             
         } else if (!state.part7Finished) {
-            dom.statusBar.textContent = '⚠️ Selesaikan Part 7 dulu';
+            dom.statusBar.textContent = 'Selesaikan Part 7 dulu';
         } else if (state.part8Finished && state.currentPart === 8 && !state.isPlaying) {
-            dom.statusBar.textContent = '👉 Tap tombol play di kerang untuk ke Quiz! 🐚';
+            dom.statusBar.textContent = 'Tap untuk ulang, atau mulai Kuis';
             state.lastScannedMarker = 8;
         }
     });

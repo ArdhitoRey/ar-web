@@ -15,23 +15,38 @@
 
     <link rel="stylesheet" href="./style.css">
 </head>
-
 <body>
-    <a href="index.html" class="back-button">🔙 Menu Utama</a>
+    <a href="index.html" class="home-button" id="homeButton" title="Menu Utama" aria-label="Menu Utama">
+        <img src="./addon-image/navigation/home-button-crop.png" alt="Menu Utama" draggable="false" />
+    </a>
 
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-title">Mohon Tunggu</div>
-        <div class="loading-message" id="loadingMessage">Sedang mempersiapkan...</div>
-        <div class="loading-progress" id="loadingProgress">●</div>
-        <div class="loading-detail" id="loadingDetail">Harap bersabar sebentar</div>
-        <div class="loading-tip">Pastikan koneksi internet Anda stabil</div>
-        <button class="start-button" id="startButton" disabled>Tunggu Sebentar...</button>
+        <div class="loading-card">
+            <!-- Loading Spinner Rings -->
+            <div class="loading-visual">
+                <div class="loading-ring outer-ring"></div>
+                <div class="loading-ring inner-ring"></div>
+            </div>
+
+            <!-- AR Title -->
+            <h1 class="loading-title" id="loadingTitle">Bagaimana Mencegah Karies?</h1>
+
+            <!-- Loading Progress Bar -->
+            <div class="loading-bar-container">
+                <div class="loading-bar-fill" id="loadingBarFill"></div>
+            </div>
+            <div class="loading-progress" id="loadingProgress">0%</div>
+
+            <!-- Start Button -->
+            <button class="start-button" id="startButton" disabled>Mulai</button>
+        </div>
     </div>
 
     <div class="status-bar" id="statusBar">Mencari marker...</div>
 
-    <div class="reset-button" id="resetButton">🔄 Reset ke Part 1</div>
+    <div class="reset-button" id="resetButton" role="button" tabindex="0" title="Ulangi Part 1" aria-label="Ulangi Part 1">
+        <img src="./addon-image/navigation/repeat-button-crop.png" alt="Ulangi" draggable="false" />
+    </div>
 
     <button class="next-button" id="nextButton" type="button" aria-label="Lanjut ke Chapter 2">
         <img src="./button_next.PNG" alt="Next" draggable="false" />
@@ -116,6 +131,8 @@
                     material="shader: chromakey-advanced; src: #vid-orang5; transparent: true; side: double"></a-video>
                 <a-video id="video-tangan" src="#vid-tangan" position="0 0 0.25" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-tangan; transparent: true; side: double"></a-video>
+                <a-video id="video-teks-part5" src="#vid-teks-part5" position="0 0 0.30" height="0.95" width="0.95"
+                    material="shader: chromakey-neon; src: #vid-teks-part5; transparent: true; side: double"></a-video>
             </a-entity>
         </a-entity>
 
@@ -127,8 +144,6 @@
                     material="shader: chromakey-advanced; src: #vid-mascot2-6; transparent: true; side: double"></a-video>
                 <a-video id="video-mascot6" src="#vid-mascot6" position="0 0 0.30" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-mascot6; transparent: true; side: double"></a-video>
-                <a-video id="video-teks-part6" src="#vid-teks-part6" position="0 0 0.35" height="1" width="1"
-                    material="shader: chromakey-neon; src: #vid-teks-part6; transparent: true; side: double"></a-video>
             </a-entity>
         </a-entity>
 
@@ -180,13 +195,13 @@
             <!-- Part 5 -->
             <video id="vid-orang5" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
             <video id="vid-tangan" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+            <video id="vid-teks-part5" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
 
             <!-- Part 6 -->
             <video id="vid-kapal6" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
             <video id="vid-mascot2-6" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline
                 muted></video>
             <video id="vid-mascot6" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
-            <video id="vid-teks-part6" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
 
             <!-- Part 7 -->
             <video id="vid-coral7" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline muted></video>

@@ -88,13 +88,13 @@ function unlockStartButton() {
     if (state.allFullyBuffered) return;
     state.allFullyBuffered = true;
     state.allReady = true;
-    if (dom.loadingMessage) dom.loadingMessage.textContent = "Selesai!";
-    if (dom.loadingDetail) dom.loadingDetail.textContent = "Silakan mulai pengalaman AR";
+    const barFill = document.getElementById('loadingBarFill');
+    if (barFill) barFill.style.width = '100%';
+    if (dom.loadingProgress) dom.loadingProgress.textContent = "100%";
     if (dom.startButton) {
         dom.startButton.disabled = false;
         dom.startButton.textContent = "Mulai";
-        dom.startButton.style.background = "#4caf50";
-        dom.startButton.style.color = "white";
+        dom.startButton.classList.add("ready");
     }
 }
 
@@ -103,9 +103,6 @@ allVideos.forEach((video) => {
 
     const onBuffered = () => {
         state.videosBuffered++;
-        if (dom.loadingDetail) {
-            dom.loadingDetail.textContent = state.videosBuffered >= totalVideos ? "Siap!" : "Harap bersabar sebentar";
-        }
         if (state.videosBuffered >= totalVideos) {
             unlockStartButton();
         }
@@ -119,9 +116,12 @@ allVideos.forEach((video) => {
 
     video.addEventListener("loadeddata", () => {
         state.videosLoaded++;
+        if (state.allFullyBuffered) return;
+        const pct = Math.round((state.videosLoaded / totalVideos) * 100);
+        const barFill = document.getElementById('loadingBarFill');
+        if (barFill) barFill.style.width = `${Math.max(15, pct)}%`;
         if (dom.loadingProgress) {
-            const dots = "●".repeat(Math.min(state.videosLoaded, totalVideos)) + "○".repeat(Math.max(0, totalVideos - state.videosLoaded));
-            dom.loadingProgress.textContent = dots;
+            dom.loadingProgress.textContent = `${pct}%`;
         }
     }, { once: true });
 });
@@ -166,7 +166,7 @@ dom.startButton.addEventListener("click", async () => {
 
 export function replayPart(partNumber) {
     if (partNumber !== state.currentPart) {
-        dom.statusBar.textContent = "⚠️ Tidak bisa kembali ke Part sebelumnya";
+        dom.statusBar.textContent = "Tidak bisa kembali ke Part sebelumnya";
         state.lastScannedMarker = 0;
         return;
     }
@@ -302,7 +302,7 @@ export function unlockAllParts() {
     }
     state.isMarkerLocked = false;
     state.lockedMarker = null;
-    dom.statusBar.textContent = "🔓 Semua marker terbuka! Anda bisa scan marker Part 1 s/d 8.";
+    dom.statusBar.textContent = "Semua marker terbuka. Anda bisa scan marker Part 1 s/d 8.";
 }
 window.unlockAllParts = unlockAllParts;
 

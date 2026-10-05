@@ -32,8 +32,6 @@ export const dom = {
     arScene: document.getElementById('arScene'),
     loadingOverlay: document.getElementById('loadingOverlay'),
     loadingProgress: document.getElementById('loadingProgress'),
-    loadingMessage: document.getElementById('loadingMessage'),
-    loadingDetail: document.getElementById('loadingDetail'),
     startButton: document.getElementById('startButton'),
     
     containerPart1: document.querySelector('#video-container-part1'),
@@ -81,11 +79,12 @@ export const videos = {
         document.getElementById('vid-sikat4'), document.getElementById('vid-teks-part4')
     ],
     part5: [
-        document.getElementById('vid-orang5'), document.getElementById('vid-tangan')
+        document.getElementById('vid-orang5'), document.getElementById('vid-tangan'),
+        document.getElementById('vid-teks-part5')
     ],
     part6: [
         document.getElementById('vid-kapal6'), document.getElementById('vid-mascot2-6'),
-        document.getElementById('vid-mascot6'), document.getElementById('vid-teks-part6')
+        document.getElementById('vid-mascot6')
     ],
     part7: [
         document.getElementById('vid-coral7'), document.getElementById('vid-laut7'),

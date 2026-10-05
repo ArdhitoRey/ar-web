@@ -35,7 +35,7 @@ async function startPart1Videos() {
     state.currentPart = 1;
     state.isPlaying = true;
     
-    dom.statusBar.textContent = '✅ Part 1 Playing! 🔊';
+    dom.statusBar.textContent = 'Part 1 diputar';
     dom.statusBar.classList.add('tracking');
     dom.statusBar.classList.remove('finished');
     
@@ -105,7 +105,7 @@ async function startPart1Videos() {
         state.isMarkerLocked = false;
         state.lockedMarker = null;
         
-        dom.statusBar.textContent = '✅ Part 1 selesai - Tap layar untuk ulang atau scan Marker 2 🎯';
+        dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 2';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
     };
@@ -132,12 +132,12 @@ export function initPart1() {
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 1) return;
         
         if (state.isMarkerLocked && state.lockedMarker !== 1) {
-            dom.statusBar.textContent = `⚠️ Tunggu Part ${state.lockedMarker} selesai dulu`;
+            dom.statusBar.textContent = `Tunggu Part ${state.lockedMarker} selesai dulu`;
             return;
         }
         
         if (state.currentPart > 1) {
-            dom.statusBar.textContent = '🚫 Tidak bisa balik ke Part sebelumnya! Tekan Reset jika perlu.';
+            dom.statusBar.textContent = 'Tidak bisa kembali ke Part sebelumnya. Tekan tombol Ulangi jika perlu.';
             if (dom.containerPart1) dom.containerPart1.setAttribute('visible', false);
             return;
         }
@@ -155,7 +155,7 @@ export function initPart1() {
             }, state.MARKER_IGNORE_DURATION);
             
         } else if (state.part1Finished && state.currentPart === 1 && !state.isPlaying) {
-            dom.statusBar.textContent = '⚠️ Tap layar untuk ulang Part 1';
+            dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 2';
             state.lastScannedMarker = 1;
         }
     });

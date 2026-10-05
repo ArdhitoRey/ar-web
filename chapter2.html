@@ -16,21 +16,37 @@
 </head>
 
 <body>
-    <a href="index.html" class="back-button">🔙 Menu Utama</a>
+    <a href="index.html" class="home-button" id="homeButton" title="Menu Utama" aria-label="Menu Utama">
+        <img src="./addon-image/navigation/home-button-crop.png" alt="Menu Utama" draggable="false" />
+    </a>
 
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-title">Mohon Tunggu</div>
-        <div class="loading-message" id="loadingMessage">Sedang mempersiapkan...</div>
-        <div class="loading-progress" id="loadingProgress">●</div>
-        <div class="loading-detail" id="loadingDetail">Harap bersabar sebentar</div>
-        <div class="loading-tip">Pastikan koneksi internet Anda stabil</div>
-        <button class="start-button" id="startButton" disabled>Tunggu Sebentar...</button>
+        <div class="loading-card">
+            <!-- Loading Spinner Rings -->
+            <div class="loading-visual">
+                <div class="loading-ring outer-ring"></div>
+                <div class="loading-ring inner-ring"></div>
+            </div>
+
+            <!-- AR Title -->
+            <h1 class="loading-title" id="loadingTitle">Bagaimana Karies Terbentuk?</h1>
+
+            <!-- Loading Progress Bar -->
+            <div class="loading-bar-container">
+                <div class="loading-bar-fill" id="loadingBarFill"></div>
+            </div>
+            <div class="loading-progress" id="loadingProgress">0%</div>
+
+            <!-- Start Button -->
+            <button class="start-button" id="startButton" disabled>Mulai</button>
+        </div>
     </div>
 
     <div class="status-bar" id="statusBar">Mencari marker...</div>
 
-    <div class="reset-button" id="resetButton">🔄 Reset ke Part 1</div>
+    <div class="reset-button" id="resetButton" role="button" tabindex="0" title="Ulangi Part 1" aria-label="Ulangi Part 1">
+        <img src="./addon-image/navigation/repeat-button-crop.png" alt="Ulangi" draggable="false" />
+    </div>
 
     <a-scene id="arScene" mindar-image="
             imageTargetSrc: ./targets-mind/targets-chapter2.mind;
