@@ -7,7 +7,7 @@
 
     if (!isChapter1 && !isChapter2) return;
 
-    const maxParts = isChapter1 ? 8 : 7;
+    const maxParts = 8;
     const chapterName = isChapter1 ? 'Chapter 1' : 'Chapter 2';
 
     // Inject styles
@@ -167,7 +167,7 @@
             ${gridHtml}
         </div>
         <div class="dev-test-actions">
-            ${isChapter1 ? '<a href="./quiz.html" class="dev-test-sub-btn">🐚 Lompat Langsung ke Kuis</a>' : ''}
+            ${isChapter1 ? '<a href="./quiz.html" class="dev-test-sub-btn">🐚 Lompat Langsung ke Kuis</a>' : '<button class="dev-test-sub-btn" id="devJumpQuiz2">🐚 Lompat Langsung ke Kuis Bab 2</button>'}
             <button class="dev-test-sub-btn" id="devUnlockAll">🔓 Buka & Izinkan Semua Marker</button>
             <a href="./test.html" class="dev-test-sub-btn">📋 Buka Halaman Test Hub Lengkap</a>
         </div>
@@ -218,13 +218,36 @@
     });
 
     // Unlock all markers
-    document.getElementById('devUnlockAll').addEventListener('click', (e) => {
-        e.stopPropagation();
-        panel.classList.remove('show');
-        if (typeof window.unlockAllParts === 'function') {
-            window.unlockAllParts();
-        } else {
-            alert('Semua marker diizinkan discan secara bebas.');
-        }
-    });
+    const devUnlockAll = document.getElementById('devUnlockAll');
+    if (devUnlockAll) {
+        devUnlockAll.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.remove('show');
+            if (typeof window.unlockAllParts === 'function') {
+                window.unlockAllParts();
+            } else {
+                alert('Semua marker diizinkan discan secara bebas.');
+            }
+        });
+    }
+
+    // Jump to Quiz for Chapter 2
+    const devJumpQuiz2 = document.getElementById('devJumpQuiz2');
+    if (devJumpQuiz2) {
+        devJumpQuiz2.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.remove('show');
+            const startBtn = document.getElementById('startButton');
+            if (startBtn && !document.getElementById('arScene').classList.contains('ready')) {
+                startBtn.click();
+            }
+            setTimeout(() => {
+                if (window.__startQuizSeamless) {
+                    window.__startQuizSeamless(1);
+                } else if (typeof window.jumpToPart === 'function') {
+                    window.jumpToPart(8);
+                }
+            }, 300);
+        });
+    }
 })();

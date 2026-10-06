@@ -1,5 +1,6 @@
 import { state, dom, videos } from '../state.js';
 import { fadeInContainer, fadeOutContainer, fadeAudioIn, hideAllContainersExcept, isContainerVisible } from '../utils.js';
+import { playPart8 } from './part8.js';
 
 export async function playPart7() {
     // Pengecekan guard
@@ -104,7 +105,7 @@ async function startPart7Videos() {
             fadeOutContainer(dom.containerPart7, 250, () => {
                 videos.part7.forEach(v => { 
                     try { 
-                        v.pause(); 
+                    v.pause(); 
                         v.currentTime = 0; 
                     } catch (e) {} 
                 });
@@ -116,9 +117,14 @@ async function startPart7Videos() {
         state.lockedMarker = null;
         console.log('🔓 [Part 7] Marker UNLOCKED');
         
-        dom.statusBar.textContent = 'Bab 2 selesai! Tap untuk ulang';
-        dom.statusBar.classList.remove('tracking');
-        dom.statusBar.classList.add('finished');
+        if (state.isTargetInView && state.isTargetInView[8] && !state.part8Finished && !state.isPlaying) {
+            console.log('🎯 [Part 7] Part 7 selesai dan Marker 8 sudah terlihat, langsung putar Part 8!');
+            playPart8();
+        } else {
+            dom.statusBar.textContent = 'Part 7 selesai! Arahkan kamera ke Marker 8';
+            dom.statusBar.classList.remove('tracking');
+            dom.statusBar.classList.add('finished');
+        }
     };
 
     if (dom.soundV7) {
@@ -133,6 +139,7 @@ export function initPart7() {
     if (!dom.target7) return; // Sabuk pengaman
 
     dom.target7.addEventListener('targetFound', () => {
+        state.isTargetInView[7] = true;
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 7) return;
         
@@ -162,9 +169,13 @@ export function initPart7() {
             
         } else if (!state.part6Finished) {
             dom.statusBar.textContent = 'Selesaikan Part 6 dulu';
-        } else if (state.part7Finished && state.currentPart === 7 && !state.isPlaying) {
-            dom.statusBar.textContent = 'Bab 2 selesai! Tap untuk ulang';
+        } else if (state.part7Finished && !state.part8Finished) {
+            dom.statusBar.textContent = 'Part 7 selesai! Arahkan kamera ke Marker 8';
             state.lastScannedMarker = 7;
         }
+    });
+
+    dom.target7.addEventListener('targetLost', () => {
+        state.isTargetInView[7] = false;
     });
 }

@@ -8,6 +8,8 @@ import { playPart4, initPart4 } from "./parts/part4.js";
 import { playPart5, initPart5 } from "./parts/part5.js";
 import { playPart6, initPart6 } from "./parts/part6.js";
 import { playPart7, initPart7 } from "./parts/part7.js";
+import { playPart8, initPart8 } from "./parts/part8.js";
+import './quiz.js';
 
 const cacheBuster = Date.now();
 console.log("🔄 Cache buster applied:", cacheBuster);
@@ -34,22 +36,26 @@ document.getElementById("vid-gigi-orang-part3-v1").src = `./compressed_ultra-vid
 document.getElementById("vid-tangan-part3-v1").src = `./compressed_ultra-videos/chapter2/part3/tangan.mp4?t=${cacheBuster}`;
 document.getElementById("vid-kertas-biru-part3-v1").src = `./compressed_ultra-videos/chapter2/part3/kertas biru.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot-part3-v1").src = `./compressed_ultra-videos/chapter2/part3/mascot.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-part3").src = `./compressed_ultra-videos/chapter2/part3/teks-part3.mp4?t=${cacheBuster}`;
 
 // Part 4
 document.getElementById("vid-gigi-orang-part4-v1").src = `./compressed_ultra-videos/chapter2/part4/gigi orang.mp4?t=${cacheBuster}`;
 document.getElementById("vid-bakteri-part4-v1").src = `./compressed_ultra-videos/chapter2/part4/bakteri.mp4?t=${cacheBuster}`;
 document.getElementById("vid-bakteri-part4-v2").src = `./compressed_ultra-videos/chapter2/part4/bakteri2.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-part4").src = `./compressed_ultra-videos/chapter2/part4/teks-part4.mp4?t=${cacheBuster}`;
 
 // Part 5
 document.getElementById("vid-air-part5-v1").src = `./compressed_ultra-videos/chapter2/part5/air.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot-part5-v1").src = `./compressed_ultra-videos/chapter2/part5/mascot.mp4?t=${cacheBuster}`;
 document.getElementById("vid-bola-part5-v1").src = `./compressed_ultra-videos/chapter2/part5/bola.mp4?t=${cacheBuster}`;
 document.getElementById("vid-orang-naik-balon-part5-v1").src = `./compressed_ultra-videos/chapter2/part5/orang naik balon.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-part5").src = `./compressed_ultra-videos/chapter2/part5/teks-part5.mp4?t=${cacheBuster}`;
 
 // Part 6
 document.getElementById("vid-air-part6-v1").src = `./compressed_ultra-videos/chapter2/part6/air.mp4?t=${cacheBuster}`;
 document.getElementById("vid-gigi-part6-v1").src = `./compressed_ultra-videos/chapter2/part6/gigi.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot-dan-orang-part6-v1").src = `./compressed_ultra-videos/chapter2/part6/mascot dan orang.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-part6").src = `./compressed_ultra-videos/chapter2/part6/teks-part6.mp4?t=${cacheBuster}`;
 
 // Part 7
 document.getElementById("vid-air-part7-v1").src = `./compressed_ultra-videos/chapter2/part7/air.mp4?t=${cacheBuster}`;
@@ -57,8 +63,13 @@ document.getElementById("vid-bebek-part7-v1").src = `./compressed_ultra-videos/c
 document.getElementById("vid-mascot-part7-v1").src = `./compressed_ultra-videos/chapter2/part7/mascot.mp4?t=${cacheBuster}`;
 document.getElementById("vid-orang-part7-v1").src = `./compressed_ultra-videos/chapter2/part7/orang.mp4?t=${cacheBuster}`;
 
+// Part 8
+document.getElementById("vid-kolam-part8").src = `./compressed_ultra-videos/chapter2/part8/kolam.mp4?t=${cacheBuster}`;
+document.getElementById("vid-mascot-part8").src = `./compressed_ultra-videos/chapter2/part8/mascot.mp4?t=${cacheBuster}`;
+document.getElementById("vid-teks-part8").src = `./compressed_ultra-videos/chapter2/part8/teks-part8.mp4?t=${cacheBuster}`;
+
 // LOAD AUDIO
-[dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean).forEach((s) => {
+[dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].filter(Boolean).forEach((s) => {
     s.load();
     s.preload = "auto";
 });
@@ -68,9 +79,9 @@ videos.part1.forEach((v) => {
     if (v) { v.load(); v.preload = "auto"; }
 });
 
-// Load sisa video part 2-7 di background
+// Load sisa video part 2-8 di background
 setTimeout(() => {
-    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7].forEach((v) => {
+    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8].forEach((v) => {
         if (v) { v.load(); v.preload = "auto"; }
     });
 }, 300);
@@ -250,6 +261,7 @@ initPart4();
 initPart5();
 initPart6();
 initPart7();
+initPart8();
 
 function executeStartChapter2() {
     state.hasStarted = true;
@@ -289,11 +301,11 @@ function executeStartChapter2() {
         }
     } catch (e) {}
 
-    // Buka kunci izin mobile browser untuk SEMUA narasi (Part 1 sampai Part 7)
+    // Buka kunci izin mobile browser untuk SEMUA narasi (Part 1 sampai Part 8)
     // Dilakukan secara senyap (volume 0 & muted) di dalam event gesture klik "Mulai"
     const allSounds = [
         dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4,
-        dom.soundV5, dom.soundV6, dom.soundV7
+        dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8
     ].filter(Boolean);
 
     allSounds.forEach((audio) => {
@@ -334,8 +346,8 @@ export function replayPart(partNumber) {
     }
 
     state.lastScannedMarker = 0;
-    const playActions = { 1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4, 5: playPart5, 6: playPart6, 7: playPart7 };
-    const stateKeys = { 1: 'part1Finished', 2: 'part2Finished', 3: 'part3Finished', 4: 'part4Finished', 5: 'part5Finished', 6: 'part6Finished', 7: 'part7Finished' };
+    const playActions = { 1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4, 5: playPart5, 6: playPart6, 7: playPart7, 8: playPart8 };
+    const stateKeys = { 1: 'part1Finished', 2: 'part2Finished', 3: 'part3Finished', 4: 'part4Finished', 5: 'part5Finished', 6: 'part6Finished', 7: 'part7Finished', 8: 'part8Finished' };
 
     const stateKey = stateKeys[partNumber];
     const wasFinished = state[stateKey];
@@ -343,7 +355,9 @@ export function replayPart(partNumber) {
 
     if (partNumber === 1) state.currentPart = 0;
 
-    playActions[partNumber]();
+    if (playActions[partNumber]) {
+        playActions[partNumber]();
+    }
 
     setTimeout(() => {
         if (!state.isPlaying) {
@@ -357,7 +371,7 @@ export function restartFromBeginning() {
     const allContainers = [
         dom.containerPart1, dom.containerPart2, dom.containerPart3,
         dom.containerPart4, dom.containerPart5, dom.containerPart6,
-        dom.containerPart7
+        dom.containerPart7, dom.containerPart8
     ];
     allContainers.forEach((c) => { if (c) c.setAttribute("visible", false); });
 
@@ -367,7 +381,7 @@ export function restartFromBeginning() {
 
     state.part1Finished = false; state.part2Finished = false; state.part3Finished = false;
     state.part4Finished = false; state.part5Finished = false; state.part6Finished = false;
-    state.part7Finished = false;
+    state.part7Finished = false; state.part8Finished = false;
 
     state.isPlaying = false;
     state.lastScannedMarker = 0;
@@ -381,7 +395,7 @@ const handleInteraction = (e) => {
     if (!state.isPlaying) {
         if (state.lastScannedMarker > 0 && state.lastScannedMarker === state.currentPart) {
             replayPart(state.lastScannedMarker);
-        } else if (state.currentPart >= 1 && state.currentPart <= 7 && state[`part${state.currentPart}Finished`]) {
+        } else if (state.currentPart >= 1 && state.currentPart <= 8 && state[`part${state.currentPart}Finished`]) {
             replayPart(state.currentPart);
         }
     }
@@ -426,7 +440,7 @@ window.addEventListener('beforeunload', releaseCameraAndMedia);
 
 // 7. TESTING & DIRECT JUMP UTILITIES
 export function jumpToPart(partNumber) {
-    if (partNumber < 1 || partNumber > 7) return;
+    if (partNumber < 1 || partNumber > 8) return;
     console.log(`🧪 [Test] Langsung melompat ke Chapter 2 Part ${partNumber}...`);
 
     state.isPlaying = false;
@@ -442,7 +456,7 @@ export function jumpToPart(partNumber) {
     state.currentPart = partNumber - 1;
 
     // Matikan semua suara dan video
-    [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].forEach(s => {
+    [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].forEach(s => {
         if (s) { s.pause(); s.currentTime = 0; }
     });
     allVideos.forEach(v => {
@@ -453,7 +467,7 @@ export function jumpToPart(partNumber) {
     const allContainers = [
         dom.containerPart1, dom.containerPart2, dom.containerPart3,
         dom.containerPart4, dom.containerPart5, dom.containerPart6,
-        dom.containerPart7
+        dom.containerPart7, dom.containerPart8
     ];
     allContainers.forEach((c, idx) => {
         if (c && idx + 1 !== partNumber) c.setAttribute("visible", false);
@@ -461,7 +475,7 @@ export function jumpToPart(partNumber) {
 
     const playActions = {
         1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4,
-        5: playPart5, 6: playPart6, 7: playPart7
+        5: playPart5, 6: playPart6, 7: playPart7, 8: playPart8
     };
     if (playActions[partNumber]) {
         playActions[partNumber]();
@@ -471,19 +485,19 @@ window.jumpToPart = jumpToPart;
 
 export function unlockAllParts() {
     console.log("🔓 [Test] Membuka semua marker Chapter 2...");
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 8; i++) {
         state[`part${i}Finished`] = true;
     }
     state.isMarkerLocked = false;
     state.lockedMarker = null;
-    dom.statusBar.textContent = "Semua marker terbuka. Anda bisa scan marker Part 1 s/d 7.";
+    dom.statusBar.textContent = "Semua marker terbuka. Anda bisa scan marker Part 1 s/d 8.";
 }
 window.unlockAllParts = unlockAllParts;
 
 // Deteksi URL Query Param: ?jump=X atau ?part=X
 const urlParams = new URLSearchParams(window.location.search);
 const jumpTarget = parseInt(urlParams.get('jump') || urlParams.get('part'), 10);
-if (jumpTarget && jumpTarget >= 1 && jumpTarget <= 7) {
+if (jumpTarget && jumpTarget >= 1 && jumpTarget <= 8) {
     const doAutoJump = () => {
         setTimeout(() => jumpToPart(jumpTarget), 400);
     };
