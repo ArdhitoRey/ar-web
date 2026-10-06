@@ -5,13 +5,18 @@ let isPlayButtonActive = false;
 let isNavigatingQuiz = false;
 let part8SafetyTimer = null;
 
-// Guard permanen agar soundV8 tidak bisa diputar sama sekali saat kuis aktif
+// Guard permanen agar soundV8 TIDAK BISA diputar jika bukan Part 8 aktif (cegah kebocoran di awal loading & kuis)
 if (dom.soundV8 && !dom.soundV8._guardInstalled) {
     dom.soundV8._guardInstalled = true;
     const origPlay8 = dom.soundV8.play;
     dom.soundV8.play = function () {
-        if (window.__quizActiveSeamless || state.currentPart === 'quiz') {
-            console.warn('🔇 [Part 8 Guard] sound-v8 dicegah karena kuis sedang aktif');
+        if (state.currentPart !== 8 || !state.hasStarted || window.__quizActiveSeamless || state.currentPart === 'quiz') {
+            console.warn('🔇 [Part 8 Guard] sound-v8 dicegah (currentPart: ' + state.currentPart + ', hasStarted: ' + state.hasStarted + ')');
+            try {
+                this.pause();
+                this.currentTime = 0;
+                this.muted = true;
+            } catch (e) {}
             return Promise.resolve();
         }
         return origPlay8.apply(this, arguments);
@@ -479,6 +484,7 @@ export function initPart8() {
 
     dom.target8.addEventListener('targetFound', () => {
         if (window.__quizActiveSeamless) return;
+        if (!state.hasStarted || !state.cameraReady) return;
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 8) return;
         
