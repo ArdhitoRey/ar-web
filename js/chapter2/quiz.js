@@ -1363,10 +1363,14 @@ function selectChoice(choice) {
         choiceHandled = true;
         quizState = 'RESULT_PLAYING';
 
+        // Kedua video tetap tampil di layar (tombol/karakter tidak hilang), video salah di-pause pada frame 9.25s
         if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
-        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', false);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
 
-        if (activeVidSalah) activeVidSalah.pause();
+        if (activeVidSalah) {
+            activeVidSalah.pause();
+            try { activeVidSalah.currentTime = 9.25; } catch (e) {}
+        }
         if (activeSoundSalah) {
             activeSoundSalah.pause();
             activeSoundSalah.currentTime = 0;
@@ -1401,10 +1405,17 @@ function selectChoice(choice) {
         waitForQuizCompletion(activeVidBenar, activeSoundBenar, true);
 
     } else {
-        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', false);
+        choiceHandled = true;
+        quizState = 'RESULT_PLAYING';
+
+        // Kedua video tetap tampil di layar (tombol/karakter tidak hilang), video benar di-pause pada frame 9.25s
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
         if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
 
-        if (activeVidBenar) activeVidBenar.pause();
+        if (activeVidBenar) {
+            activeVidBenar.pause();
+            try { activeVidBenar.currentTime = 9.25; } catch (e) {}
+        }
         if (activeSoundBenar) {
             activeSoundBenar.pause();
             activeSoundBenar.currentTime = 0;

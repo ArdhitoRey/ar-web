@@ -24,7 +24,6 @@ document.getElementById("vid-batu").src = `./compressed_ultra-videos/chapter1/pa
 document.getElementById("vid-gelembung").src = `./compressed_ultra-videos/chapter1/part1/GELEMBUNG-v1.mp4?t=${cacheBuster}`;
 document.getElementById("vid-kapal").src = `./compressed_ultra-videos/chapter1/part1/KAPAL SELAM-v1.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot").src = `./compressed_ultra-videos/chapter1/part1/MASCOT-v1.mp4?t=${cacheBuster}`;
-videos.part1.forEach(v => { if (v) { v.load(); v.preload = "auto"; } });
 
 // Part 2
 document.getElementById("vid-batu2").src = `./compressed_ultra-videos/chapter1/part2/BATU SEAWEED-v2.mp4?t=${cacheBuster}`;
@@ -299,28 +298,6 @@ function executeStartChapter1() {
             if (window.__globalAudioCtx.state === 'suspended') window.__globalAudioCtx.resume();
         }
     } catch (e) {}
-
-    // Buka kunci izin mobile browser untuk SEMUA narasi (Part 1 sampai Part 8)
-    // Dilakukan secara senyap (volume 0 & muted) di dalam event gesture klik "Mulai"
-    const allSounds = [
-        dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4,
-        dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8
-    ].filter(Boolean);
-
-    allSounds.forEach((audio) => {
-        try {
-            audio.muted = false;
-            audio.volume = 0.001;
-            const p = audio.play();
-            if (p !== undefined) {
-                p.then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                    audio.volume = 1.0;
-                }).catch(() => {});
-            }
-        } catch (e) {}
-    });
 
     // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan
     const isMarker1Detected = (state.pendingPart === 1) || (state.isTargetInView && state.isTargetInView[1]) || (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);

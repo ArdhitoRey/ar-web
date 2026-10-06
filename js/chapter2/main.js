@@ -297,27 +297,12 @@ function executeStartChapter2() {
         }
     } catch (e) {}
 
-    // Buka kunci izin mobile browser untuk SEMUA narasi (Part 1 sampai Part 8)
-    // Dilakukan secara senyap (volume 0 & muted) di dalam event gesture klik "Mulai"
-    const allSounds = [
-        dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4,
-        dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8
-    ].filter(Boolean);
-
-    allSounds.forEach((audio) => {
-        try {
-            audio.muted = false;
-            audio.volume = 0.001;
-            const p = audio.play();
-            if (p !== undefined) {
-                p.then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                    audio.volume = 1.0;
-                }).catch(() => {});
-            }
-        } catch (e) {}
-    });
+    // Pastikan sound-v8 dimatikan sejak awal
+    if (dom.soundV8) {
+        dom.soundV8.pause();
+        dom.soundV8.currentTime = 0;
+        dom.soundV8.muted = true;
+    }
 
     // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan
     const isMarker1Detected = (state.pendingPart === 1) || (state.isTargetInView && state.isTargetInView[1]) || (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);

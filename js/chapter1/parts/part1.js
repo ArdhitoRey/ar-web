@@ -39,9 +39,55 @@ async function startPart1Videos() {
     dom.statusBar.classList.add('tracking');
     dom.statusBar.classList.remove('finished');
     
-    videos.part1.forEach(v => { v.pause(); v.currentTime = 0; });
+    // Pastikan video dalam kondisi muted dan reset hanya jika currentTime > 0
+    videos.part1.forEach(v => {
+        if (!v) return;
+        v.muted = true;
+        if (v.currentTime > 0) {
+            v.pause();
+            v.currentTime = 0;
+        }
+    });
+
+    // Tampilkan container AR langsung agar output visual segera terlihat tanpa blank/freeze
+    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
+    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
+
+    const playPromises = videos.part1.map(v => {
+        if (!v) return Promise.resolve();
+        v.muted = true;
+        return v.play().catch(e => console.warn('❌ [Part 1] Video play error:', e));
+    });
+    // Timeout aman agar video lambat tidak menggantung transisi selamanya
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
     
-    // Putar audio narasi sesegera mungkin di awal fungsi agar tetap dalam gesture window
+    // Perbarui GPU texture binding
+    if (dom.containerPart1) {
+        const aVids = dom.containerPart1.querySelectorAll('a-video');
+        aVids.forEach(av => {
+            if (av && av.components && av.components.material && av.components.material.material) {
+                const m = av.components.material.material;
+                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) {
+                    m.uniforms.tex.value.needsUpdate = true;
+                }
+                if (m.map) m.map.needsUpdate = true;
+            }
+        });
+    }
+
+    // 3. TEKNIK FREEZE FRAME (Hanya aktif jika currentTime > 1s agar tidak stuck di detik 0)
+    videos.part1.forEach(v => {
+        if (!v) return;
+        const preventBlackScreen = function() {
+            if (this.duration && this.currentTime > 1.0 && (this.duration - this.currentTime <= 0.5)) {
+                this.pause(); 
+                this.removeEventListener('timeupdate', preventBlackScreen); 
+            }
+        };
+        v.addEventListener('timeupdate', preventBlackScreen);
+    });
+    
+    // Putar audio narasi Part 1
     try {
         if (dom.soundV1) {
             dom.soundV1.pause();
@@ -67,37 +113,6 @@ async function startPart1Videos() {
     } catch (e) {
         console.error('❌ [Part 1] Audio error:', e);
     }
-
-    const playPromises = videos.part1.map(v => v.play().catch(e => console.warn('❌ [Part 1] Video play error:', e)));
-    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 350))]);
-    
-    // Perbarui GPU texture binding
-    if (dom.containerPart1) {
-        const aVids = dom.containerPart1.querySelectorAll('a-video');
-        aVids.forEach(av => {
-            if (av && av.components && av.components.material && av.components.material.material) {
-                const m = av.components.material.material;
-                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) {
-                    m.uniforms.tex.value.needsUpdate = true;
-                }
-                if (m.map) m.map.needsUpdate = true;
-            }
-        });
-    }
-
-    // Tampilkan container AR langsung agar output visual tampil seketika
-    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
-    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
-    
-    // 3. TEKNIK FREEZE FRAME (Hanya aktif jika currentTime > 1s agar tidak stuck di detik 0)
-    videos.part1.forEach(v => {
-        v.addEventListener('timeupdate', function preventBlackScreen() {
-            if (this.duration && this.currentTime > 1.0 && (this.duration - this.currentTime <= 0.5)) {
-                this.pause(); 
-                this.removeEventListener('timeupdate', preventBlackScreen); 
-            }
-        });
-    });
     
     state.isTransitioning = false;
     
@@ -135,7 +150,9 @@ async function startPart1Videos() {
         dom.soundV1.onended = finishPart1;
     }
 
-    const fallbackDur = Math.max((dom.soundV1 && dom.soundV1.duration) || 0, ...videos.part1.map(v => (v && v.duration) || 0), 12);
+    const soundDur = (dom.soundV1 && Number.isFinite(dom.soundV1.duration) && dom.soundV1.duration > 0) ? dom.soundV1.duration : 15;
+    const videoDurs = videos.part1.map(v => (v && Number.isFinite(v.duration) && v.duration > 0) ? v.duration : 0);
+    const fallbackDur = Math.max(soundDur, ...videoDurs, 15);
     const safetyTimer = setTimeout(finishPart1, (fallbackDur + 0.5) * 1000);
 }
 
