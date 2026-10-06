@@ -165,11 +165,11 @@ const arScene = document.getElementById('arScene');
 const targetQuiz = document.getElementById('targetQuiz');
 const quizSceneWrapper = document.getElementById('quiz-scene-wrapper');
 
-// A-Frame 3D Entities
-const quizPertanyaanAframe = document.getElementById('quiz-pertanyaan');
-const videoQuizBenar = document.getElementById('video-quiz-benar');
-const videoQuizSalah = document.getElementById('video-quiz-salah');
-const videoQuizScore = document.getElementById('video-quiz-score');
+// Active A-Frame 3D Entities (dinamis per kuis)
+let activeAframePertanyaan = null;
+let activeAframeVidBenar = null;
+let activeAframeVidSalah = null;
+let activeAframeVidScore = null;
 
 // 3D Clickable Planes (Left & Right choice on Marker 8)
 const btnChoiceLeft3D = document.getElementById('btn-choice-left-3d');
@@ -390,6 +390,21 @@ function setupQuizScene(targetId) {
         }
     });
 
+    // Aktifkan / sembunyikan entity group kuis (quiz-group-1 .. 5 dan quiz-group-score)
+    for (let i = 1; i <= 5; i++) {
+        const groupEl = document.getElementById(`quiz-group-${i}`);
+        if (groupEl) {
+            const isMatch = (!isFinalScore && currentQuizId === i);
+            groupEl.setAttribute('visible', isMatch);
+            if (groupEl.object3D) groupEl.object3D.visible = isMatch;
+        }
+    }
+    const groupScoreEl = document.getElementById('quiz-group-score');
+    if (groupScoreEl) {
+        groupScoreEl.setAttribute('visible', isFinalScore);
+        if (groupScoreEl.object3D) groupScoreEl.object3D.visible = isFinalScore;
+    }
+
     // Update active media references and A-Frame entity properties
     if (!isFinalScore) {
         activeVidBenar = document.getElementById(`vid-quiz${currentQuizId}-benar`);
@@ -401,24 +416,14 @@ function setupQuizScene(targetId) {
         activeSoundSalah = document.getElementById(`sound-quiz${currentQuizId}-salah`);
         activeSoundScore = null;
 
-        if (quizPertanyaanAframe) {
-            quizPertanyaanAframe.setAttribute('src', `#img-quiz-pertanyaan-${currentQuizId}`);
-            quizPertanyaanAframe.setAttribute('visible', true);
-        }
+        activeAframePertanyaan = document.getElementById(`quiz-pertanyaan-${currentQuizId}`);
+        activeAframeVidBenar = document.getElementById(`video-quiz-${currentQuizId}-benar`);
+        activeAframeVidSalah = document.getElementById(`video-quiz-${currentQuizId}-salah`);
+        activeAframeVidScore = null;
 
-        if (videoQuizBenar) {
-            videoQuizBenar.setAttribute('material', `shader: ${currentQuiz.shaderBenar}; src: #vid-quiz${currentQuizId}-benar; transparent: true; side: double`);
-            videoQuizBenar.setAttribute('visible', true);
-        }
-
-        if (videoQuizSalah) {
-            videoQuizSalah.setAttribute('material', `shader: ${currentQuiz.shaderSalah}; src: #vid-quiz${currentQuizId}-salah; transparent: true; side: double`);
-            videoQuizSalah.setAttribute('visible', true);
-        }
-
-        if (videoQuizScore) {
-            videoQuizScore.setAttribute('visible', false);
-        }
+        if (activeAframePertanyaan) activeAframePertanyaan.setAttribute('visible', true);
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
     } else {
         activeVidBenar = null;
         activeVidSalah = null;
@@ -429,14 +434,12 @@ function setupQuizScene(targetId) {
         activeSoundSalah = null;
         activeSoundScore = document.getElementById('sound-quiz-score');
 
-        if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('visible', false);
-        if (videoQuizBenar) videoQuizBenar.setAttribute('visible', false);
-        if (videoQuizSalah) videoQuizSalah.setAttribute('visible', false);
+        activeAframePertanyaan = null;
+        activeAframeVidBenar = null;
+        activeAframeVidSalah = null;
+        activeAframeVidScore = document.getElementById('video-quiz-score');
 
-        if (videoQuizScore) {
-            videoQuizScore.setAttribute('material', `shader: ${currentQuiz.shaderScore}; src: #vid-quiz-score; transparent: true; side: double`);
-            videoQuizScore.setAttribute('visible', true);
-        }
+        if (activeAframeVidScore) activeAframeVidScore.setAttribute('visible', true);
     }
 }
 
@@ -646,10 +649,10 @@ async function startQuizPlayback() {
         }
 
         if (quizSceneWrapper) quizSceneWrapper.setAttribute('visible', true);
-        if (quizPertanyaanAframe) quizPertanyaanAframe.setAttribute('visible', false);
-        if (videoQuizBenar) videoQuizBenar.setAttribute('visible', false);
-        if (videoQuizSalah) videoQuizSalah.setAttribute('visible', false);
-        if (videoQuizScore) videoQuizScore.setAttribute('visible', true);
+        if (activeAframePertanyaan) activeAframePertanyaan.setAttribute('visible', false);
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', false);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', false);
+        if (activeAframeVidScore) activeAframeVidScore.setAttribute('visible', true);
 
         if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
         if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
@@ -689,9 +692,10 @@ async function startQuizPlayback() {
     }
 
     if (quizSceneWrapper) quizSceneWrapper.setAttribute('visible', true);
-    if (videoQuizScore) videoQuizScore.setAttribute('visible', false);
-    if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
-    if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
+    if (activeAframeVidScore) activeAframeVidScore.setAttribute('visible', false);
+    if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
+    if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
+    if (activeAframePertanyaan) activeAframePertanyaan.setAttribute('visible', true);
 
     if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
     if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
@@ -1375,8 +1379,8 @@ function selectChoice(choice) {
         choiceHandled = true;
         quizState = 'RESULT_PLAYING';
 
-        if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
-        if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
 
         if (activeVidSalah) activeVidSalah.pause();
         if (activeSoundSalah) {
@@ -1413,8 +1417,8 @@ function selectChoice(choice) {
         waitForQuizCompletion(activeVidBenar, activeSoundBenar, true);
 
     } else {
-        if (videoQuizBenar) videoQuizBenar.setAttribute('visible', true);
-        if (videoQuizSalah) videoQuizSalah.setAttribute('visible', true);
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
 
         if (activeVidBenar) activeVidBenar.pause();
         if (activeSoundBenar) {

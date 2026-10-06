@@ -262,13 +262,16 @@ a-video canvas {
     transform: scale(0.95);
 }
 
-/* Status Bar (Aquatic Bubble Theme - Center Bottom) */
+/* Status Bar - Dihilangkan dari tampilan scan AR */
 .status-bar {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
     position: fixed;
     bottom: 22px;
     left: 50%;
     transform: translateX(-50%);
-    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;

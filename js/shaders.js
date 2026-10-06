@@ -25,23 +25,23 @@ AFRAME.registerShader('chromakey-advanced', {
                     vec4 color = texture2D(tex, vUv);
                     float greenDominance = color.g - max(color.r, color.b);
                     float isGreen = 0.0;
-                    if (color.g > 0.4 && color.g > color.r * 1.2 && color.g > color.b * 1.2) isGreen = 1.0;
-                    if (color.g > 0.6 && greenDominance > 0.2) isGreen = 1.0;
-                    if (greenDominance > 0.15 && color.g > 0.35) isGreen = 1.0;
+                    if (color.g > 0.38 && color.g > color.r * 1.15 && color.g > color.b * 1.15) isGreen = 1.0;
+                    if (color.g > 0.52 && greenDominance > 0.16) isGreen = 1.0;
+                    if (greenDominance > 0.12 && color.g > 0.30) isGreen = 1.0;
                     
                     float alpha = 1.0 - isGreen;
-                    if (greenDominance > 0.1 && greenDominance < 0.25 && color.g > 0.3) {
-                        float smoothFactor = smoothstep(0.1, 0.25, greenDominance);
+                    if (greenDominance > 0.08 && greenDominance < 0.22 && color.g > 0.28) {
+                        float smoothFactor = smoothstep(0.08, 0.22, greenDominance);
                         alpha = 1.0 - smoothFactor;
                     }
                     
                     vec3 finalColor = color.rgb;
-                    if (alpha > 0.1 && alpha < 0.9 && greenDominance > 0.05) {
-                        float despillStrength = (1.0 - alpha) * 0.7;
+                    if (alpha > 0.05 && alpha < 0.95 && greenDominance > 0.04) {
+                        float despillStrength = (1.0 - alpha) * 0.85;
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
-                    if (alpha > 0.5 && greenDominance > 0.05) finalColor.g *= 0.9;
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (alpha > 0.4 && greenDominance > 0.04) finalColor.g *= 0.88;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -50,6 +50,25 @@ AFRAME.registerShader('chromakey-advanced', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -95,7 +114,7 @@ AFRAME.registerShader('chromakey-gentle', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
                     if (alpha > 0.6 && greenDominance > 0.08) finalColor.g *= 0.95;
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -104,6 +123,25 @@ AFRAME.registerShader('chromakey-gentle', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -155,7 +193,7 @@ AFRAME.registerShader('chromakey-bubble', {
                         finalColor *= brightness;
                         finalColor = clamp(finalColor, 0.0, 1.0);
                     }
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -165,6 +203,25 @@ AFRAME.registerShader('chromakey-bubble', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -197,31 +254,29 @@ AFRAME.registerShader('chromakey-blue', {
                     // Dominasi warna biru terhadap merah dan hijau
                     float blueDominance = color.b - max(color.r, color.g);
                     
-                    // Kalibrasi presisi blue screen (#083EF6 / #093DF4):
-                    // - Blue screen asli: B >= 0.94, R <= 0.045, G <= 0.28, blueDominance > 0.67
-                    // - Objek seperti permen lolipop & pola pada baju: R >= 0.05 atau B < 0.92 atau blueDominance < 0.62
-                    float domFactor = smoothstep(0.62, 0.69, blueDominance);
-                    float rFactor = 1.0 - smoothstep(0.035, 0.065, color.r);
-                    float bFactor = smoothstep(0.90, 0.94, color.b);
+                    // Kalibrasi presisi blue screen (#083EF6 / #093DF4 & #093DF4 dengan G ~0.24):
+                    float domFactor = smoothstep(0.54, 0.65, blueDominance);
+                    float rFactor = 1.0 - smoothstep(0.04, 0.10, color.r);
+                    float bFactor = smoothstep(0.82, 0.90, color.b);
                     
                     float isBlue = domFactor * rFactor * bFactor;
                     
                     // Hard-cut pengaman untuk piksel blue screen murni
-                    if (color.b > 0.935 && blueDominance > 0.67 && color.r < 0.045) {
+                    if (color.b > 0.88 && blueDominance > 0.58 && color.r < 0.08) {
                         isBlue = 1.0;
                     }
                     
                     float alpha = 1.0 - isBlue;
                     
-                    // Despill lembut hanya pada tepian semi-transparan untuk hilangkan pantulan biru
+                    // Despill lembut pada tepian semi-transparan untuk hilangkan pantulan biru
                     vec3 finalColor = color.rgb;
-                    if (alpha > 0.05 && alpha < 0.95 && blueDominance > 0.1) {
-                        float despillStrength = (1.0 - alpha) * 0.7;
+                    if (alpha > 0.02 && alpha < 0.98 && blueDominance > 0.06) {
+                        float despillStrength = (1.0 - alpha) * 0.85;
                         float maxRG = max(finalColor.r, finalColor.g);
                         finalColor.b = mix(finalColor.b, maxRG, despillStrength);
                     }
                     
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -230,6 +285,25 @@ AFRAME.registerShader('chromakey-blue', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -393,7 +467,7 @@ AFRAME.registerShader('chromakey-cyan', {
                         finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength);
                         finalColor.g = mix(finalColor.g, min(finalColor.g, (finalColor.r + finalColor.b) * 0.5), despillStrength * 0.5);
                     }
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -402,6 +476,25 @@ AFRAME.registerShader('chromakey-cyan', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -441,20 +534,20 @@ AFRAME.registerShader('chromakey-magenta', {
                     float rbBalance = 1.0 - abs(color.r - color.b);
 
                     // Transisi halus presisi:
-                    // 1) domFactor: dominasi magenta terhadap green (0.15 - 0.28)
-                    float domFactor = smoothstep(0.15, 0.28, magentaDominance);
+                    // 1) domFactor: dominasi magenta terhadap green (0.12 - 0.25)
+                    float domFactor = smoothstep(0.12, 0.25, magentaDominance);
                     // 2) balFactor: memastikan R dan B seimbang (khas ungu murni)
-                    float balFactor = smoothstep(0.74, 0.84, rbBalance);
+                    float balFactor = smoothstep(0.68, 0.80, rbBalance);
                     // 3) rbFactor: intensitas R dan B mencukupi
-                    float rbFactor  = smoothstep(0.22, 0.32, rb);
+                    float rbFactor  = smoothstep(0.18, 0.28, rb);
 
                     float isMagenta = domFactor * balFactor * rbFactor;
 
                     // Hard-cut pengaman untuk piksel latar belakang ungu murni & border samping gambar
-                    if (magentaDominance > 0.25 && rbBalance > 0.78 && rb > 0.28) {
+                    if (magentaDominance > 0.22 && rbBalance > 0.72 && rb > 0.24) {
                         isMagenta = 1.0;
                     }
-                    if (color.g < 0.06 && rb > 0.30 && rbBalance > 0.80) {
+                    if (color.g < 0.08 && rb > 0.28 && rbBalance > 0.75) {
                         isMagenta = 1.0;
                     }
 
@@ -463,13 +556,16 @@ AFRAME.registerShader('chromakey-magenta', {
                     vec3 finalColor = color.rgb;
 
                     // Despill lembut di tepian semi-transparan untuk hilangkan sisa halo ungu
-                    if (alpha > 0.0 && alpha < 0.99 && rbBalance > 0.70) {
+                    if (alpha > 0.0 && alpha < 0.99 && rbBalance > 0.60) {
                         float despillStrength = (1.0 - alpha) * 0.95;
                         float maxGB = max(finalColor.g, finalColor.b);
                         finalColor.r = mix(finalColor.r, min(finalColor.r, maxGB), despillStrength);
                         float avgRG = (finalColor.r + finalColor.g) * 0.5;
                         finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength * 0.8);
                     }
+
+                    // Cut piksel hitam pekat / uninitialized frame menjadi transparan (mencegah background hitam)
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -479,6 +575,25 @@ AFRAME.registerShader('chromakey-magenta', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -517,10 +632,10 @@ AFRAME.registerShader('chromakey-neon', {
                     float grDiff = color.g - color.r;
 
                     // Transisi halus presisi & toleran terhadap variasi kompresi H.264
-                    float isNeon = smoothstep(0.03, 0.08, grDiff) * smoothstep(0.30, 0.45, gbDiff) * smoothstep(0.70, 0.85, color.g);
+                    float isNeon = smoothstep(0.02, 0.06, grDiff) * smoothstep(0.25, 0.40, gbDiff) * smoothstep(0.65, 0.80, color.g);
 
                     // Hard-cut pengaman untuk mengeliminasi kedipan bintik sisa macroblock neon
-                    if (grDiff > 0.05 && gbDiff > 0.38 && color.g > 0.80 && color.r > 0.60 && color.b < 0.55) {
+                    if (grDiff > 0.04 && gbDiff > 0.32 && color.g > 0.75 && color.r > 0.50 && color.b < 0.55) {
                         isNeon = 1.0;
                     }
 
@@ -534,7 +649,7 @@ AFRAME.registerShader('chromakey-neon', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
 
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -544,6 +659,25 @@ AFRAME.registerShader('chromakey-neon', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 
@@ -599,7 +733,7 @@ AFRAME.registerShader('chromakey-score', {
                         finalColor = clamp(finalColor, 0.0, 1.0);
                     }
 
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -609,6 +743,25 @@ AFRAME.registerShader('chromakey-score', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
     }
 });
 

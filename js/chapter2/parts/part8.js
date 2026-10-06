@@ -285,13 +285,19 @@ async function startPart8Videos() {
         if (state.audioEnabled && dom.soundV8) {
             dom.soundV8.pause();
             dom.soundV8.currentTime = 0;
-            dom.soundV8.volume = 0;
+            dom.soundV8.muted = false;
+            dom.soundV8.volume = 1.0;
             const playPromise = dom.soundV8.play();
             if (playPromise !== undefined) {
                 await playPromise;
-                fadeAudioIn(dom.soundV8, 400);
                 console.log('🔊 [Part 8] Audio sinkron!');
             }
+        } else if (dom.soundV8) {
+            state.audioEnabled = true;
+            dom.soundV8.currentTime = 0;
+            dom.soundV8.muted = false;
+            dom.soundV8.volume = 1.0;
+            dom.soundV8.play().catch(e => console.warn('⚠️ [Part 8] Audio play fallback error:', e));
         } else {
             console.warn('⚠️ [Part 8] Audio tidak jalan atau belum diaktifkan.');
         }

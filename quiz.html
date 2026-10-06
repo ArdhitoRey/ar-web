@@ -437,7 +437,7 @@
     </div>
 
     <!-- Status Bar -->
-    <div class="status-bar" id="statusBar">Arahkan kamera ke Marker 8...</div>
+    <div class="status-bar" id="statusBar" style="display: none !important; visibility: hidden !important;">Arahkan kamera ke Marker 8...</div>
 
     <!-- Result Popup Modal (Fallback) -->
     <div class="result-modal" id="resultModal">
@@ -486,21 +486,61 @@
                 animation__slidein="property: position; from: 1.4 0 0; to: 0 0 0; dur: 520; easing: easeOutBack; startEvents: trigger-slide-in"
                 animation__fadein="property: scale; from: 0.7 0.7 0.7; to: 1 1 1; dur: 520; easing: easeOutBack; startEvents: trigger-slide-in">
 
-                <!-- Question Banner -->
-                <a-image id="quiz-pertanyaan" src="#img-quiz-pertanyaan-1" position="0 0 0.12" height="1" width="1"
-                    material="transparent: true; alphaTest: 0.05; side: double"></a-image>
+                <!-- Quiz 1 Entity Group -->
+                <a-entity id="quiz-group-1" visible="false">
+                    <a-image id="quiz-pertanyaan-1" src="#img-quiz-pertanyaan-1" position="0 0 0.12" height="1" width="1"
+                        material="transparent: true; alphaTest: 0.05; side: double; depthWrite: false"></a-image>
+                    <a-video id="video-quiz-1-benar" src="#vid-quiz1-benar" position="0 0 0.10" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz1-benar; transparent: true; side: double; depthWrite: false"></a-video>
+                    <a-video id="video-quiz-1-salah" src="#vid-quiz1-salah" position="0 0 0.11" height="1" width="1"
+                        material="shader: chromakey-advanced; src: #vid-quiz1-salah; transparent: true; side: double; depthWrite: false"></a-video>
+                </a-entity>
 
-                <!-- Video Benar: card video (Ungu/Magenta di semua quiz) -->
-                <a-video id="video-quiz-benar" src="#vid-quiz1-benar" position="0 0 0.10" height="1" width="1"
-                    material="shader: chromakey-magenta; src: #vid-quiz1-benar; transparent: true; side: double"></a-video>
+                <!-- Quiz 2 Entity Group -->
+                <a-entity id="quiz-group-2" visible="false">
+                    <a-image id="quiz-pertanyaan-2" src="#img-quiz-pertanyaan-2" position="0 0 0.12" height="1" width="1"
+                        material="transparent: true; alphaTest: 0.05; side: double; depthWrite: false"></a-image>
+                    <a-video id="video-quiz-2-benar" src="#vid-quiz2-benar" position="0 0 0.10" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz2-benar; transparent: true; side: double; depthWrite: false"></a-video>
+                    <a-video id="video-quiz-2-salah" src="#vid-quiz2-salah" position="0 0 0.11" height="1" width="1"
+                        material="shader: chromakey-advanced; src: #vid-quiz2-salah; transparent: true; side: double; depthWrite: false"></a-video>
+                </a-entity>
 
-                <!-- Video Salah: card video (Green di quiz 1,2,4; Magenta di quiz 3,5) -->
-                <a-video id="video-quiz-salah" src="#vid-quiz1-salah" position="0 0 0.11" height="1" width="1"
-                    material="shader: chromakey-advanced; src: #vid-quiz1-salah; transparent: true; side: double"></a-video>
+                <!-- Quiz 3 Entity Group (Keduanya berlatar magenta) -->
+                <a-entity id="quiz-group-3" visible="false">
+                    <a-image id="quiz-pertanyaan-3" src="#img-quiz-pertanyaan-3" position="0 0 0.12" height="1" width="1"
+                        material="transparent: true; alphaTest: 0.05; side: double; depthWrite: false"></a-image>
+                    <a-video id="video-quiz-3-benar" src="#vid-quiz3-benar" position="0 0 0.10" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz3-benar; transparent: true; side: double; depthWrite: false"></a-video>
+                    <a-video id="video-quiz-3-salah" src="#vid-quiz3-salah" position="0 0 0.11" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz3-salah; transparent: true; side: double; depthWrite: false"></a-video>
+                </a-entity>
+
+                <!-- Quiz 4 Entity Group -->
+                <a-entity id="quiz-group-4" visible="false">
+                    <a-image id="quiz-pertanyaan-4" src="#img-quiz-pertanyaan-4" position="0 0 0.12" height="1" width="1"
+                        material="transparent: true; alphaTest: 0.05; side: double; depthWrite: false"></a-image>
+                    <a-video id="video-quiz-4-benar" src="#vid-quiz4-benar" position="0 0 0.10" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz4-benar; transparent: true; side: double; depthWrite: false"></a-video>
+                    <a-video id="video-quiz-4-salah" src="#vid-quiz4-salah" position="0 0 0.11" height="1" width="1"
+                        material="shader: chromakey-advanced; src: #vid-quiz4-salah; transparent: true; side: double; depthWrite: false"></a-video>
+                </a-entity>
+
+                <!-- Quiz 5 Entity Group (Keduanya berlatar magenta) -->
+                <a-entity id="quiz-group-5" visible="false">
+                    <a-image id="quiz-pertanyaan-5" src="#img-quiz-pertanyaan-5" position="0 0 0.12" height="1" width="1"
+                        material="transparent: true; alphaTest: 0.05; side: double; depthWrite: false"></a-image>
+                    <a-video id="video-quiz-5-benar" src="#vid-quiz5-benar" position="0 0 0.10" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz5-benar; transparent: true; side: double; depthWrite: false"></a-video>
+                    <a-video id="video-quiz-5-salah" src="#vid-quiz5-salah" position="0 0 0.11" height="1" width="1"
+                        material="shader: chromakey-magenta; src: #vid-quiz5-salah; transparent: true; side: double; depthWrite: false"></a-video>
+                </a-entity>
 
                 <!-- Video Final Score: Video Skor Akhir Petualangan (Lavender/Lilac Screen #B38BDD) -->
-                <a-video id="video-quiz-score" src="#vid-quiz-score" position="0 0 0.15" height="1.15" width="1.15"
-                    material="shader: chromakey-score; src: #vid-quiz-score; transparent: true; side: double" visible="false"></a-video>
+                <a-entity id="quiz-group-score" visible="false">
+                    <a-video id="video-quiz-score" src="#vid-quiz-score" position="0 0 0.15" height="1.15" width="1.15"
+                        material="shader: chromakey-score; src: #vid-quiz-score; transparent: true; side: double; depthWrite: false"></a-video>
+                </a-entity>
 
                 <!-- 3D Choice Clickable Planes (Active at 9.25s, accurately tracking Marker 8) -->
                 <!-- Left card 3D plane -->
