@@ -24,6 +24,7 @@ document.getElementById("vid-batu").src = `./compressed_ultra-videos/chapter1/pa
 document.getElementById("vid-gelembung").src = `./compressed_ultra-videos/chapter1/part1/GELEMBUNG-v1.mp4?t=${cacheBuster}`;
 document.getElementById("vid-kapal").src = `./compressed_ultra-videos/chapter1/part1/KAPAL SELAM-v1.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot").src = `./compressed_ultra-videos/chapter1/part1/MASCOT-v1.mp4?t=${cacheBuster}`;
+videos.part1.forEach(v => { if (v) { v.load(); v.preload = "auto"; } });
 
 // Part 2
 document.getElementById("vid-batu2").src = `./compressed_ultra-videos/chapter1/part2/BATU SEAWEED-v2.mp4?t=${cacheBuster}`;
@@ -308,32 +309,44 @@ function executeStartChapter1() {
 
     allSounds.forEach((audio) => {
         try {
-            audio.muted = true;
-            audio.volume = 0;
+            audio.muted = false;
+            audio.volume = 0.001;
             const p = audio.play();
             if (p !== undefined) {
                 p.then(() => {
-                    // Hanya pause audio Part 2-8 yang belum dipakai
-                    if (audio !== dom.soundV1) {
-                        audio.pause();
-                        audio.currentTime = 0;
-                    }
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.volume = 1.0;
                 }).catch(() => {});
             }
         } catch (e) {}
     });
 
     // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan
-    const isMarker1Detected = (state.pendingPart === 1) || (state.isTargetInView && state.isTargetInView[1]);
+    const isMarker1Detected = (state.pendingPart === 1) || (state.isTargetInView && state.isTargetInView[1]) || (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);
 
     if (isMarker1Detected) {
         state.pendingPart = null;
-        setTimeout(() => {
+        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+            playPart1();
+        }
+    }
+
+    // Watcher: jika Marker 1 terdeteksi dalam jangkauan kamera sesaat setelah tombol Mulai ditekan (cegah butuh refresh)
+    const marker1Watcher = setInterval(() => {
+        if (state.part1Finished || state.isPlaying || state.currentPart > 0) {
+            clearInterval(marker1Watcher);
+            return;
+        }
+        if ((dom.target1 && dom.target1.object3D && dom.target1.object3D.visible) || (state.isTargetInView && state.isTargetInView[1])) {
+            clearInterval(marker1Watcher);
             if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+                console.log("🎯 [Chapter 1] Marker 1 terdeteksi langsung oleh kamera!");
                 playPart1();
             }
-        }, 100);
-    }
+        }
+    }, 150);
+    setTimeout(() => clearInterval(marker1Watcher), 8000);
 }
 
 // 4. START BUTTON (LANGSUNG BUKA KAMERA TANPA DELAY)

@@ -41,41 +41,7 @@ async function startPart1Videos() {
     
     videos.part1.forEach(v => { v.pause(); v.currentTime = 0; });
     
-    const playPromises = videos.part1.map(v => v.play().catch(e => console.warn('❌ [Part 1] Video play error:', e)));
-    // Tunggu sampai video play mulai resolve
-    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 350))]);
-    
-    // Perbarui GPU texture binding
-    if (dom.containerPart1) {
-        const aVids = dom.containerPart1.querySelectorAll('a-video');
-        aVids.forEach(av => {
-            if (av && av.components && av.components.material && av.components.material.material) {
-                const m = av.components.material.material;
-                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) {
-                    m.uniforms.tex.value.needsUpdate = true;
-                }
-                if (m.map) m.map.needsUpdate = true;
-            }
-        });
-    }
-
-    // Berikan jeda sejenak agar frame pertama siap di GPU
-    await new Promise(r => setTimeout(r, 100));
-
-    // Tampilkan container AR langsung agar output visual tampil seketika
-    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
-    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
-    
-    // 3. TEKNIK FREEZE FRAME (Mencegah black screen di akhir video)
-    videos.part1.forEach(v => {
-        v.addEventListener('timeupdate', function preventBlackScreen() {
-            if (this.duration && (this.duration - this.currentTime <= 0.5)) {
-                this.pause(); 
-                this.removeEventListener('timeupdate', preventBlackScreen); 
-            }
-        });
-    });
-    
+    // Putar audio narasi sesegera mungkin di awal fungsi agar tetap dalam gesture window
     try {
         if (dom.soundV1) {
             dom.soundV1.pause();
@@ -97,12 +63,41 @@ async function startPart1Videos() {
                     window.addEventListener('click', touchToPlay, { once: true });
                 });
             }
-        } else {
-            console.warn('⚠️ [Part 1] Audio tidak ditemukan.');
         }
-    } catch (e) { 
-        console.error('❌ [Part 1] Audio error:', e); 
+    } catch (e) {
+        console.error('❌ [Part 1] Audio error:', e);
     }
+
+    const playPromises = videos.part1.map(v => v.play().catch(e => console.warn('❌ [Part 1] Video play error:', e)));
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 350))]);
+    
+    // Perbarui GPU texture binding
+    if (dom.containerPart1) {
+        const aVids = dom.containerPart1.querySelectorAll('a-video');
+        aVids.forEach(av => {
+            if (av && av.components && av.components.material && av.components.material.material) {
+                const m = av.components.material.material;
+                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) {
+                    m.uniforms.tex.value.needsUpdate = true;
+                }
+                if (m.map) m.map.needsUpdate = true;
+            }
+        });
+    }
+
+    // Tampilkan container AR langsung agar output visual tampil seketika
+    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
+    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
+    
+    // 3. TEKNIK FREEZE FRAME (Hanya aktif jika currentTime > 1s agar tidak stuck di detik 0)
+    videos.part1.forEach(v => {
+        v.addEventListener('timeupdate', function preventBlackScreen() {
+            if (this.duration && this.currentTime > 1.0 && (this.duration - this.currentTime <= 0.5)) {
+                this.pause(); 
+                this.removeEventListener('timeupdate', preventBlackScreen); 
+            }
+        });
+    });
     
     state.isTransitioning = false;
     

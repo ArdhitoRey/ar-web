@@ -1564,8 +1564,9 @@ function selectChoice(choice) {
 
     playChime(isBenar);
 
-    if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
-    if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
+    // Pastikan bagian tombol pilihan TETAP ADA di layar
+    if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', true);
+    if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', true);
 
     hideNextButton();
 
@@ -1574,7 +1575,7 @@ function selectChoice(choice) {
         quizState = 'RESULT_PLAYING';
 
         if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
-        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', false);
 
         if (activeVidSalah) activeVidSalah.pause();
         if (activeSoundSalah) {
@@ -1611,7 +1612,7 @@ function selectChoice(choice) {
         waitForQuizCompletion(activeVidBenar, activeSoundBenar, true);
 
     } else {
-        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', false);
         if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
 
         if (activeVidBenar) activeVidBenar.pause();

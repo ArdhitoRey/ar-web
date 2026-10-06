@@ -1353,8 +1353,9 @@ function selectChoice(choice) {
 
     playChime(isBenar);
 
-    if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', false);
-    if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', false);
+    // Pastikan bagian tombol pilihan TETAP ADA di layar
+    if (btnChoiceLeft3D) btnChoiceLeft3D.setAttribute('visible', true);
+    if (btnChoiceRight3D) btnChoiceRight3D.setAttribute('visible', true);
 
     hideNextButton();
 

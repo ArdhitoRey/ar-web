@@ -43,35 +43,7 @@ async function startPart1Videos() {
     // Pastikan video mulai dari 0
     videos.part1.forEach(v => { v.pause(); v.currentTime = 0; });
     
-    // Tampilkan container AR langsung agar output visual tidak hilang/blank
-    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
-    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
-
-    if (dom.containerPart1) {
-        const aVids = dom.containerPart1.querySelectorAll('a-video');
-        aVids.forEach(av => {
-            if (av && av.components && av.components.material && av.components.material.material) {
-                const m = av.components.material.material;
-                if (m.map) m.map.needsUpdate = true;
-            }
-        });
-    }
-
-    const playPromises = videos.part1.map(v => v.play().catch(e => console.error('❌ [Part 1] Video play error:', e)));
-    // Timeout aman agar video lambat tidak menggantung transisi selamanya
-    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
-    console.log('📹 [Part 1] Semua video berhasil berjalan.');
-    
-    // TEKNIK FREEZE FRAME: pause video ~0.5 detik sebelum tamat agar tidak hitam di akhir
-    videos.part1.forEach(v => {
-        v.addEventListener('timeupdate', function preventBlackScreen() {
-            if (this.duration && (this.duration - this.currentTime <= 0.5)) {
-                this.pause();
-                this.removeEventListener('timeupdate', preventBlackScreen);
-            }
-        });
-    });
-    
+    // Putar audio narasi sesegera mungkin di awal fungsi agar tetap dalam gesture window
     try {
         if (dom.soundV1) {
             dom.soundV1.pause();
@@ -99,6 +71,37 @@ async function startPart1Videos() {
     } catch (e) { 
         console.error('❌ [Part 1] Audio error:', e);
     }
+
+    const playPromises = videos.part1.map(v => v.play().catch(e => console.error('❌ [Part 1] Video play error:', e)));
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 400))]);
+    
+    // Perbarui GPU texture binding
+    if (dom.containerPart1) {
+        const aVids = dom.containerPart1.querySelectorAll('a-video');
+        aVids.forEach(av => {
+            if (av && av.components && av.components.material && av.components.material.material) {
+                const m = av.components.material.material;
+                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) {
+                    m.uniforms.tex.value.needsUpdate = true;
+                }
+                if (m.map) m.map.needsUpdate = true;
+            }
+        });
+    }
+
+    // Tampilkan container AR langsung agar output visual tidak hilang/blank
+    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
+    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
+
+    // TEKNIK FREEZE FRAME: pause video ~0.5 detik sebelum tamat agar tidak hitam di akhir (hanya jika currentTime > 1s)
+    videos.part1.forEach(v => {
+        v.addEventListener('timeupdate', function preventBlackScreen() {
+            if (this.duration && this.currentTime > 1.0 && (this.duration - this.currentTime <= 0.5)) {
+                this.pause();
+                this.removeEventListener('timeupdate', preventBlackScreen);
+            }
+        });
+    });
     
     state.isTransitioning = false;
     
