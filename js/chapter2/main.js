@@ -199,13 +199,30 @@ function executeStartChapter2() {
         dom.statusBar.classList.remove("tracking", "finished");
     }
 
-    // Pastikan semua sound narasi dalam keadaan diam dan di-reset
+    // Buka kunci permission audio untuk mobile browser secara aman dan senyap
     const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
     sounds.forEach((sound) => {
         try {
-            sound.pause();
-            sound.currentTime = 0;
-        } catch (e) {}
+            sound.muted = true;
+            sound.volume = 0.001;
+            const p = sound.play();
+            if (p !== undefined) {
+                p.then(() => {
+                    sound.pause();
+                    sound.currentTime = 0;
+                    sound.muted = false;
+                    sound.volume = 1.0;
+                }).catch(() => {
+                    sound.pause();
+                    sound.currentTime = 0;
+                    sound.muted = false;
+                    sound.volume = 1.0;
+                });
+            }
+        } catch (e) {
+            sound.muted = false;
+            sound.volume = 1.0;
+        }
     });
 
     // Buka kunci WebAudio context secara senyap jika didukung browser
@@ -313,6 +330,32 @@ const handleReset = (e) => {
 
 dom.resetButton.addEventListener("click", handleReset);
 dom.resetButton.addEventListener("touchend", handleReset);
+
+// Bersihkan kamera & media saat meninggalkan halaman (klik Home / navigasi / pagehide)
+export function releaseCameraAndMedia() {
+    try {
+        document.querySelectorAll('video').forEach((v) => {
+            if (v.srcObject && typeof v.srcObject.getTracks === 'function') {
+                v.srcObject.getTracks().forEach((track) => track.stop());
+                v.srcObject = null;
+            }
+            try { v.pause(); } catch (e) {}
+        });
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.systems && scene.systems['mindar-image-system']) {
+            scene.systems['mindar-image-system'].stop();
+        }
+    } catch (e) {}
+}
+
+const homeBtn = document.getElementById('homeButton');
+if (homeBtn) {
+    homeBtn.addEventListener('click', () => {
+        releaseCameraAndMedia();
+    });
+}
+window.addEventListener('pagehide', releaseCameraAndMedia);
+window.addEventListener('beforeunload', releaseCameraAndMedia);
 
 // 7. TESTING & DIRECT JUMP UTILITIES
 export function jumpToPart(partNumber) {

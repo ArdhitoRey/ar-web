@@ -1484,15 +1484,27 @@ function checkHomeScoreInteraction(clientX, clientY) {
 window.addEventListener('click', (e) => {
     if (quizState === 'WAITING_CHOICE') {
         const handled = checkChoiceInteraction(e.clientX, e.clientY);
-        if (handled) return;
+        if (handled) {
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return;
+        }
     }
     if (isNextButtonActive && !isNavigatingNext) {
         const handled = checkNextButtonInteraction(e.clientX, e.clientY);
-        if (handled) return;
+        if (handled) {
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return;
+        }
     }
     if (isHomeButtonActive && !isNavigatingHome) {
         const handled = checkHomeScoreInteraction(e.clientX, e.clientY);
-        if (handled) return;
+        if (handled) {
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return;
+        }
     }
 }, true);
 
@@ -1503,6 +1515,8 @@ window.addEventListener('touchend', (e) => {
             const handled = checkChoiceInteraction(t.clientX, t.clientY);
             if (handled) {
                 e.preventDefault();
+                e.stopPropagation();
+                if (e.stopImmediatePropagation) e.stopImmediatePropagation();
                 return;
             }
         }
@@ -1510,6 +1524,8 @@ window.addEventListener('touchend', (e) => {
             const handled = checkNextButtonInteraction(t.clientX, t.clientY);
             if (handled) {
                 e.preventDefault();
+                e.stopPropagation();
+                if (e.stopImmediatePropagation) e.stopImmediatePropagation();
                 return;
             }
         }
@@ -1517,6 +1533,8 @@ window.addEventListener('touchend', (e) => {
             const handled = checkHomeScoreInteraction(t.clientX, t.clientY);
             if (handled) {
                 e.preventDefault();
+                e.stopPropagation();
+                if (e.stopImmediatePropagation) e.stopImmediatePropagation();
                 return;
             }
         }

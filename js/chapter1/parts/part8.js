@@ -3,6 +3,20 @@ import { fadeInContainer, fadeOutContainer, fadeAudioIn, hideAllContainersExcept
 
 let isPlayButtonActive = false;
 let isNavigatingQuiz = false;
+let part8SafetyTimer = null;
+
+// Guard permanen agar soundV8 tidak bisa diputar sama sekali saat kuis aktif
+if (dom.soundV8 && !dom.soundV8._guardInstalled) {
+    dom.soundV8._guardInstalled = true;
+    const origPlay8 = dom.soundV8.play;
+    dom.soundV8.play = function () {
+        if (window.__quizActiveSeamless || state.currentPart === 'quiz') {
+            console.warn('🔇 [Part 8 Guard] sound-v8 dicegah karena kuis sedang aktif');
+            return Promise.resolve();
+        }
+        return origPlay8.apply(this, arguments);
+    };
+}
 
 function showPlayPart8Button() {
     if (isPlayButtonActive) return;
@@ -74,6 +88,16 @@ function hidePlayPart8Button() {
 export function handleNavigateToQuiz() {
     if (isNavigatingQuiz || window.__quizActiveSeamless) return;
     isNavigatingQuiz = true;
+    window.__quizActiveSeamless = true;
+    state.currentPart = 'quiz';
+    state.isPlaying = false;
+    state.part8Finished = true;
+    isPlayButtonActive = false;
+
+    if (part8SafetyTimer) {
+        clearTimeout(part8SafetyTimer);
+        part8SafetyTimer = null;
+    }
 
     console.log('🐚 [Part 8] Tombol Play pada kerang ditekan! Transisi slide ke kuis...');
 
@@ -86,6 +110,7 @@ export function handleNavigateToQuiz() {
     if (dom.soundV8) {
         dom.soundV8.pause();
         dom.soundV8.currentTime = 0;
+        dom.soundV8.muted = true;
         dom.soundV8.onended = null;
     }
     videos.part8.forEach(v => {
@@ -95,8 +120,6 @@ export function handleNavigateToQuiz() {
         }
     });
 
-    state.isPlaying = false;
-    state.part8Finished = true;
     state.isMarkerLocked = false;
     state.lockedMarker = null;
 
@@ -146,6 +169,12 @@ export function handleNavigateToQuiz() {
 // Handler pemulihan saat pengguna kembali dari Kuis ke Bab 1
 window.__restorePart8FromQuiz = function () {
     isNavigatingQuiz = false;
+    window.__quizActiveSeamless = false;
+    state.currentPart = 8;
+    state.part8Finished = true;
+    if (dom.soundV8) {
+        dom.soundV8.muted = false;
+    }
     if (dom.containerPart8) {
         dom.containerPart8.setAttribute('position', '0 0 0');
         dom.containerPart8.setAttribute('scale', '1 1 1');
@@ -325,11 +354,13 @@ async function startPart8Videos() {
     state.isTransitioning = false;
 
     let hasFinished = false;
-    let safetyTimer = null;
     const finishPart8 = () => {
-        if (hasFinished) return;
+        if (hasFinished || window.__quizActiveSeamless || state.currentPart === 'quiz') return;
         hasFinished = true;
-        if (safetyTimer) clearTimeout(safetyTimer);
+        if (part8SafetyTimer) {
+            clearTimeout(part8SafetyTimer);
+            part8SafetyTimer = null;
+        }
 
         console.log('✅ [Part 8] Selesai! Video frozen di frame terakhir.');
         state.isPlaying = false;
@@ -387,7 +418,7 @@ async function startPart8Videos() {
     }
 
     const fallbackDuration = Math.max((dom.soundV8 && dom.soundV8.duration) || 0, ...videos.part8.map(v => (v && v.duration) || 0), 19.5);
-    safetyTimer = setTimeout(finishPart8, (fallbackDuration + 0.5) * 1000);
+    part8SafetyTimer = setTimeout(finishPart8, (fallbackDuration + 0.5) * 1000);
 }
 
 export function initPart8() {

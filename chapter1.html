@@ -46,7 +46,11 @@
                 init: function () {
                     const el = this.el;
                     const triggerLeft = (evt) => {
-                        if (evt) evt.stopPropagation();
+                        if (evt) {
+                            evt.stopPropagation();
+                            if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
+                            if (evt.preventDefault) evt.preventDefault();
+                        }
                         console.log('🎯 [A-Frame Component] quiz-choice-left berhasil diklik pada Marker 8!');
                         if (window.__triggerQuizChoiceLeft) window.__triggerQuizChoiceLeft();
                     };
@@ -60,7 +64,11 @@
                 init: function () {
                     const el = this.el;
                     const triggerRight = (evt) => {
-                        if (evt) evt.stopPropagation();
+                        if (evt) {
+                            evt.stopPropagation();
+                            if (evt.stopImmediatePropagation) evt.stopImmediatePropagation();
+                            if (evt.preventDefault) evt.preventDefault();
+                        }
                         console.log('🎯 [A-Frame Component] quiz-choice-right berhasil diklik pada Marker 8!');
                         if (window.__triggerQuizChoiceRight) window.__triggerQuizChoiceRight();
                     };

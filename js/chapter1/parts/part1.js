@@ -64,10 +64,20 @@ async function startPart1Videos() {
             dom.soundV1.pause();
             dom.soundV1.currentTime = 0;
             dom.soundV1.muted = false;
+            dom.soundV1.volume = 1.0;
             const p = dom.soundV1.play();
             if (p !== undefined) {
-                p.then(() => fadeAudioIn(dom.soundV1, 400)).catch((err) => {
-                    console.warn('⚠️ [Part 1] Audio play deferred:', err);
+                p.catch((err) => {
+                    console.warn('⚠️ [Part 1] Autoplay terhalang kebijakan browser, mengaktifkan pemicu sentuh:', err);
+                    const touchToPlay = () => {
+                        if (state.currentPart === 1 && !state.part1Finished) {
+                            dom.soundV1.muted = false;
+                            dom.soundV1.volume = 1.0;
+                            dom.soundV1.play().catch(() => {});
+                        }
+                    };
+                    window.addEventListener('touchstart', touchToPlay, { once: true });
+                    window.addEventListener('click', touchToPlay, { once: true });
                 });
             }
         } else {
