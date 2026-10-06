@@ -8,7 +8,7 @@ import { playPart4, initPart4 } from "./parts/part4.js";
 import { playPart5, initPart5 } from "./parts/part5.js";
 import { playPart6, initPart6 } from "./parts/part6.js";
 import { playPart7, initPart7 } from "./parts/part7.js";
-import { playPart8, initPart8 } from "./parts/part8.js";
+import { playPart8, initPart8, handleNavigateToQuiz } from "./parts/part8.js";
 
 // IMPORT SEAMLESS QUIZ MODULE
 import '../quiz.js';
@@ -304,10 +304,14 @@ export function restartFromBeginning() {
 
 const handleInteraction = (e) => {
     if (e.type === "touchend") e.preventDefault();
+    // Jika kuis seamless sedang aktif, jangan interupsi interaksi kuis!
+    if (window.__quizActiveSeamless) {
+        return;
+    }
     if (!state.isPlaying) {
         if (state.part8Finished) {
-            console.log('🐚 [Interaction] Part 8 selesai, tap layar menuju kuis...');
-            window.location.href = './quiz.html';
+            console.log('🐚 [Interaction] Part 8 selesai, slide transisi ke kuis...');
+            handleNavigateToQuiz();
             return;
         }
         if (state.lastScannedMarker > 0 && state.lastScannedMarker === state.currentPart) {

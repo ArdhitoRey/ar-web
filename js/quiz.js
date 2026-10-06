@@ -379,6 +379,7 @@ if (isStandalone) {
 // -----------------------------------------------------------------------------
 window.__startQuizSeamless = function (targetQuizId = 1) {
     console.log(`🚀 [Quiz AR Seamless] Memulai kuis ${targetQuizId} langsung pada Marker 8 di Bab 2...`);
+    window.__quizActiveSeamless = true;
     quizActiveSeamless = true;
     const quizTopBar = document.getElementById('quizTopBar');
     if (quizTopBar) quizTopBar.style.display = 'flex';
@@ -410,6 +411,7 @@ window.__startQuizSeamless = function (targetQuizId = 1) {
 
 window.__stopQuizSeamless = function () {
     console.log('🔄 [Quiz AR Seamless] Kembali dari Kuis ke Bab 2...');
+    window.__quizActiveSeamless = false;
     quizActiveSeamless = false;
     stopAllMedia();
     const quizTopBar = document.getElementById('quizTopBar');
@@ -457,11 +459,13 @@ function setupQuizScene(targetId) {
 
     console.log(`🎯 [Quiz AR] Setup Quiz Scene: ${currentQuiz.title}`);
 
-    // Update document title and URL without reload
-    document.title = isFinalScore ? 'Kuis Petualangan AR - Skor Akhir (Marker 8)' : `Kuis Petualangan AR - Babak ${currentQuizId} (Marker 8)`;
-    try {
-        window.history.replaceState(null, '', `./quiz.html?quiz=${currentQuizId}`);
-    } catch (e) {}
+    // Update document title and URL without reload (hanya jika di standalone quiz.html)
+    if (isStandalone) {
+        document.title = isFinalScore ? 'Kuis Petualangan AR - Skor Akhir (Marker 8)' : `Kuis Petualangan AR - Babak ${currentQuizId} (Marker 8)`;
+        try {
+            window.history.replaceState(null, '', `./quiz.html?quiz=${currentQuizId}`);
+        } catch (e) {}
+    }
 
     // Highlight active navigation pill
     document.querySelectorAll('.quiz-pill').forEach(pill => {

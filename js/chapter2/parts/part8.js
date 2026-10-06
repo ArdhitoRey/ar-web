@@ -71,8 +71,8 @@ function hidePlayPart8Button() {
     }
 }
 
-function handleNavigateToQuiz() {
-    if (isNavigatingQuiz) return;
+export function handleNavigateToQuiz() {
+    if (isNavigatingQuiz || window.__quizActiveSeamless) return;
     isNavigatingQuiz = true;
 
     console.log('🐚 [Part 8] Tombol Play pada kerang ditekan! Transisi slide ke kuis...');
@@ -106,8 +106,6 @@ function handleNavigateToQuiz() {
         }
         if (window.__startQuizSeamless) {
             window.__startQuizSeamless(1);
-        } else {
-            window.location.href = './quiz.html';
         }
     }, 380);
 }
@@ -395,7 +393,7 @@ export function initPart8() {
     const sceneEl = document.getElementById('arScene');
     if (sceneEl) {
         sceneEl.addEventListener('click', () => {
-            if (state.part8Finished && state.currentPart === 8) {
+            if (!window.__quizActiveSeamless && state.part8Finished && state.currentPart === 8) {
                 console.log('🐚 [Part 8] Ketukan pada layar saat kerang terbuka! Menuju kuis...');
                 handleNavigateToQuiz();
             }
