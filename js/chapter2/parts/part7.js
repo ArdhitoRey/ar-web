@@ -103,7 +103,7 @@ async function startPart7Videos() {
         state.lockedMarker = null;
         console.log('🔓 [Part 7] Marker UNLOCKED');
         
-        dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 8';
+        dom.statusBar.textContent = 'Bab 2 selesai! Tap untuk ulang';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
     };
@@ -150,7 +150,7 @@ export function initPart7() {
         } else if (!state.part6Finished) {
             dom.statusBar.textContent = 'Selesaikan Part 6 dulu';
         } else if (state.part7Finished && state.currentPart === 7 && !state.isPlaying) {
-            dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 8';
+            dom.statusBar.textContent = 'Bab 2 selesai! Tap untuk ulang';
             state.lastScannedMarker = 7;
         }
     });

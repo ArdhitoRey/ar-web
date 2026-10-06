@@ -132,7 +132,7 @@ export function handleNavigateToQuiz() {
     }, 380);
 }
 
-// Handler pemulihan saat pengguna kembali dari Kuis ke Bab 2
+// Handler pemulihan saat pengguna kembali dari Kuis ke Bab 1
 window.__restorePart8FromQuiz = function () {
     isNavigatingQuiz = false;
     if (dom.containerPart8) {
@@ -458,12 +458,12 @@ export function initPart8() {
                     state.activeMarkerDetection = null;
                 }
             }, state.MARKER_IGNORE_DURATION);
-            
         } else if (!state.part7Finished) {
-            dom.statusBar.textContent = 'Selesaikan Part 7 dulu';
-        } else if (state.part8Finished && state.currentPart === 8 && !state.isPlaying) {
-            dom.statusBar.textContent = 'Tap untuk ulang, atau mulai Kuis';
-            state.lastScannedMarker = 8;
+            dom.statusBar.textContent = 'Selesaikan Part 7 terlebih dahulu sebelum Part 8.';
         }
+    });
+
+    dom.target8.addEventListener('targetLost', () => {
+        console.log('💨 [Part 8] Marker 8 Hilang dari pandangan kamera');
     });
 }

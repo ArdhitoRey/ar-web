@@ -1,4 +1,4 @@
-import { state, dom, allVideos } from "./state.js";
+import { state, dom, allVideos, videos } from "./state.js";
 
 // AREA IMPORT FUNGSI PART
 import { playPart1, initPart1 } from './parts/part1.js';
@@ -8,8 +8,10 @@ import { playPart4, initPart4 } from './parts/part4.js';
 import { playPart5, initPart5 } from './parts/part5.js';
 import { playPart6, initPart6 } from './parts/part6.js';
 import { playPart7, initPart7 } from './parts/part7.js';
+import { playPart8, initPart8, handleNavigateToQuiz } from './parts/part8.js';
 
-import { initNextButton, hideNextButton } from './nextButton.js';
+// IMPORT SEAMLESS QUIZ MODULE
+import '../quiz.js';
 
 // 1. DYNAMIC CACHE BUSTING
 const cacheBuster = Date.now();
@@ -60,6 +62,18 @@ document.getElementById("vid-mascot7").src = `./compressed_ultra-videos/chapter1
 document.getElementById("vid-orang7").src = `./compressed_ultra-videos/chapter1/part7/ORANG-v7.mp4?t=${cacheBuster}`;
 document.getElementById("vid-teks-part7").src = `./compressed_ultra-videos/chapter1/part7/teks-part7.mp4?t=${cacheBuster}`;
 
+// Part 8
+const vidAir8 = document.getElementById("vid-air-part8-v1");
+if (vidAir8) vidAir8.src = `./compressed_ultra-videos/chapter1/part8/air.mp4?t=${cacheBuster}`;
+const vidRumput8 = document.getElementById("vid-rumput-part8-v1");
+if (vidRumput8) vidRumput8.src = `./compressed_ultra-videos/chapter1/part8/rumput.mp4?t=${cacheBuster}`;
+const vidKapal8 = document.getElementById("vid-kapal-part8-v1");
+if (vidKapal8) vidKapal8.src = `./compressed_ultra-videos/chapter1/part8/kapal.mp4?t=${cacheBuster}`;
+const vidKerang8 = document.getElementById("vid-kerang-part8-v1");
+if (vidKerang8) vidKerang8.src = `./compressed_ultra-videos/chapter1/part8/kerang.mp4?t=${cacheBuster}`;
+const vidTeks8 = document.getElementById("vid-teks-quiz-part8-v1");
+if (vidTeks8) vidTeks8.src = `./compressed_ultra-videos/chapter1/part8/teks-quiz.mp4?t=${cacheBuster}`;
+
 // 2. DYNAMIC CACHE BUSTING & FORCE LOAD AUDIO & VIDEO
 [
     { el: dom.soundV1, id: 'sound-v1' },
@@ -68,10 +82,12 @@ document.getElementById("vid-teks-part7").src = `./compressed_ultra-videos/chapt
     { el: dom.soundV4, id: 'sound-v4' },
     { el: dom.soundV5, id: 'sound-v5' },
     { el: dom.soundV6, id: 'sound-v6' },
-    { el: dom.soundV7, id: 'sound-v7' }
+    { el: dom.soundV7, id: 'sound-v7' },
+    { el: dom.soundV8, id: 'sound-v8', ext: 'mp3' }
 ].forEach(item => {
     if (item.el) {
-        item.el.src = `./sounds/chapter1/output-sounds/${item.id}.MP3?t=${cacheBuster}`;
+        const ext = item.ext || 'MP3';
+        item.el.src = `./sounds/chapter1/output-sounds/${item.id}.${ext}?t=${cacheBuster}`;
         item.el.load();
         item.el.preload = "auto";
     }
@@ -82,9 +98,9 @@ videos.part1.forEach((v) => {
     if (v) { v.load(); v.preload = "auto"; }
 });
 
-// Load sisa video part 2-7
+// Load sisa video part 2-8
 setTimeout(() => {
-    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7].forEach((v) => {
+    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8].forEach((v) => {
         if (v) { v.load(); v.preload = "auto"; }
     });
 }, 300);
@@ -134,8 +150,7 @@ setTimeout(() => {
 }, 1800);
 
 // Inisialisasi seluruh listener marker dan UI sejak awal agar targetFound tidak terlewat
-initPart1(); initPart2(); initPart3(); initPart4(); initPart5(); initPart6(); initPart7();
-initNextButton();
+initPart1(); initPart2(); initPart3(); initPart4(); initPart5(); initPart6(); initPart7(); initPart8();
 
 // -----------------------------------------------------------------------------
 // Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
@@ -207,7 +222,7 @@ function executeStartChapter1() {
     }
 
     // Buka kunci audio untuk semua sound secara paralel & non-blocking
-    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
+    const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].filter(Boolean);
     sounds.forEach(async (sound) => {
         try {
             sound.muted = true;
@@ -254,8 +269,8 @@ export function replayPart(partNumber) {
     }
 
     state.lastScannedMarker = 0;
-    const playActions = { 1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4, 5: playPart5, 6: playPart6, 7: playPart7 };
-    const stateKeys = { 1: 'part1Finished', 2: 'part2Finished', 3: 'part3Finished', 4: 'part4Finished', 5: 'part5Finished', 6: 'part6Finished', 7: 'part7Finished' };
+    const playActions = { 1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4, 5: playPart5, 6: playPart6, 7: playPart7, 8: playPart8 };
+    const stateKeys = { 1: 'part1Finished', 2: 'part2Finished', 3: 'part3Finished', 4: 'part4Finished', 5: 'part5Finished', 6: 'part6Finished', 7: 'part7Finished', 8: 'part8Finished' };
 
     const stateKey = stateKeys[partNumber];
     const wasFinished = state[stateKey];
@@ -275,22 +290,20 @@ export function replayPart(partNumber) {
 }
 
 export function restartFromBeginning() {
-    const allContainers = [ dom.containerPart1, dom.containerPart2, dom.containerPart3, dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7 ];
-    allContainers.forEach((c) => c.setAttribute("visible", false));
+    const allContainers = [ dom.containerPart1, dom.containerPart2, dom.containerPart3, dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7, dom.containerPart8 ];
+    allContainers.forEach((c) => { if (c) c.setAttribute("visible", false); });
 
-    allVideos.forEach((v) => { v.pause(); v.currentTime = 0; });
+    allVideos.forEach((v) => { if (v) { v.pause(); v.currentTime = 0; } });
 
     state.currentPart = 0;
     state.part1Finished = false; state.part2Finished = false; state.part3Finished = false;
     state.part3Paused = false; state.part4Finished = false; state.part5Finished = false;
-    state.part6Finished = false; state.part7Finished = false;
+    state.part6Finished = false; state.part7Finished = false; state.part8Finished = false;
     state.isPlaying = false;
     state.lastScannedMarker = 0;
 
     dom.statusBar.classList.remove("finished");
     dom.statusBar.textContent = "Mencari marker...";
-
-    hideNextButton();
 }
 
 // 6. EVENT LISTENERS
@@ -301,7 +314,7 @@ const handleInteraction = (e) => {
             resumePart3();
         } else if (state.lastScannedMarker > 0 && state.lastScannedMarker === state.currentPart) {
             replayPart(state.lastScannedMarker);
-        } else if (state.currentPart >= 1 && state.currentPart <= 7 && state[`part${state.currentPart}Finished`]) {
+        } else if (state.currentPart >= 1 && state.currentPart <= 8 && state[`part${state.currentPart}Finished`]) {
             replayPart(state.currentPart);
         } else if (state.part7Finished && state.currentPart === 0) {
             restartFromBeginning();
@@ -322,7 +335,7 @@ dom.resetButton.addEventListener("touchend", handleReset);
 
 // 7. TESTING & DIRECT JUMP UTILITIES
 export function jumpToPart(partNumber) {
-    if (partNumber < 1 || partNumber > 7) return;
+    if (partNumber < 1 || partNumber > 8) return;
     console.log(`🧪 [Test] Langsung melompat ke Chapter 1 Part ${partNumber}...`);
 
     state.hasStarted = true;
@@ -343,7 +356,7 @@ export function jumpToPart(partNumber) {
     state.currentPart = partNumber - 1;
 
     // Matikan semua suara dan video
-    [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].forEach(s => {
+    [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].forEach(s => {
         if (s) { s.pause(); s.currentTime = 0; s.muted = false; }
     });
     allVideos.forEach(v => {
@@ -351,12 +364,12 @@ export function jumpToPart(partNumber) {
     });
 
     // Sembunyikan kontainer lainnya
-    const allContainers = [ dom.containerPart1, dom.containerPart2, dom.containerPart3, dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7 ];
+    const allContainers = [ dom.containerPart1, dom.containerPart2, dom.containerPart3, dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7, dom.containerPart8 ];
     allContainers.forEach((c, idx) => {
         if (c && idx + 1 !== partNumber) c.setAttribute("visible", false);
     });
 
-    const playActions = { 1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4, 5: playPart5, 6: playPart6, 7: playPart7 };
+    const playActions = { 1: playPart1, 2: playPart2, 3: playPart3, 4: playPart4, 5: playPart5, 6: playPart6, 7: playPart7, 8: playPart8 };
     if (playActions[partNumber]) {
         playActions[partNumber]();
     }
@@ -365,7 +378,7 @@ window.jumpToPart = jumpToPart;
 
 export function unlockAllParts() {
     console.log("🔓 [Test] Membuka semua marker Chapter 1...");
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 8; i++) {
         state[`part${i}Finished`] = true;
     }
     state.isMarkerLocked = false;
@@ -377,7 +390,7 @@ window.unlockAllParts = unlockAllParts;
 // Deteksi URL Query Param: ?jump=X atau ?part=X
 const urlParams = new URLSearchParams(window.location.search);
 const jumpTarget = parseInt(urlParams.get('jump') || urlParams.get('part'), 10);
-if (jumpTarget && jumpTarget >= 1 && jumpTarget <= 7) {
+if (jumpTarget && jumpTarget >= 1 && jumpTarget <= 8) {
     const doAutoJump = () => {
         setTimeout(() => jumpToPart(jumpTarget), 400);
     };

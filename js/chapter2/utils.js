@@ -79,11 +79,10 @@ export function fadeAudioOut(audio, duration) {
 export function hideAllContainersExcept(exceptContainer) {
     const allContainers = [
         dom.containerPart1, dom.containerPart2, dom.containerPart3,
-        dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7,
-        dom.containerPart8
+        dom.containerPart4, dom.containerPart5, dom.containerPart6, dom.containerPart7
     ];
     allContainers.forEach(container => {
-        if (container !== exceptContainer) {
+        if (container && container !== exceptContainer) {
             container.setAttribute('visible', false);
         }
     });

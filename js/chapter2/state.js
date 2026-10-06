@@ -14,7 +14,6 @@ export const state = {
     part5Finished: false,
     part6Finished: false,
     part7Finished: false,
-    part8Finished: false,
     lastScannedMarker: 0,
     isMarkerLocked: false,
     lockedMarker: null,
@@ -39,7 +38,6 @@ export const dom = {
     containerPart5: document.querySelector('#video-container-part5'),
     containerPart6: document.querySelector('#video-container-part6'),
     containerPart7: document.querySelector('#video-container-part7'),
-    containerPart8: document.querySelector('#video-container-part8'),
     
     target1: document.getElementById('target1'),
     target2: document.getElementById('target2'),
@@ -48,7 +46,6 @@ export const dom = {
     target5: document.getElementById('target5'),
     target6: document.getElementById('target6'),
     target7: document.getElementById('target7'),
-    target8: document.getElementById('target8'),
     
     soundV1: document.getElementById('sound-v1'),
     soundV2: document.getElementById('sound-v2'),
@@ -56,11 +53,7 @@ export const dom = {
     soundV4: document.getElementById('sound-v4'),
     soundV5: document.getElementById('sound-v5'),
     soundV6: document.getElementById('sound-v6'),
-    soundV7: document.getElementById('sound-v7'),
-    soundV8: document.getElementById('sound-v8'),
-
-    btnPlayPart8_3D: document.getElementById('btn-play-part8-3d'),
-    btnPlayPart8_Plane: document.getElementById('btn-play-part8-plane')
+    soundV7: document.getElementById('sound-v7')
 };
 
 export const videos = {
@@ -94,12 +87,7 @@ export const videos = {
     part7: [
         document.getElementById('vid-air-part7-v1'), document.getElementById('vid-bebek-part7-v1'),
         document.getElementById('vid-orang-part7-v1'), document.getElementById('vid-mascot-part7-v1')
-    ],
-    part8: [
-        document.getElementById('vid-air-part8-v1'), document.getElementById('vid-rumput-part8-v1'),
-        document.getElementById('vid-kerang-part8-v1'), document.getElementById('vid-kapal-part8-v1'),
-        document.getElementById('vid-teks-quiz-part8-v1')
     ]
 };
 
-export const allVideos = [ ...videos.part1, ...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8 ].filter(Boolean);
+export const allVideos = [ ...videos.part1, ...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7 ].filter(Boolean);

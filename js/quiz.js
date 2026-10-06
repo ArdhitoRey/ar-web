@@ -12,14 +12,14 @@ export const QUIZ_CONFIG = {
         id: 1,
         title: "Kuis 1: Menjaga Kesehatan Gigi",
         questionText: "MANA CARA YANG BAIK MENJAGA KESEHATAN GIGI?",
-        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz1/pertanyaan.PNG",
-        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz1/video/benar.mp4",
-        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz1/video/salah.mp4",
+        bannerImg: "./compressed_ultra-videos/chapter1/quiz/quiz1/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter1/quiz/quiz1/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter1/quiz/quiz1/video/salah.mp4",
         shaderBenar: "chromakey-magenta",
         shaderSalah: "chromakey-advanced",
-        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz1/sound/pertanyaan.mp3",
-        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz1/sound/benar.mp3",
-        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz1/sound/salah.mp3",
+        soundPertanyaan: "./compressed_ultra-videos/chapter1/quiz/quiz1/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter1/quiz/quiz1/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter1/quiz/quiz1/sound/salah.mp3",
         leftChoice: "benar",
         rightChoice: "salah",
         labelLeft: "Sikat Gigi Pagi & Malam",
@@ -34,14 +34,14 @@ export const QUIZ_CONFIG = {
         id: 2,
         title: "Kuis 2: Cara Sikat Gigi yang Benar",
         questionText: "MANA CARA SIKAT GIGI YANG BENAR?",
-        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz2/pertanyaan.PNG",
-        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz2/video/benar.mp4",
-        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz2/video/salah.mp4",
+        bannerImg: "./compressed_ultra-videos/chapter1/quiz/quiz2/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter1/quiz/quiz2/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter1/quiz/quiz2/video/salah.mp4",
         shaderBenar: "chromakey-magenta",
         shaderSalah: "chromakey-advanced",
-        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz2/sound/pertanyaan.mp3",
-        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz2/sound/benar.mp3",
-        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz2/sound/salah.mp3",
+        soundPertanyaan: "./compressed_ultra-videos/chapter1/quiz/quiz2/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter1/quiz/quiz2/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter1/quiz/quiz2/sound/salah.mp3",
         // Pada Kuis 2: Kartu kiri adalah Salah, Kartu kanan adalah Benar
         leftChoice: "salah",
         rightChoice: "benar",
@@ -57,14 +57,14 @@ export const QUIZ_CONFIG = {
         id: 3,
         title: "Kuis 3: Jadwal ke Dokter Gigi",
         questionText: "KAPAN KITA HARUS KE DOKTER GIGI?",
-        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz3/pertanyaan.PNG",
-        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz3/video/benar.mp4",
-        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz3/video/salah.mp4",
+        bannerImg: "./compressed_ultra-videos/chapter1/quiz/quiz3/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter1/quiz/quiz3/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter1/quiz/quiz3/video/salah.mp4",
         shaderBenar: "chromakey-magenta",
         shaderSalah: "chromakey-magenta", // Kuis 3 video salah berlatar magenta
-        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz3/sound/pertanyaan.mp3",
-        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz3/sound/benar.mp3",
-        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz3/sound/salah.mp3",
+        soundPertanyaan: "./compressed_ultra-videos/chapter1/quiz/quiz3/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter1/quiz/quiz3/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter1/quiz/quiz3/sound/salah.mp3",
         leftChoice: "benar",
         rightChoice: "salah",
         labelLeft: "Setiap Enam Bulan Sekali",
@@ -79,14 +79,14 @@ export const QUIZ_CONFIG = {
         id: 4,
         title: "Kuis 4: Kebiasaan Setelah Makan",
         questionText: "SETELAH MAKAN KITA SEBAIKNYA?",
-        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz4/pertanyaan.PNG",
-        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz4/video/benar.mp4",
-        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz4/video/salah.mp4",
+        bannerImg: "./compressed_ultra-videos/chapter1/quiz/quiz4/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter1/quiz/quiz4/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter1/quiz/quiz4/video/salah.mp4",
         shaderBenar: "chromakey-magenta",
         shaderSalah: "chromakey-advanced",
-        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz4/sound/pertanyaan.mp3",
-        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz4/sound/benar.mp3",
-        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz4/sound/salah.mp3",
+        soundPertanyaan: "./compressed_ultra-videos/chapter1/quiz/quiz4/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter1/quiz/quiz4/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter1/quiz/quiz4/sound/salah.mp3",
         leftChoice: "benar",
         rightChoice: "salah",
         labelLeft: "Berkumur",
@@ -101,14 +101,14 @@ export const QUIZ_CONFIG = {
         id: 5,
         title: "Kuis 5: Teman Baik Gigi",
         questionText: "SIAPA YANG JADI TEMAN BAIK GIGI KITA?",
-        bannerImg: "./compressed_ultra-videos/chapter2/quiz/quiz5/pertanyaan.PNG",
-        videoBenar: "./compressed_ultra-videos/chapter2/quiz/quiz5/video/benar.mp4",
-        videoSalah: "./compressed_ultra-videos/chapter2/quiz/quiz5/video/salah.mp4",
+        bannerImg: "./compressed_ultra-videos/chapter1/quiz/quiz5/pertanyaan.PNG",
+        videoBenar: "./compressed_ultra-videos/chapter1/quiz/quiz5/video/benar.mp4",
+        videoSalah: "./compressed_ultra-videos/chapter1/quiz/quiz5/video/salah.mp4",
         shaderBenar: "chromakey-magenta",
         shaderSalah: "chromakey-magenta", // Kuis 5 video salah berlatar magenta
-        soundPertanyaan: "./compressed_ultra-videos/chapter2/quiz/quiz5/sound/pertanyaan.mp3",
-        soundBenar: "./compressed_ultra-videos/chapter2/quiz/quiz5/sound/benar.mp3",
-        soundSalah: "./compressed_ultra-videos/chapter2/quiz/quiz5/sound/salah.mp3",
+        soundPertanyaan: "./compressed_ultra-videos/chapter1/quiz/quiz5/sound/pertanyaan.mp3",
+        soundBenar: "./compressed_ultra-videos/chapter1/quiz/quiz5/sound/benar.mp3",
+        soundSalah: "./compressed_ultra-videos/chapter1/quiz/quiz5/sound/salah.mp3",
         leftChoice: "benar",
         rightChoice: "salah",
         labelLeft: "Bakteri Baik",
@@ -125,8 +125,8 @@ export const QUIZ_CONFIG = {
         title: "Skor Akhir: Petualangan Kuis AR",
         questionText: "SELAMAT! KAMU TELAH MENYELESAIKAN SEMUA KUIS!",
         bannerImg: "",
-        videoScore: "./compressed_ultra-videos/chapter2/quiz/final-scores/video/score.mp4",
-        soundScore: "./compressed_ultra-videos/chapter2/quiz/final-scores/sound/sound.mp3",
+        videoScore: "./compressed_ultra-videos/chapter1/quiz/final-scores/video/score.mp4",
+        soundScore: "./compressed_ultra-videos/chapter1/quiz/final-scores/sound/sound.mp3",
         shaderScore: "chromakey-score",
         promptStatusText: "Selamat! Simak pesan akhir dari Profesor Gurita...",
         statusScore: "Selamat! Kamu telah menyelesaikan semua petualangan kuis!",
@@ -378,7 +378,7 @@ if (isStandalone) {
 // Seamless Quiz Integration for Chapter 2
 // -----------------------------------------------------------------------------
 window.__startQuizSeamless = function (targetQuizId = 1) {
-    console.log(`🚀 [Quiz AR Seamless] Memulai kuis ${targetQuizId} langsung pada Marker 8 di Bab 2...`);
+    console.log(`🚀 [Quiz AR Seamless] Memulai kuis ${targetQuizId} langsung pada Marker 8 di Bab 1...`);
     window.__quizActiveSeamless = true;
     quizActiveSeamless = true;
     const quizTopBar = document.getElementById('quizTopBar');
@@ -410,7 +410,7 @@ window.__startQuizSeamless = function (targetQuizId = 1) {
 };
 
 window.__stopQuizSeamless = function () {
-    console.log('🔄 [Quiz AR Seamless] Kembali dari Kuis ke Bab 2...');
+    console.log('🔄 [Quiz AR Seamless] Kembali dari Kuis ke Bab 1...');
     window.__quizActiveSeamless = false;
     quizActiveSeamless = false;
     stopAllMedia();
@@ -430,9 +430,9 @@ window.__stopQuizSeamless = function () {
     }
 };
 
-const btnBackToChapter2 = document.getElementById('btnBackToChapter2');
-if (btnBackToChapter2) {
-    btnBackToChapter2.addEventListener('click', (e) => {
+const btnBackToChapter = document.getElementById('btnBackToChapter1') || document.getElementById('btnBackToChapter2');
+if (btnBackToChapter) {
+    btnBackToChapter.addEventListener('click', (e) => {
         e.preventDefault();
         window.__stopQuizSeamless();
     });

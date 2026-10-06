@@ -6,7 +6,7 @@ export const state = {
     audioEnabled: false,
     hasStarted: false,
     pendingPart: null,
-    isTargetInView: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false },
+    isTargetInView: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false },
     currentPart: 0,
     isPlaying: false,
     isTransitioning: false,
@@ -18,6 +18,7 @@ export const state = {
     part5Finished: false,
     part6Finished: false,
     part7Finished: false,
+    part8Finished: false,
     lastScannedMarker: 0,
     isMarkerLocked: false,
     lockedMarker: null,
@@ -42,6 +43,7 @@ export const dom = {
     containerPart5: document.querySelector('#video-container-part5'),
     containerPart6: document.querySelector('#video-container-part6'),
     containerPart7: document.querySelector('#video-container-part7'),
+    containerPart8: document.querySelector('#video-container-part8'),
     
     target1: document.getElementById('target1'),
     target2: document.getElementById('target2'),
@@ -50,6 +52,10 @@ export const dom = {
     target5: document.getElementById('target5'),
     target6: document.getElementById('target6'),
     target7: document.getElementById('target7'),
+    target8: document.getElementById('target8'),
+    
+    btnPlayPart8_3D: document.getElementById('btn-play-part8-3d'),
+    btnPlayPart8_Plane: document.getElementById('btn-play-part8-plane'),
     
     soundV1: document.getElementById('sound-v1'),
     soundV2: document.getElementById('sound-v2'),
@@ -57,7 +63,8 @@ export const dom = {
     soundV4: document.getElementById('sound-v4'),
     soundV5: document.getElementById('sound-v5'),
     soundV6: document.getElementById('sound-v6'),
-    soundV7: document.getElementById('sound-v7')
+    soundV7: document.getElementById('sound-v7'),
+    soundV8: document.getElementById('sound-v8')
 };
 
 export const videos = {
@@ -91,10 +98,18 @@ export const videos = {
         document.getElementById('vid-coral7'), document.getElementById('vid-laut7'),
         document.getElementById('vid-mascot7'), document.getElementById('vid-orang7'),
         document.getElementById('vid-teks-part7')
+    ],
+    part8: [
+        document.getElementById('vid-air-part8-v1'),
+        document.getElementById('vid-rumput-part8-v1'),
+        document.getElementById('vid-kerang-part8-v1'),
+        document.getElementById('vid-kapal-part8-v1'),
+        document.getElementById('vid-teks-quiz-part8-v1')
     ]
 };
 
 export const allVideos = [
     ...videos.part1, ...videos.part2, ...videos.part3, 
-    ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7
+    ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7,
+    ...videos.part8
 ];

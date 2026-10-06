@@ -7,7 +7,7 @@
 
     if (!isChapter1 && !isChapter2) return;
 
-    const maxParts = isChapter1 ? 7 : 8;
+    const maxParts = isChapter1 ? 8 : 7;
     const chapterName = isChapter1 ? 'Chapter 1' : 'Chapter 2';
 
     // Inject styles
@@ -167,7 +167,7 @@
             ${gridHtml}
         </div>
         <div class="dev-test-actions">
-            ${isChapter2 ? '<a href="./quiz.html" class="dev-test-sub-btn">🐚 Lompat Langsung ke Kuis</a>' : ''}
+            ${isChapter1 ? '<a href="./quiz.html" class="dev-test-sub-btn">🐚 Lompat Langsung ke Kuis</a>' : ''}
             <button class="dev-test-sub-btn" id="devUnlockAll">🔓 Buka & Izinkan Semua Marker</button>
             <a href="./test.html" class="dev-test-sub-btn">📋 Buka Halaman Test Hub Lengkap</a>
         </div>
