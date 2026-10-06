@@ -313,20 +313,42 @@ function executeStartChapter1() {
             const p = audio.play();
             if (p !== undefined) {
                 p.then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
+                    if (audio !== dom.soundV1 || !state.isPlaying) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
                 }).catch(() => {});
             }
         } catch (e) {}
     });
 
-    // Jika Marker 1 sudah terdeteksi di depan kamera sebelum tombol Mulai ditekan, langsung jalankan Part 1!
-    if (state.pendingPart === 1 || (state.isTargetInView && state.isTargetInView[1])) {
+    // Jika Marker 1 sudah terdeteksi di depan kamera sebelum atau saat tombol Mulai ditekan, langsung jalankan Part 1!
+    const isMarker1Detected = (state.pendingPart === 1) || 
+                              (state.isTargetInView && state.isTargetInView[1]) || 
+                              (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);
+
+    if (isMarker1Detected) {
         state.pendingPart = null;
         if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
             playPart1();
         }
     }
+
+    // Watcher: jika Marker 1 terdeteksi dalam jangkauan kamera sesaat setelah tombol Mulai ditekan (cegah butuh refresh)
+    const marker1Watcher = setInterval(() => {
+        if (state.part1Finished || state.isPlaying || state.currentPart > 0) {
+            clearInterval(marker1Watcher);
+            return;
+        }
+        if (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible) {
+            clearInterval(marker1Watcher);
+            if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+                console.log("🎯 [Chapter 1] Marker 1 terdeteksi langsung oleh kamera!");
+                playPart1();
+            }
+        }
+    }, 100);
+    setTimeout(() => clearInterval(marker1Watcher), 10000);
 }
 
 // 4. START BUTTON (LANGSUNG BUKA KAMERA TANPA DELAY)

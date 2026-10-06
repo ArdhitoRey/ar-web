@@ -86,20 +86,6 @@ setTimeout(() => {
     });
 }, 300);
 
-function unlockStartButton() {
-    if (state.allFullyBuffered) return;
-    state.allFullyBuffered = true;
-    state.allReady = true;
-    const barFill = document.getElementById('loadingBarFill');
-    if (barFill) barFill.style.width = '100%';
-    if (dom.loadingProgress) dom.loadingProgress.textContent = "100%";
-    if (dom.startButton) {
-        dom.startButton.disabled = false;
-        dom.startButton.textContent = "Mulai";
-        dom.startButton.classList.add("ready");
-    }
-}
-
 // -----------------------------------------------------------------------------
 // Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
 // -----------------------------------------------------------------------------
@@ -241,15 +227,16 @@ const cameraCheckInterval = setInterval(() => {
     checkAndUnlockIfReady();
 }, 150);
 
+// Panggil verifikasi awal secara langsung agar progress terisi seketika tanpa menunggu event
+checkAndUnlockIfReady();
+
 // Safety fallback maksimum (15 detik) jika ada aset eksternal non-kritis yang tertahan jaringan
 setTimeout(() => {
     if (!isStartUnlocked) {
         console.log("⏱️ [Chapter 2] Timeout safety check (15s)...");
         isWindowLoaded = true;
         isSceneLoaded = true;
-        if (isCameraStreaming()) {
-            unlockStartButton();
-        }
+        unlockStartButton();
     }
 }, 15000);
 
@@ -315,20 +302,42 @@ function executeStartChapter2() {
             const p = audio.play();
             if (p !== undefined) {
                 p.then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
+                    if (audio !== dom.soundV1 || !state.isPlaying) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
                 }).catch(() => {});
             }
         } catch (e) {}
     });
 
-    // Jika Marker 1 sudah terdeteksi di depan kamera sebelum tombol Mulai ditekan, jalankan Part 1 sekarang
-    if (state.pendingPart === 1) {
+    // Jika Marker 1 sudah terdeteksi di depan kamera sebelum atau saat tombol Mulai ditekan, jalankan Part 1 sekarang
+    const isMarker1Detected = (state.pendingPart === 1) || 
+                              (state.isTargetInView && state.isTargetInView[1]) || 
+                              (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);
+
+    if (isMarker1Detected) {
         state.pendingPart = null;
         if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
             playPart1();
         }
     }
+
+    // Watcher: jika Marker 1 terdeteksi dalam jangkauan kamera sesaat setelah tombol Mulai ditekan
+    const marker1Watcher = setInterval(() => {
+        if (state.part1Finished || state.isPlaying || state.currentPart > 0) {
+            clearInterval(marker1Watcher);
+            return;
+        }
+        if (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible) {
+            clearInterval(marker1Watcher);
+            if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+                console.log("🎯 [Chapter 2] Marker 1 terdeteksi langsung oleh kamera!");
+                playPart1();
+            }
+        }
+    }, 100);
+    setTimeout(() => clearInterval(marker1Watcher), 10000);
 }
 
 if (dom.startButton) {

@@ -47,6 +47,16 @@ async function startPart1Videos() {
     if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
     else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
 
+    if (dom.containerPart1) {
+        const aVids = dom.containerPart1.querySelectorAll('a-video');
+        aVids.forEach(av => {
+            if (av && av.components && av.components.material && av.components.material.material) {
+                const m = av.components.material.material;
+                if (m.map) m.map.needsUpdate = true;
+            }
+        });
+    }
+
     const playPromises = videos.part1.map(v => v.play().catch(e => console.error('❌ [Part 1] Video play error:', e)));
     // Timeout aman agar video lambat tidak menggantung transisi selamanya
     await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
@@ -135,6 +145,16 @@ export function initPart1() {
     if (!dom.target1) return; // Sabuk pengaman
 
     dom.target1.addEventListener('targetFound', () => {
+        state.isTargetInView[1] = true;
+        state.pendingPart = 1;
+        if (!state.hasStarted) {
+            return;
+        }
+        if (!state.cameraReady) {
+            console.log('⏳ [Part 1] Marker 1 terdeteksi tapi kamera belum aktif stream.');
+            return;
+        }
+
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 1) return;
         
@@ -148,15 +168,8 @@ export function initPart1() {
             if (dom.containerPart1) dom.containerPart1.setAttribute('visible', false);
             return;
         }
-        
-        // Cek apakah kamera sudah aktif streaming video frame nyata
-        if (!state.cameraReady) {
-            console.log('⏳ [Part 1] Marker 1 terdeteksi tapi kamera belum aktif stream.');
-            state.pendingPart = 1;
-            return;
-        }
 
-        if (!state.part1Finished && state.currentPart === 0 && !state.isPlaying && !state.isTransitioning) {
+        if (!state.part1Finished && (state.currentPart === 0 || state.currentPart === 1) && !state.isPlaying && !state.isTransitioning) {
             console.log('🎯 [Part 1] Marker 1 Terdeteksi!');
             state.activeMarkerDetection = 1;
             state.markerIgnoreUntil = now + state.MARKER_IGNORE_DURATION;
@@ -173,5 +186,9 @@ export function initPart1() {
             dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 2';
             state.lastScannedMarker = 1;
         }
+    });
+
+    dom.target1.addEventListener('targetLost', () => {
+        state.isTargetInView[1] = false;
     });
 }
