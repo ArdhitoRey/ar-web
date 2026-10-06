@@ -84,16 +84,22 @@ async function startPart7Videos() {
             dom.soundV7.pause();
             dom.soundV7.currentTime = 0;
             dom.soundV7.muted = false;
+            dom.soundV7.volume = 1.0;
             const p = dom.soundV7.play();
             if (p !== undefined) {
-                p.then(() => fadeAudioIn(dom.soundV7, 400)).catch((err) => {
+                p.catch((err) => {
                     console.warn('⚠️ [Part 7] Audio play deferred:', err);
                     const resumeAudio = () => {
-                        dom.soundV7.muted = false;
-                        dom.soundV7.play().then(() => fadeAudioIn(dom.soundV7, 400)).catch(() => {});
+                        if (state.currentPart === 7 && !state.part7Finished) {
+                            dom.soundV7.muted = false;
+                            dom.soundV7.volume = 1.0;
+                            dom.soundV7.play().catch(() => {});
+                        }
+                        window.removeEventListener('click', resumeAudio, true);
+                        window.removeEventListener('touchend', resumeAudio, true);
                     };
-                    document.addEventListener('click', resumeAudio, { once: true });
-                    document.addEventListener('touchend', resumeAudio, { once: true });
+                    window.addEventListener('click', resumeAudio, { once: true, capture: true });
+                    window.addEventListener('touchend', resumeAudio, { once: true, capture: true });
                 });
             }
         } else {

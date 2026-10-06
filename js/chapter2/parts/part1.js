@@ -63,15 +63,28 @@ async function startPart1Videos() {
     });
     
     try {
-        if (state.audioEnabled && dom.soundV1) {
+        if (dom.soundV1) {
             dom.soundV1.pause();
             dom.soundV1.currentTime = 0;
-            dom.soundV1.volume = 0;
-            await dom.soundV1.play();
-            fadeAudioIn(dom.soundV1, 400);
-            console.log('🔊 [Part 1] Audio menyala dan sinkron!');
-        } else {
-            console.warn('⚠️ [Part 1] Audio belum diizinkan / tidak ditemukan.');
+            dom.soundV1.muted = false;
+            dom.soundV1.volume = 1.0;
+            const p = dom.soundV1.play();
+            if (p !== undefined) {
+                p.catch((err) => {
+                    console.warn('⚠️ [Part 1] Audio play deferred:', err);
+                    const resumeAudio = () => {
+                        if (state.currentPart === 1 && !state.part1Finished) {
+                            dom.soundV1.muted = false;
+                            dom.soundV1.volume = 1.0;
+                            dom.soundV1.play().catch(() => {});
+                        }
+                        window.removeEventListener('click', resumeAudio, true);
+                        window.removeEventListener('touchend', resumeAudio, true);
+                    };
+                    window.addEventListener('click', resumeAudio, { once: true, capture: true });
+                    window.addEventListener('touchend', resumeAudio, { once: true, capture: true });
+                });
+            }
         }
     } catch (e) { 
         console.error('❌ [Part 1] Audio error:', e);

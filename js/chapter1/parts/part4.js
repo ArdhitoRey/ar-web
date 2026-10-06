@@ -83,10 +83,22 @@ async function startPart4Videos() {
             dom.soundV4.pause();
             dom.soundV4.currentTime = 0;
             dom.soundV4.muted = false;
+            dom.soundV4.volume = 1.0;
             const p = dom.soundV4.play();
             if (p !== undefined) {
-                p.then(() => fadeAudioIn(dom.soundV4, 400)).catch((err) => {
+                p.catch((err) => {
                     console.warn('⚠️ [Part 4] Audio play deferred:', err);
+                    const resumeAudio = () => {
+                        if (state.currentPart === 4 && !state.part4Finished) {
+                            dom.soundV4.muted = false;
+                            dom.soundV4.volume = 1.0;
+                            dom.soundV4.play().catch(() => {});
+                        }
+                        window.removeEventListener('click', resumeAudio, true);
+                        window.removeEventListener('touchend', resumeAudio, true);
+                    };
+                    window.addEventListener('click', resumeAudio, { once: true, capture: true });
+                    window.addEventListener('touchend', resumeAudio, { once: true, capture: true });
                 });
             }
         } else {

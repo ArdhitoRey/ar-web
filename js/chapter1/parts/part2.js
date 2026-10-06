@@ -69,10 +69,22 @@ async function startPart2Videos() {
             dom.soundV2.pause();
             dom.soundV2.currentTime = 0;
             dom.soundV2.muted = false;
+            dom.soundV2.volume = 1.0;
             const p = dom.soundV2.play();
             if (p !== undefined) {
-                p.then(() => fadeAudioIn(dom.soundV2, 400)).catch((err) => {
+                p.catch((err) => {
                     console.warn('⚠️ [Part 2] Audio play deferred:', err);
+                    const resumeAudio = () => {
+                        if (state.currentPart === 2 && !state.part2Finished) {
+                            dom.soundV2.muted = false;
+                            dom.soundV2.volume = 1.0;
+                            dom.soundV2.play().catch(() => {});
+                        }
+                        window.removeEventListener('click', resumeAudio, true);
+                        window.removeEventListener('touchend', resumeAudio, true);
+                    };
+                    window.addEventListener('click', resumeAudio, { once: true, capture: true });
+                    window.addEventListener('touchend', resumeAudio, { once: true, capture: true });
                 });
             }
         } else {

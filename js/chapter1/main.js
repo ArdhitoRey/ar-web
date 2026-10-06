@@ -108,10 +108,33 @@ setTimeout(() => {
 // -----------------------------------------------------------------------------
 // Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
 // -----------------------------------------------------------------------------
-function isCameraActive() {
+function isCameraStreaming() {
     const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
     if (!video) return false;
-    return video.readyState >= 2 && video.videoWidth > 0 && !video.paused;
+    return video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && !video.paused;
+}
+
+// -----------------------------------------------------------------------------
+// Browser Page & Scene Readiness Tracking
+// -----------------------------------------------------------------------------
+let isWindowLoaded = (document.readyState === 'complete');
+if (!isWindowLoaded) {
+    window.addEventListener('load', () => {
+        isWindowLoaded = true;
+        checkAndUnlockIfReady();
+    }, { once: true });
+}
+
+let isSceneLoaded = false;
+if (dom.arScene) {
+    if (dom.arScene.hasLoaded) {
+        isSceneLoaded = true;
+    } else {
+        dom.arScene.addEventListener('loaded', () => {
+            isSceneLoaded = true;
+            checkAndUnlockIfReady();
+        }, { once: true });
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -134,8 +157,12 @@ if (dom.arScene) {
 
 // -----------------------------------------------------------------------------
 // 3. LOADING SCREEN SYSTEM
-// Selesaikan seluruh pemuatan (Video Part 1 + MindAR System + Kamera Aktif)
-// SEBELUM tombol Mulai dapat ditekan.
+// Selesaikan seluruh pemuatan SEBELUM tombol Mulai dapat ditekan:
+// - Pemuatan halaman browser tuntas (window load)
+// - A-Frame scene & shaders siap (scene loaded)
+// - Target MindAR telah ter-compile & siap (arReady)
+// - Kamera aktif & streaming frame nyata (isCameraStreaming)
+// - Seluruh video Part 1 telah siap (videos.part1 canplaythrough)
 // Setelah tombol Mulai ditekan, kamera sudah streaming dan langsung tampil seketika!
 // -----------------------------------------------------------------------------
 let part1BufferedCount = 0;
@@ -144,36 +171,30 @@ let isStartUnlocked = false;
 function checkAndUnlockIfReady() {
     if (isStartUnlocked) return;
 
-    const cameraActive = isCameraActive();
+    const cameraStreaming = isCameraStreaming();
     const totalPart1 = videos.part1.length;
     const videosReady = part1BufferedCount >= totalPart1;
 
     // Hitung progress gabungan:
-    // - Video Part 1: hingga 50%
-    // - Kamera & MindAR: hingga 50%
-    const videoPct = totalPart1 > 0
-        ? Math.min(50, Math.round((part1BufferedCount / totalPart1) * 50))
-        : 50;
+    // - Browser Load: 15%
+    // - Scene Load: 15%
+    // - Video Part 1: 35%
+    // - Kamera & MindAR: 35%
+    let totalPct = 0;
+    if (isWindowLoaded) totalPct += 15;
+    if (isSceneLoaded) totalPct += 15;
+    if (totalPart1 > 0) totalPct += Math.min(35, Math.round((part1BufferedCount / totalPart1) * 35));
+    if (isArReady && cameraStreaming) totalPct += 35;
+    else if (cameraStreaming) totalPct += 20;
+    else if (isArReady) totalPct += 15;
 
-    let cameraPct = 0;
-    if (isArReady && cameraActive) {
-        cameraPct = 50;
-    } else if (cameraActive) {
-        cameraPct = 35;
-    } else if (isArReady) {
-        cameraPct = 25;
-    } else {
-        const v = document.querySelector('body > video') || document.querySelector('video:not([id])');
-        if (v && v.readyState >= 1) cameraPct = 15;
-    }
-
-    const totalPct = Math.min(100, videoPct + cameraPct);
+    totalPct = Math.min(100, totalPct);
     const barFill = document.getElementById('loadingBarFill');
     if (barFill) barFill.style.width = `${Math.max(15, totalPct)}%`;
     if (dom.loadingProgress) dom.loadingProgress.textContent = `${totalPct}%`;
 
-    // Tombol Mulai HANYA terbuka jika kamera aktif & streaming frame serta aset Part 1 siap
-    if (cameraActive && (isArReady || totalPct >= 85) && videosReady) {
+    // Tombol Mulai HANYA terbuka jika SEMUA pemuatan browser, AR, kamera, dan video tuntas!
+    if (isWindowLoaded && isSceneLoaded && isArReady && cameraStreaming && videosReady) {
         unlockStartButton();
     }
 }
@@ -183,7 +204,7 @@ function unlockStartButton() {
     isStartUnlocked = true;
     state.allFullyBuffered = true;
     state.allReady = true;
-    state.cameraReady = isCameraActive();
+    state.cameraReady = isCameraStreaming();
 
     const barFill = document.getElementById('loadingBarFill');
     if (barFill) barFill.style.width = '100%';
@@ -210,31 +231,32 @@ videos.part1.forEach((video) => {
     }
 });
 
-// Polling reguler untuk mendeteksi stream kamera segera setelah aktif
+// Polling reguler untuk mendeteksi stream kamera dan kesiapan browser secara real-time
 const cameraCheckInterval = setInterval(() => {
     if (isStartUnlocked) {
         clearInterval(cameraCheckInterval);
         return;
     }
+    if (!isWindowLoaded && document.readyState === 'complete') {
+        isWindowLoaded = true;
+    }
+    if (!isSceneLoaded && dom.arScene && dom.arScene.hasLoaded) {
+        isSceneLoaded = true;
+    }
     checkAndUnlockIfReady();
 }, 150);
 
-// Safety fallback: jika jaringan lambat / event tertahan tetapi kamera sudah aktif, buka tombol
+// Safety fallback maksimum (15 detik) jika ada aset eksternal non-kritis yang tertahan jaringan
 setTimeout(() => {
     if (!isStartUnlocked) {
-        console.log("⏱️ [Chapter 1] Timeout check fallback...");
-        if (isCameraActive()) {
+        console.log("⏱️ [Chapter 1] Timeout safety check (15s)...");
+        isWindowLoaded = true;
+        isSceneLoaded = true;
+        if (isCameraStreaming()) {
             unlockStartButton();
-        } else {
-            setTimeout(() => {
-                if (!isStartUnlocked) {
-                    console.log("⏱️ [Chapter 1] Membuka tombol Mulai (max safety timeout).");
-                    unlockStartButton();
-                }
-            }, 3000);
         }
     }
-}, 4500);
+}, 15000);
 
 // Inisialisasi seluruh listener marker dan UI sejak awal agar targetFound tidak terlewat
 initPart1(); initPart2(); initPart3(); initPart4(); initPart5(); initPart6(); initPart7(); initPart8();
@@ -243,6 +265,16 @@ function executeStartChapter1() {
     state.hasStarted = true;
     state.audioEnabled = true;
     state.cameraReady = true;
+
+    // Pastikan background body transparan dan elemen kamera terlihat jelas tanpa black screen
+    document.body.style.backgroundColor = 'transparent';
+    document.documentElement.style.backgroundColor = 'transparent';
+    const camVideo = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (camVideo) {
+        camVideo.style.display = 'block';
+        camVideo.style.visibility = 'visible';
+        camVideo.style.opacity = '1';
+    }
 
     // Tutup loading overlay seketika agar kamera langsung terlihat tanpa jeda
     if (dom.loadingOverlay) {
@@ -267,27 +299,26 @@ function executeStartChapter1() {
         }
     } catch (e) {}
 
-    // Prime HANYA soundV1 secara senyap (volume 0 & muted) untuk otorisasi gesture browser mobile
-    if (dom.soundV1) {
+    // Buka kunci izin mobile browser untuk SEMUA narasi (Part 1 sampai Part 8)
+    // Dilakukan secara senyap (volume 0 & muted) di dalam event gesture klik "Mulai"
+    const allSounds = [
+        dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4,
+        dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8
+    ].filter(Boolean);
+
+    allSounds.forEach((audio) => {
         try {
-            dom.soundV1.muted = true;
-            dom.soundV1.volume = 0;
-            const p = dom.soundV1.play();
+            audio.muted = true;
+            audio.volume = 0;
+            const p = audio.play();
             if (p !== undefined) {
                 p.then(() => {
-                    dom.soundV1.pause();
-                    dom.soundV1.currentTime = 0;
+                    audio.pause();
+                    audio.currentTime = 0;
                 }).catch(() => {});
             }
         } catch (e) {}
-    }
-
-    // Pastikan sound-v8 tetap diam, reset, dan muted
-    if (dom.soundV8) {
-        dom.soundV8.pause();
-        dom.soundV8.currentTime = 0;
-        dom.soundV8.muted = true;
-    }
+    });
 
     // Jika Marker 1 sudah terdeteksi di depan kamera sebelum tombol Mulai ditekan, langsung jalankan Part 1!
     if (state.pendingPart === 1 || (state.isTargetInView && state.isTargetInView[1])) {

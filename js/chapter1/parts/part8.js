@@ -10,6 +10,10 @@ if (dom.soundV8 && !dom.soundV8._guardInstalled) {
     dom.soundV8._guardInstalled = true;
     const origPlay8 = dom.soundV8.play;
     dom.soundV8.play = function () {
+        // Izinkan pemanggilan senyap untuk unlocking gesture pada mobile browser
+        if (this.muted && this.volume === 0) {
+            return origPlay8.apply(this, arguments);
+        }
         if (state.currentPart !== 8 || !state.hasStarted || window.__quizActiveSeamless || state.currentPart === 'quiz') {
             console.warn('🔇 [Part 8 Guard] sound-v8 dicegah (currentPart: ' + state.currentPart + ', hasStarted: ' + state.hasStarted + ')');
             try {
@@ -399,24 +403,28 @@ async function startPart8Videos() {
     }
     
     try {
-        if (state.audioEnabled && dom.soundV8) {
+        if (dom.soundV8) {
             dom.soundV8.pause();
             dom.soundV8.currentTime = 0;
             dom.soundV8.muted = false;
             dom.soundV8.volume = 1.0;
             const playPromise = dom.soundV8.play();
             if (playPromise !== undefined) {
-                await playPromise;
-                console.log('🔊 [Part 8] Audio sinkron!');
+                playPromise.catch((err) => {
+                    console.warn('⚠️ [Part 8] Audio play deferred:', err);
+                    const resumeAudio = () => {
+                        if (state.currentPart === 8 && !state.part8Finished) {
+                            dom.soundV8.muted = false;
+                            dom.soundV8.volume = 1.0;
+                            dom.soundV8.play().catch(() => {});
+                        }
+                        window.removeEventListener('click', resumeAudio, true);
+                        window.removeEventListener('touchend', resumeAudio, true);
+                    };
+                    window.addEventListener('click', resumeAudio, { once: true, capture: true });
+                    window.addEventListener('touchend', resumeAudio, { once: true, capture: true });
+                });
             }
-        } else if (dom.soundV8) {
-            state.audioEnabled = true;
-            dom.soundV8.currentTime = 0;
-            dom.soundV8.muted = false;
-            dom.soundV8.volume = 1.0;
-            dom.soundV8.play().catch(e => console.warn('⚠️ [Part 8] Audio play fallback error:', e));
-        } else {
-            console.warn('⚠️ [Part 8] Audio tidak jalan atau belum diaktifkan.');
         }
     } catch (e) { 
         console.warn('⚠️ [Part 8] Audio error:', e); 
