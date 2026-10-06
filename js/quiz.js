@@ -529,13 +529,41 @@ function setupQuizScene(targetId) {
     }
 }
 
-// Stop all media playback immediately
-function stopAllMedia() {
+// Preload upcoming quiz media elements in background
+function preloadUpcomingQuiz(nextId) {
+    if (!nextId) return;
+    try {
+        if (nextId === 'score' || nextId === 6 || nextId === 'final') {
+            const vScore = document.getElementById('vid-quiz-score');
+            const sScore = document.getElementById('sound-quiz-score');
+            if (vScore) { vScore.preload = 'auto'; vScore.load(); }
+            if (sScore) { sScore.preload = 'auto'; sScore.load(); }
+            return;
+        }
+        const vBenar = document.getElementById(`vid-quiz${nextId}-benar`);
+        const vSalah = document.getElementById(`vid-quiz${nextId}-salah`);
+        const sPertanyaan = document.getElementById(`sound-quiz${nextId}-pertanyaan`);
+        const sBenar = document.getElementById(`sound-quiz${nextId}-benar`);
+        const sSalah = document.getElementById(`sound-quiz${nextId}-salah`);
+
+        if (vBenar) { vBenar.preload = 'auto'; vBenar.load(); }
+        if (vSalah) { vSalah.preload = 'auto'; vSalah.load(); }
+        if (sPertanyaan) { sPertanyaan.preload = 'auto'; sPertanyaan.load(); }
+        if (sBenar) { sBenar.preload = 'auto'; sBenar.load(); }
+        if (sSalah) { sSalah.preload = 'auto'; sSalah.load(); }
+    } catch (e) {
+        console.warn('⚠️ Preload next quiz warning:', e);
+    }
+}
+
+// Stop all media playback immediately (optional exception for pre-warming videos)
+function stopAllMedia(exceptVideos = []) {
     if (monitorRaf) {
         cancelAnimationFrame(monitorRaf);
         monitorRaf = null;
     }
     allVideoElements.forEach(v => {
+        if (exceptVideos && exceptVideos.includes(v)) return;
         try {
             v.pause();
         } catch (e) {}
@@ -570,8 +598,31 @@ export function transitionToQuiz(targetQuizId, animate = true) {
         statusBar.classList.add('tracking');
     }
 
-    // Stop current media
-    stopAllMedia();
+    // Identifikasi target videos yang akan di-warm up
+    const targetBenar = (normalizedTarget !== 'score') ? document.getElementById(`vid-quiz${normalizedTarget}-benar`) : null;
+    const targetSalah = (normalizedTarget !== 'score') ? document.getElementById(`vid-quiz${normalizedTarget}-salah`) : null;
+    const targetScore = (normalizedTarget === 'score') ? document.getElementById('vid-quiz-score') : null;
+    const warmingUpVideos = [targetBenar, targetSalah, targetScore].filter(Boolean);
+
+    // Stop current media (kecuali target videos yang sedang di-warm up)
+    stopAllMedia(warmingUpVideos);
+
+    // WARM UP TARGET VIDEOS IMMEDIATELY at millisecond 0 of slide-out:
+    if (targetBenar) {
+        targetBenar.muted = true;
+        try { targetBenar.currentTime = 0; } catch (e) {}
+        targetBenar.play().catch(() => {});
+    }
+    if (targetSalah) {
+        targetSalah.muted = true;
+        try { targetSalah.currentTime = 0; } catch (e) {}
+        targetSalah.play().catch(() => {});
+    }
+    if (targetScore) {
+        targetScore.muted = true;
+        try { targetScore.currentTime = 0; } catch (e) {}
+        targetScore.play().catch(() => {});
+    }
 
     if (animate && quizSceneWrapper) {
         // 1. Emit slide-out animation to the left
@@ -795,11 +846,15 @@ async function startQuizPlayback() {
     // Reset video kuis aktif
     if (activeVidBenar) {
         activeVidBenar.muted = true;
-        try { activeVidBenar.currentTime = 0; } catch (e) {}
+        if (activeVidBenar.paused || activeVidBenar.currentTime > 0.5) {
+            try { activeVidBenar.currentTime = 0; } catch (e) {}
+        }
     }
     if (activeVidSalah) {
         activeVidSalah.muted = true;
-        try { activeVidSalah.currentTime = 0; } catch (e) {}
+        if (activeVidSalah.paused || activeVidSalah.currentTime > 0.5) {
+            try { activeVidSalah.currentTime = 0; } catch (e) {}
+        }
     }
 
     // Reset audio feedback
@@ -829,6 +884,10 @@ async function startQuizPlayback() {
         });
     });
     await Promise.all(playPromises);
+
+    // Preload ronde kuis berikutnya di background sehingga saat user klik Selanjutnya sudah siap
+    const nextQuizId = (currentQuizId < 5) ? (currentQuizId + 1) : 'score';
+    preloadUpcomingQuiz(nextQuizId);
 
     // Monitor waktu hingga mencapai 9.25s
     startTimelineMonitor();
@@ -1063,6 +1122,8 @@ function showHomeScoreButton() {
 
         setTimeout(() => {
             if (isHomeButtonActive && !isNavigatingHome) {
+                // Pastikan skala berada di 1 1 1 penuh sebelum animasi denyut aktif
+                btnHomeScore3D.setAttribute('scale', '1 1 1');
                 btnHomeScore3D.emit('home-pulse-start', null, false);
             }
         }, 650);
@@ -1108,6 +1169,7 @@ function handleHomeScoreNavigation() {
     playChime(true);
 
     if (btnHomeScore3D) {
+        btnHomeScore3D.removeAttribute('animation__pulse');
         btnHomeScore3D.setAttribute('scale', '1.25 1.25 1.25');
     }
 

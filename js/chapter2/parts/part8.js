@@ -95,6 +95,28 @@ export function handleNavigateToQuiz() {
         dom.statusBar.classList.add('finished');
     }
 
+    // Warm up Quiz 1 video & audio decoding IMMEDIATELY so textures are ready during slide-out
+    try {
+        const q1Benar = document.getElementById('vid-quiz1-benar');
+        const q1Salah = document.getElementById('vid-quiz1-salah');
+        const q1Sound = document.getElementById('sound-quiz1-pertanyaan');
+        if (q1Benar) {
+            q1Benar.muted = true;
+            try { q1Benar.currentTime = 0; } catch (e) {}
+            q1Benar.play().catch(() => {});
+        }
+        if (q1Salah) {
+            q1Salah.muted = true;
+            try { q1Salah.currentTime = 0; } catch (e) {}
+            q1Salah.play().catch(() => {});
+        }
+        if (q1Sound) {
+            try { q1Sound.load(); } catch (e) {}
+        }
+    } catch (err) {
+        console.warn('⚠️ Quiz 1 warm up warning:', err);
+    }
+
     // Trigger animasi slide-out ke kiri pada container Part 8
     if (dom.containerPart8) {
         dom.containerPart8.emit('trigger-slide-out', null, false);
@@ -246,6 +268,19 @@ async function startPart8Videos() {
     });
     await Promise.all(playPromises);
     console.log('📹 [Part 8] Seluruh video Part 8 telah dimulai.');
+
+    // Preload Quiz 1 media di background saat Part 8 sedang ditonton
+    setTimeout(() => {
+        try {
+            const q1Benar = document.getElementById('vid-quiz1-benar');
+            const q1Salah = document.getElementById('vid-quiz1-salah');
+            const q1Sound = document.getElementById('sound-quiz1-pertanyaan');
+            if (q1Benar) { q1Benar.preload = 'auto'; q1Benar.load(); }
+            if (q1Salah) { q1Salah.preload = 'auto'; q1Salah.load(); }
+            if (q1Sound) { q1Sound.preload = 'auto'; q1Sound.load(); }
+            console.log('📦 [Part 8] Preloaded Quiz 1 assets in background.');
+        } catch (e) {}
+    }, 200);
     
     // SINKRONISASI TOMBOL PLAY 3D & FREEZE FRAME
     videos.part8.forEach(v => {
