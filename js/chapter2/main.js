@@ -199,20 +199,24 @@ function executeStartChapter2() {
         dom.statusBar.classList.remove("tracking", "finished");
     }
 
-    // Buka kunci audio untuk semua sound secara paralel & non-blocking
+    // Pastikan semua sound narasi dalam keadaan diam dan di-reset
     const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
-    sounds.forEach(async (sound) => {
+    sounds.forEach((sound) => {
         try {
-            sound.muted = true;
-            const p = sound.play();
-            if (p !== undefined) await p;
             sound.pause();
             sound.currentTime = 0;
-        } catch (e) {
-        } finally {
-            sound.muted = false;
-        }
+        } catch (e) {}
     });
+
+    // Buka kunci WebAudio context secara senyap jika didukung browser
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+            const ctx = new AudioCtx();
+            if (ctx.state === 'suspended') ctx.resume();
+        }
+    } catch (e) {}
+
 
     // Tunggu kamera aktif & streaming frame nyata sebelum menjalankan sound / AR Part 1
     waitForCameraActive(() => {

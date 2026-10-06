@@ -85,14 +85,25 @@ export function handleNavigateToQuiz() {
 
     if (dom.soundV8) {
         dom.soundV8.pause();
+        dom.soundV8.currentTime = 0;
+        dom.soundV8.onended = null;
     }
     videos.part8.forEach(v => {
-        if (v) v.pause();
+        if (v) {
+            v.pause();
+            v.currentTime = 0;
+        }
     });
+
+    state.isPlaying = false;
+    state.part8Finished = true;
+    state.isMarkerLocked = false;
+    state.lockedMarker = null;
 
     if (dom.statusBar) {
         dom.statusBar.textContent = 'Membuka Kuis 1...';
         dom.statusBar.classList.add('finished');
+        dom.statusBar.onclick = null;
     }
 
     // Warm up Quiz 1 video & audio decoding IMMEDIATELY so textures are ready during slide-out
@@ -202,8 +213,8 @@ function checkPlayButtonInteraction(clientX, clientY) {
 
 export async function playPart8() {
     // Pengecekan guard
-    if (state.isPlaying || !state.part7Finished || (state.currentPart !== 7 && state.currentPart !== 8) || state.isTransitioning) {
-        console.log('⏹️ [Part 8] Dibatalkan: Sedang play, Part 7 belum selesai, atau urutan salah.');
+    if (window.__quizActiveSeamless || state.isPlaying || !state.part7Finished || (state.currentPart !== 7 && state.currentPart !== 8) || state.isTransitioning) {
+        console.log('⏹️ [Part 8] Dibatalkan: Sedang kuis, sedang play, Part 7 belum selesai, atau urutan salah.');
         return;
     }
     
@@ -409,13 +420,13 @@ export function initPart8() {
 
     // Global touch/click interaction on window when in Part 8
     window.addEventListener('click', (e) => {
-        if (state.currentPart === 8 && isPlayButtonActive && !isNavigatingQuiz) {
+        if (!window.__quizActiveSeamless && state.currentPart === 8 && isPlayButtonActive && !isNavigatingQuiz) {
             checkPlayButtonInteraction(e.clientX, e.clientY);
         }
     }, true);
 
     window.addEventListener('touchend', (e) => {
-        if (state.currentPart === 8 && isPlayButtonActive && !isNavigatingQuiz && e.changedTouches && e.changedTouches.length > 0) {
+        if (!window.__quizActiveSeamless && state.currentPart === 8 && isPlayButtonActive && !isNavigatingQuiz && e.changedTouches && e.changedTouches.length > 0) {
             const t = e.changedTouches[0];
             const handled = checkPlayButtonInteraction(t.clientX, t.clientY);
             if (handled) {
@@ -436,6 +447,7 @@ export function initPart8() {
     }
 
     dom.target8.addEventListener('targetFound', () => {
+        if (window.__quizActiveSeamless) return;
         const now = Date.now();
         if (now < state.markerIgnoreUntil && state.activeMarkerDetection !== 8) return;
         

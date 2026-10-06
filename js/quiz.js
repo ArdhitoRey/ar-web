@@ -387,6 +387,18 @@ window.__startQuizSeamless = function (targetQuizId = 1) {
     isTransitioningQuiz = false;
     isNavigatingNext = false;
 
+    // Pastikan audio narasi Part 8 Bab 1 berhenti total
+    const soundV8 = document.getElementById('sound-v8');
+    if (soundV8) {
+        soundV8.pause();
+        soundV8.currentTime = 0;
+        soundV8.onended = null;
+    }
+    const part8Videos = document.querySelectorAll('video[id*="part8"]');
+    part8Videos.forEach(v => {
+        try { v.pause(); v.currentTime = 0; } catch (e) {}
+    });
+
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -598,6 +610,14 @@ export function transitionToQuiz(targetQuizId, animate = true) {
         statusBar.classList.add('tracking');
     }
 
+    // Pastikan tidak ada kebocoran suara Part 8 saat berganti kuis
+    const soundV8 = document.getElementById('sound-v8');
+    if (soundV8) {
+        soundV8.pause();
+        soundV8.currentTime = 0;
+        soundV8.onended = null;
+    }
+
     // Identifikasi target videos yang akan di-warm up
     const targetBenar = (normalizedTarget !== 'score') ? document.getElementById(`vid-quiz${normalizedTarget}-benar`) : null;
     const targetSalah = (normalizedTarget !== 'score') ? document.getElementById(`vid-quiz${normalizedTarget}-salah`) : null;
@@ -692,15 +712,11 @@ async function executeStartQuiz() {
         console.warn('⚠️ Audio context unlock warning:', e);
     }
 
-    // Prime all sound elements
-    allSoundElements.forEach(async (s) => {
+    // Prime all sound elements (reset dan pause agar tidak berbunyi bersamaan)
+    allSoundElements.forEach((s) => {
         try {
-            s.muted = true;
-            const p = s.play();
-            if (p !== undefined) await p;
             s.pause();
             s.currentTime = 0;
-            s.muted = false;
         } catch (e) {}
     });
 
@@ -1512,6 +1528,14 @@ window.addEventListener('touchend', (e) => {
 // -----------------------------------------------------------------------------
 function selectChoice(choice) {
     if (quizState !== 'WAITING_CHOICE' && quizState !== 'RESULT_PLAYING') return;
+
+    // Pastikan sound-v8 Part 8 Bab 1 tidak memicu suara di kuis
+    const soundV8 = document.getElementById('sound-v8');
+    if (soundV8) {
+        soundV8.pause();
+        soundV8.currentTime = 0;
+        soundV8.onended = null;
+    }
 
     const isBenar = (choice === 'benar');
     console.log(`✨ [Quiz AR] Kuis ${currentQuizId}: Pengguna memilih: ${choice.toUpperCase()}`);
