@@ -79,9 +79,18 @@ videos.part1.forEach((v) => {
     if (v) { v.load(); v.preload = "auto"; }
 });
 
-// Load sisa video part 2-8 di background
+// Load sisa video part 2-8 dan kuis di background
 setTimeout(() => {
-    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8].forEach((v) => {
+    const backgroundVids = [
+        ...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8,
+        document.getElementById('vid-quiz1-benar'), document.getElementById('vid-quiz1-salah'),
+        document.getElementById('vid-quiz2-benar'), document.getElementById('vid-quiz2-salah'),
+        document.getElementById('vid-quiz3-benar'), document.getElementById('vid-quiz3-salah'),
+        document.getElementById('vid-quiz4-benar'), document.getElementById('vid-quiz4-salah'),
+        document.getElementById('vid-quiz5-benar'), document.getElementById('vid-quiz5-salah'),
+        document.getElementById('vid-quiz-score')
+    ].filter(Boolean);
+    backgroundVids.forEach((v) => {
         if (v) { v.load(); v.preload = "auto"; }
     });
 }, 300);
@@ -302,7 +311,7 @@ function executeStartChapter2() {
             const p = audio.play();
             if (p !== undefined) {
                 p.then(() => {
-                    if (audio !== dom.soundV1 || !state.isPlaying) {
+                    if (audio !== dom.soundV1) {
                         audio.pause();
                         audio.currentTime = 0;
                     }
@@ -311,33 +320,17 @@ function executeStartChapter2() {
         } catch (e) {}
     });
 
-    // Jika Marker 1 sudah terdeteksi di depan kamera sebelum atau saat tombol Mulai ditekan, jalankan Part 1 sekarang
-    const isMarker1Detected = (state.pendingPart === 1) || 
-                              (state.isTargetInView && state.isTargetInView[1]) || 
-                              (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);
+    // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan
+    const isMarker1Detected = (state.pendingPart === 1) || (state.isTargetInView && state.isTargetInView[1]);
 
     if (isMarker1Detected) {
         state.pendingPart = null;
-        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
-            playPart1();
-        }
-    }
-
-    // Watcher: jika Marker 1 terdeteksi dalam jangkauan kamera sesaat setelah tombol Mulai ditekan
-    const marker1Watcher = setInterval(() => {
-        if (state.part1Finished || state.isPlaying || state.currentPart > 0) {
-            clearInterval(marker1Watcher);
-            return;
-        }
-        if (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible) {
-            clearInterval(marker1Watcher);
+        setTimeout(() => {
             if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
-                console.log("🎯 [Chapter 2] Marker 1 terdeteksi langsung oleh kamera!");
                 playPart1();
             }
-        }
-    }, 100);
-    setTimeout(() => clearInterval(marker1Watcher), 10000);
+        }, 100);
+    }
 }
 
 if (dom.startButton) {

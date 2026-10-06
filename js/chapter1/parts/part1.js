@@ -41,23 +41,30 @@ async function startPart1Videos() {
     
     videos.part1.forEach(v => { v.pause(); v.currentTime = 0; });
     
-    // Tampilkan container AR langsung agar output visual tidak hilang/blank
-    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
-    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
+    const playPromises = videos.part1.map(v => v.play().catch(e => console.warn('❌ [Part 1] Video play error:', e)));
+    // Tunggu sampai video play mulai resolve
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 350))]);
     
+    // Perbarui GPU texture binding
     if (dom.containerPart1) {
         const aVids = dom.containerPart1.querySelectorAll('a-video');
         aVids.forEach(av => {
             if (av && av.components && av.components.material && av.components.material.material) {
                 const m = av.components.material.material;
+                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) {
+                    m.uniforms.tex.value.needsUpdate = true;
+                }
                 if (m.map) m.map.needsUpdate = true;
             }
         });
     }
-    
-    const playPromises = videos.part1.map(v => v.play().catch(e => console.error('❌ [Part 1] Video play error:', e)));
-    // Timeout aman agar video lambat tidak menggantung transisi selamanya
-    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
+
+    // Berikan jeda sejenak agar frame pertama siap di GPU
+    await new Promise(r => setTimeout(r, 100));
+
+    // Tampilkan container AR langsung agar output visual tampil seketika
+    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
+    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
     
     // 3. TEKNIK FREEZE FRAME (Mencegah black screen di akhir video)
     videos.part1.forEach(v => {

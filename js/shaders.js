@@ -2,7 +2,11 @@
 AFRAME.registerShader('chromakey-advanced', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -41,7 +45,7 @@ AFRAME.registerShader('chromakey-advanced', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
                     if (alpha > 0.4 && greenDominance > 0.04) finalColor.g *= 0.88;
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -50,6 +54,7 @@ AFRAME.registerShader('chromakey-advanced', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -65,8 +70,17 @@ AFRAME.registerShader('chromakey-advanced', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -75,7 +89,11 @@ AFRAME.registerShader('chromakey-advanced', {
 AFRAME.registerShader('chromakey-gentle', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -114,7 +132,7 @@ AFRAME.registerShader('chromakey-gentle', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
                     if (alpha > 0.6 && greenDominance > 0.08) finalColor.g *= 0.95;
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -123,6 +141,7 @@ AFRAME.registerShader('chromakey-gentle', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -138,8 +157,17 @@ AFRAME.registerShader('chromakey-gentle', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -148,7 +176,11 @@ AFRAME.registerShader('chromakey-gentle', {
 AFRAME.registerShader('chromakey-bubble', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -193,7 +225,7 @@ AFRAME.registerShader('chromakey-bubble', {
                         finalColor *= brightness;
                         finalColor = clamp(finalColor, 0.0, 1.0);
                     }
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -203,6 +235,7 @@ AFRAME.registerShader('chromakey-bubble', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -218,8 +251,17 @@ AFRAME.registerShader('chromakey-bubble', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -229,7 +271,11 @@ AFRAME.registerShader('chromakey-bubble', {
 AFRAME.registerShader('chromakey-blue', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -276,7 +322,7 @@ AFRAME.registerShader('chromakey-blue', {
                         finalColor.b = mix(finalColor.b, maxRG, despillStrength);
                     }
                     
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -285,6 +331,7 @@ AFRAME.registerShader('chromakey-blue', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -300,8 +347,17 @@ AFRAME.registerShader('chromakey-blue', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -310,7 +366,11 @@ AFRAME.registerShader('chromakey-blue', {
 AFRAME.registerShader('blackkey-advanced', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -360,13 +420,26 @@ AFRAME.registerShader('blackkey-advanced', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+        this.material.map = videoTexture;
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
+            }
+        }
     }
 });
 
 AFRAME.registerShader('chromakey-bakteri', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -404,7 +477,7 @@ AFRAME.registerShader('chromakey-bakteri', {
                     if (alpha > 0.0 && alpha < 1.0) {
                         finalColor.g = min(finalColor.g, (finalColor.r + finalColor.b) * 0.6);
                     }
-                    if (max(max(color.r, color.g), color.b) < 0.03) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
                     
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -413,6 +486,15 @@ AFRAME.registerShader('chromakey-bakteri', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+        this.material.map = videoTexture;
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
+            }
+        }
     }
 });
 
@@ -422,7 +504,11 @@ AFRAME.registerShader('chromakey-bakteri', {
 AFRAME.registerShader('chromakey-cyan', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -467,7 +553,7 @@ AFRAME.registerShader('chromakey-cyan', {
                         finalColor.b = mix(finalColor.b, min(finalColor.b, avgRG), despillStrength);
                         finalColor.g = mix(finalColor.g, min(finalColor.g, (finalColor.r + finalColor.b) * 0.5), despillStrength * 0.5);
                     }
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -476,6 +562,7 @@ AFRAME.registerShader('chromakey-cyan', {
             side: THREE.DoubleSide,
             depthWrite: false
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -491,8 +578,17 @@ AFRAME.registerShader('chromakey-cyan', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -502,7 +598,11 @@ AFRAME.registerShader('chromakey-cyan', {
 AFRAME.registerShader('chromakey-magenta', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -565,7 +665,7 @@ AFRAME.registerShader('chromakey-magenta', {
                     }
 
                     // Cut piksel hitam pekat / uninitialized frame menjadi transparan (mencegah background hitam)
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -575,6 +675,7 @@ AFRAME.registerShader('chromakey-magenta', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -590,8 +691,17 @@ AFRAME.registerShader('chromakey-magenta', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -601,7 +711,11 @@ AFRAME.registerShader('chromakey-magenta', {
 AFRAME.registerShader('chromakey-neon', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -649,7 +763,7 @@ AFRAME.registerShader('chromakey-neon', {
                         finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
                     }
 
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -659,6 +773,7 @@ AFRAME.registerShader('chromakey-neon', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -674,8 +789,17 @@ AFRAME.registerShader('chromakey-neon', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -685,7 +809,11 @@ AFRAME.registerShader('chromakey-neon', {
 AFRAME.registerShader('chromakey-score', {
     schema: { src: {type: 'map'} },
     init: function(data) {
-        const videoTexture = new THREE.VideoTexture(data.src);
+        let el = data.src;
+        if (typeof el === 'string') {
+            el = document.querySelector(el) || document.getElementById(el.replace('#', ''));
+        }
+        const videoTexture = new THREE.VideoTexture(el || data.src);
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBAFormat;
@@ -733,7 +861,7 @@ AFRAME.registerShader('chromakey-score', {
                         finalColor = clamp(finalColor, 0.0, 1.0);
                     }
 
-                    if (max(max(color.r, color.g), color.b) < 0.07) alpha = 0.0;
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
 
                     gl_FragColor = vec4(finalColor, alpha);
                 }
@@ -743,6 +871,7 @@ AFRAME.registerShader('chromakey-score', {
             depthWrite: false,
             blending: THREE.NormalBlending
         });
+        this.material.map = videoTexture;
     },
     update: function(data) {
         if (data.src) {
@@ -758,8 +887,113 @@ AFRAME.registerShader('chromakey-score', {
                 videoTexture.wrapT = THREE.ClampToEdgeWrapping;
                 if (this.material && this.material.uniforms && this.material.uniforms.tex) {
                     this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
                     this.material.needsUpdate = true;
                 }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
+            }
+        }
+    }
+});
+
+// CHROMAKEY Shader - Khusus Latar Hijau Gelap teks-part6 (RGB: ~36, ~130, ~28 / #24821c)
+AFRAME.registerShader('chromakey-teks-part6', {
+    schema: { src: {type: 'map'} },
+    init: function(data) {
+        let el = data.src;
+        if (typeof el === 'string') el = document.querySelector(el);
+        const videoTexture = new THREE.VideoTexture(el || data.src);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBAFormat;
+        videoTexture.generateMipmaps = false;
+        videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+        videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+        this.material = new THREE.ShaderMaterial({
+            uniforms: { tex: {value: videoTexture} },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tex;
+                varying vec2 vUv;
+
+                void main() {
+                    vec4 color = texture2D(tex, vUv);
+
+                    // Deteksi warna hijau gelap teks-part6 (RGB: ~36, ~130, ~28):
+                    // - R ~ 0.14, G ~ 0.51, B ~ 0.11
+                    // - G dominan terhadap max(R, B)
+                    float greenDominance = color.g - max(color.r, color.b);
+
+                    // Transisi halus presisi & bersih
+                    float isGreen = smoothstep(0.18, 0.28, greenDominance) * smoothstep(0.32, 0.42, color.g);
+
+                    // Hard-cut pengaman untuk piksel latar belakang murni
+                    if (color.g > 0.38 && greenDominance > 0.22 && color.r < 0.25 && color.b < 0.22) {
+                        isGreen = 1.0;
+                    }
+
+                    float alpha = 1.0 - isGreen;
+
+                    vec3 finalColor = color.rgb;
+
+                    // Despill lembut di tepian teks agar tidak ada garis hijau tersisa
+                    if (alpha > 0.05 && alpha < 0.95 && greenDominance > 0.05) {
+                        float despillStrength = (1.0 - alpha) * 0.85;
+                        finalColor.g = mix(finalColor.g, (finalColor.r + finalColor.b) * 0.5, despillStrength);
+                    }
+
+                    // Cut piksel hitam pekat / uninitialized frame menjadi transparan
+                    if (max(max(color.r, color.g), color.b) < 0.09) alpha = 0.0;
+
+                    gl_FragColor = vec4(finalColor, alpha);
+                }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            blending: THREE.NormalBlending
+        });
+        this.material.map = videoTexture;
+    },
+    update: function(data) {
+        if (data.src) {
+            let el = data.src;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (el) {
+                const videoTexture = new THREE.VideoTexture(el);
+                videoTexture.minFilter = THREE.LinearFilter;
+                videoTexture.magFilter = THREE.LinearFilter;
+                videoTexture.format = THREE.RGBAFormat;
+                videoTexture.generateMipmaps = false;
+                videoTexture.wrapS = THREE.ClampToEdgeWrapping;
+                videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+                if (this.material && this.material.uniforms && this.material.uniforms.tex) {
+                    this.material.uniforms.tex.value = videoTexture;
+                    this.material.map = videoTexture;
+                    this.material.needsUpdate = true;
+                }
+            }
+        }
+    },
+    tick: function() {
+        if (this.material && this.material.uniforms && this.material.uniforms.tex && this.material.uniforms.tex.value) {
+            const t = this.material.uniforms.tex.value;
+            if (t.image && t.image.readyState >= 2 && !t.image.paused) {
+                t.needsUpdate = true;
             }
         }
     }
@@ -768,4 +1002,4 @@ AFRAME.registerShader('chromakey-score', {
 // Alias chromakey-lavender
 AFRAME.registerShader('chromakey-lavender', AFRAME.shaders['chromakey-score']);
 
-
+

@@ -678,6 +678,11 @@ async function startQuizPlayback() {
     }
 
     const currentVideos = [activeVidBenar, activeVidSalah].filter(Boolean);
+    currentVideos.forEach(v => {
+        v.crossOrigin = "anonymous";
+        v.muted = true;
+        v.playsInline = true;
+    });
     const playPromises = currentVideos.map(v => {
         return v.play().catch(e => {
             console.warn('⚠️ Play retry:', v.id, e);
@@ -685,6 +690,30 @@ async function startQuizPlayback() {
         });
     });
     await Promise.all(playPromises);
+
+    // Refresh texture material agar GPU langsung mengikat frame video aktif tanpa black screen
+    [
+        { av: activeAframeVidBenar, vid: activeVidBenar },
+        { av: activeAframeVidSalah, vid: activeVidSalah },
+        { av: activeAframeVidScore, vid: activeVidScore }
+    ].forEach(({ av, vid }) => {
+        if (av && av.components && av.components.material && av.components.material.material) {
+            const m = av.components.material.material;
+            if (vid && m.uniforms && m.uniforms.tex) {
+                if (!m.uniforms.tex.value || !(m.uniforms.tex.value.image instanceof HTMLVideoElement)) {
+                    const vt = new THREE.VideoTexture(vid);
+                    vt.minFilter = THREE.LinearFilter;
+                    vt.magFilter = THREE.LinearFilter;
+                    vt.format = THREE.RGBAFormat;
+                    vt.generateMipmaps = false;
+                    m.uniforms.tex.value = vt;
+                    m.map = vt;
+                }
+                m.uniforms.tex.value.needsUpdate = true;
+            }
+            if (m.map) m.map.needsUpdate = true;
+        }
+    });
 
     const nextQuizId = (currentQuizId < 5) ? (currentQuizId + 1) : 'score';
     preloadUpcomingQuiz(nextQuizId);
@@ -746,6 +775,16 @@ function reachDecisionPoint() {
         activeSoundPertanyaan.pause();
         activeSoundPertanyaan.currentTime = 9.25;
     }
+
+    requestAnimationFrame(() => {
+        [activeAframeVidBenar, activeAframeVidSalah, activeAframeVidScore].filter(Boolean).forEach(av => {
+            if (av && av.components && av.components.material && av.components.material.material) {
+                const m = av.components.material.material;
+                if (m.uniforms && m.uniforms.tex && m.uniforms.tex.value) m.uniforms.tex.value.needsUpdate = true;
+                if (m.map) m.map.needsUpdate = true;
+            }
+        });
+    });
 
     // Aktifkan tombol pilihan 3D pada Marker 8
     if (btnChoiceLeft3D) {
@@ -1324,7 +1363,7 @@ function selectChoice(choice) {
         quizState = 'RESULT_PLAYING';
 
         if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
-        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
+        if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', false);
 
         if (activeVidSalah) activeVidSalah.pause();
         if (activeSoundSalah) {
@@ -1361,7 +1400,7 @@ function selectChoice(choice) {
         waitForQuizCompletion(activeVidBenar, activeSoundBenar, true);
 
     } else {
-        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', true);
+        if (activeAframeVidBenar) activeAframeVidBenar.setAttribute('visible', false);
         if (activeAframeVidSalah) activeAframeVidSalah.setAttribute('visible', true);
 
         if (activeVidBenar) activeVidBenar.pause();
