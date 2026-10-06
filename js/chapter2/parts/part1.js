@@ -32,7 +32,7 @@ export async function playPart1() {
 
 async function startPart1Videos() {
     console.log('🎬 [Part 1] Memulai pemutaran video...');
-    const wasVisible = isContainerVisible(dom.containerPart1);
+    const wasVisible = dom.containerPart1 && (dom.containerPart1.getAttribute('visible') === true || dom.containerPart1.getAttribute('visible') === 'true');
     state.currentPart = 1;
     state.isPlaying = true;
     
@@ -43,8 +43,13 @@ async function startPart1Videos() {
     // Pastikan video mulai dari 0
     videos.part1.forEach(v => { v.pause(); v.currentTime = 0; });
     
+    // Tampilkan container AR langsung agar output visual tidak hilang/blank
+    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
+    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
+
     const playPromises = videos.part1.map(v => v.play().catch(e => console.error('❌ [Part 1] Video play error:', e)));
-    await Promise.all(playPromises);
+    // Timeout aman agar video lambat tidak menggantung transisi selamanya
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
     console.log('📹 [Part 1] Semua video berhasil berjalan.');
     
     // TEKNIK FREEZE FRAME: pause video ~0.5 detik sebelum tamat agar tidak hitam di akhir
@@ -56,11 +61,6 @@ async function startPart1Videos() {
             }
         });
     });
-    
-    // Jeda agar tidak ada flash hitam di awal. Saat replay (sudah visible), skip fade-in.
-    await new Promise(r => setTimeout(r, 150));
-    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 400);
-    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
     
     try {
         if (state.audioEnabled && dom.soundV1) {
@@ -136,6 +136,13 @@ export function initPart1() {
             return;
         }
         
+        // Cek apakah kamera sudah aktif streaming video frame nyata
+        if (!state.cameraReady) {
+            console.log('⏳ [Part 1] Marker 1 terdeteksi tapi kamera belum aktif stream.');
+            state.pendingPart = 1;
+            return;
+        }
+
         if (!state.part1Finished && state.currentPart === 0 && !state.isPlaying && !state.isTransitioning) {
             console.log('🎯 [Part 1] Marker 1 Terdeteksi!');
             state.activeMarkerDetection = 1;

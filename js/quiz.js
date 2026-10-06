@@ -153,6 +153,10 @@ if (rawQuizParam === 'score' || rawQuizParam === 'final' || rawQuizParam === '6'
 let currentQuiz = QUIZ_CONFIG[currentQuizId];
 let isFinalScore = !!currentQuiz.isFinalScore;
 
+// Standalone check: apakah berjalan mandiri di quiz.html atau seamless di chapter2.html
+const isStandalone = !!document.getElementById('targetQuiz');
+let quizActiveSeamless = isStandalone;
+
 // DOM Elements
 const loadingOverlay = document.getElementById('loadingOverlay');
 const loadingTitle = document.getElementById('loadingTitle');
@@ -162,7 +166,7 @@ const startButton = document.getElementById('startButton');
 
 const statusBar = document.getElementById('statusBar');
 const arScene = document.getElementById('arScene');
-const targetQuiz = document.getElementById('targetQuiz');
+const targetQuiz = document.getElementById('targetQuiz') || document.getElementById('target8');
 const quizSceneWrapper = document.getElementById('quiz-scene-wrapper');
 
 // Active A-Frame 3D Entities (dinamis per kuis)
@@ -208,7 +212,7 @@ let activeSoundScore = null;
 
 // State Machine
 // States: 'LOADING' | 'READY_WAIT_START' | 'WAIT_MARKER' | 'INTRO_PLAYING' | 'WAITING_CHOICE' | 'RESULT_PLAYING' | 'FINAL_SCORE_PLAYING' | 'FINISHED'
-let quizState = 'LOADING';
+let quizState = isStandalone ? 'LOADING' : 'WAIT_MARKER';
 let isTargetFound = false;
 let choiceHandled = false;
 let isTransitioningQuiz = false;
@@ -220,8 +224,8 @@ let audioCtx = null;
 let introStartTime = 0;
 let monitorRaf = null;
 
-// Update UI info
-if (loadingTitle) loadingTitle.textContent = currentQuiz.title;
+// Update UI info jika di standalone quiz
+if (isStandalone && loadingTitle) loadingTitle.textContent = currentQuiz.title;
 
 // Web Audio API tactile feedback
 function playChime(isCorrect) {
@@ -263,107 +267,185 @@ function playChime(isCorrect) {
 }
 
 // -----------------------------------------------------------------------------
-// Pre-buffering All Media Assets & Start Activation
+// Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
 // -----------------------------------------------------------------------------
-let bufferedCount = 0;
-const totalAssetsToBuffer = allVideoElements.length + allSoundElements.length;
-
-function unlockStartButton() {
-    if (quizState !== 'LOADING') return;
-    quizState = 'READY_WAIT_START';
-    if (loadingBarFill) loadingBarFill.style.width = '100%';
-    if (loadingProgress) loadingProgress.textContent = '100%';
-    if (startButton) {
-        startButton.disabled = false;
-        startButton.textContent = isFinalScore ? 'Buka Skor Akhir' : 'Mulai';
-        startButton.classList.add('ready');
-    }
+function isCameraActive() {
+    const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (!video) return false;
+    return video.readyState >= 2 && video.videoWidth > 0 && !video.paused;
 }
 
-function registerBufferProgress() {
-    bufferedCount++;
-    const pct = Math.round((bufferedCount / Math.max(1, totalAssetsToBuffer)) * 100);
-    if (loadingBarFill) loadingBarFill.style.width = `${Math.max(12, pct)}%`;
-    if (loadingProgress) loadingProgress.textContent = `${pct}%`;
-    if (bufferedCount >= totalAssetsToBuffer) {
-        unlockStartButton();
+function waitForCameraActive(callback) {
+    if (isCameraActive()) {
+        callback();
+        return;
     }
+    const checkInterval = setInterval(() => {
+        if (isCameraActive()) {
+            clearInterval(checkInterval);
+            callback();
+        }
+    }, 100);
+
+    const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (video) {
+        video.addEventListener('playing', () => {
+            clearInterval(checkInterval);
+            callback();
+        }, { once: true });
+    }
+
+    setTimeout(() => {
+        clearInterval(checkInterval);
+        callback();
+    }, 3500);
 }
 
-allVideoElements.forEach(v => {
-    if (v.readyState >= 3) {
-        registerBufferProgress();
-    } else {
-        v.addEventListener('canplaythrough', registerBufferProgress, { once: true });
-        v.addEventListener('error', registerBufferProgress, { once: true });
-    }
-});
-
-allSoundElements.forEach(s => {
-    if (s.readyState >= 3) {
-        registerBufferProgress();
-    } else {
-        s.addEventListener('canplaythrough', registerBufferProgress, { once: true });
-        s.addEventListener('error', registerBufferProgress, { once: true });
-    }
-});
-
-// Fallback timeout (3.5s)
-setTimeout(() => {
-    if (quizState === 'LOADING') {
-        console.log('⏱️ [Quiz AR] Pre-buffer timeout fallback: Mulai diaktifkan.');
-        unlockStartButton();
-    }
-}, 3500);
-
 // -----------------------------------------------------------------------------
-// MindAR Camera Readiness
+// Pre-buffering All Media Assets & Start Activation (Hanya untuk quiz.html standalone)
 // -----------------------------------------------------------------------------
-let isArReady = false;
-let pendingStartTriggered = false;
+if (isStandalone) {
+    let bufferedCount = 0;
+    const totalAssetsToBuffer = allVideoElements.length + allSoundElements.length;
 
-if (arScene) {
-    arScene.addEventListener('arReady', () => {
-        console.log('📷 [Quiz AR] MindAR Camera stream & AR Scene telah siap!');
-        isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartQuiz();
-        }
-    });
-    arScene.addEventListener('arError', (err) => {
-        console.warn('⚠️ [Quiz AR] MindAR Camera error:', err);
-        isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartQuiz();
-        }
-    });
-}
-
-setTimeout(() => {
-    if (!isArReady) {
-        console.log('⏱️ [Quiz AR] arReady timeout fallback.');
-        isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartQuiz();
+    function unlockStartButton() {
+        if (quizState !== 'LOADING') return;
+        quizState = 'READY_WAIT_START';
+        if (loadingBarFill) loadingBarFill.style.width = '100%';
+        if (loadingProgress) loadingProgress.textContent = '100%';
+        if (startButton) {
+            startButton.disabled = false;
+            startButton.textContent = isFinalScore ? 'Buka Skor Akhir' : 'Mulai';
+            startButton.classList.add('ready');
         }
     }
-}, 4500);
 
-// Start button user gesture
-if (startButton) {
-    startButton.addEventListener('click', () => {
-        if (pendingStartTriggered) return;
+    function registerBufferProgress() {
+        bufferedCount++;
+        const pct = Math.round((bufferedCount / Math.max(1, totalAssetsToBuffer)) * 100);
+        if (loadingBarFill) loadingBarFill.style.width = `${Math.max(12, pct)}%`;
+        if (loadingProgress) loadingProgress.textContent = `${pct}%`;
+        if (bufferedCount >= totalAssetsToBuffer) {
+            unlockStartButton();
+        }
+    }
 
-        if (isArReady) {
-            executeStartQuiz();
+    allVideoElements.forEach(v => {
+        if (v.readyState >= 3) {
+            registerBufferProgress();
         } else {
-            pendingStartTriggered = true;
-            startButton.textContent = 'Membuka Kamera...';
-            startButton.disabled = true;
-            startButton.classList.remove('ready');
+            v.addEventListener('canplaythrough', registerBufferProgress, { once: true });
+            v.addEventListener('error', registerBufferProgress, { once: true });
         }
     });
+
+    allSoundElements.forEach(s => {
+        if (s.readyState >= 3) {
+            registerBufferProgress();
+        } else {
+            s.addEventListener('canplaythrough', registerBufferProgress, { once: true });
+            s.addEventListener('error', registerBufferProgress, { once: true });
+        }
+    });
+
+    // Fallback timeout (1.8s) agar cepat terbuka
+    setTimeout(() => {
+        if (quizState === 'LOADING') {
+            console.log('⏱️ [Quiz AR] Fast-start fallback: Mulai diaktifkan.');
+            unlockStartButton();
+        }
+    }, 1800);
+
+    if (startButton) {
+        startButton.addEventListener('click', () => {
+            // Segera buka kamera tanpa delay black screen
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+                setTimeout(() => { loadingOverlay.style.display = 'none'; }, 250);
+            }
+            if (arScene) arScene.classList.add('ready');
+            if (statusBar) {
+                statusBar.textContent = 'Membuka kamera...';
+                statusBar.classList.remove('tracking', 'finished');
+            }
+
+            executeStartQuiz();
+        });
+    }
 }
+
+// -----------------------------------------------------------------------------
+// Seamless Quiz Integration for Chapter 2
+// -----------------------------------------------------------------------------
+window.__startQuizSeamless = function (targetQuizId = 1) {
+    console.log(`🚀 [Quiz AR Seamless] Memulai kuis ${targetQuizId} langsung pada Marker 8 di Bab 2...`);
+    quizActiveSeamless = true;
+    const quizTopBar = document.getElementById('quizTopBar');
+    if (quizTopBar) quizTopBar.style.display = 'flex';
+
+    isTransitioningQuiz = false;
+    isNavigatingNext = false;
+
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) {}
+
+    setupQuizScene(targetQuizId);
+
+    if (quizSceneWrapper) {
+        quizSceneWrapper.setAttribute('position', '1.4 0 0');
+        quizSceneWrapper.setAttribute('scale', '0.7 0.7 0.7');
+        quizSceneWrapper.setAttribute('visible', true);
+        if (quizSceneWrapper.object3D) quizSceneWrapper.object3D.visible = true;
+
+        setTimeout(() => {
+            quizSceneWrapper.emit('trigger-slide-in', null, false);
+        }, 30);
+    }
+
+    isTargetFound = true;
+    startQuizPlayback();
+};
+
+window.__stopQuizSeamless = function () {
+    console.log('🔄 [Quiz AR Seamless] Kembali dari Kuis ke Bab 2...');
+    quizActiveSeamless = false;
+    stopAllMedia();
+    const quizTopBar = document.getElementById('quizTopBar');
+    if (quizTopBar) quizTopBar.style.display = 'none';
+
+    if (quizSceneWrapper) {
+        quizSceneWrapper.emit('trigger-slide-out', null, false);
+        setTimeout(() => {
+            quizSceneWrapper.setAttribute('visible', false);
+            if (quizSceneWrapper.object3D) quizSceneWrapper.object3D.visible = false;
+        }, 380);
+    }
+
+    if (window.__restorePart8FromQuiz) {
+        window.__restorePart8FromQuiz();
+    }
+};
+
+const btnBackToChapter2 = document.getElementById('btnBackToChapter2');
+if (btnBackToChapter2) {
+    btnBackToChapter2.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.__stopQuizSeamless();
+    });
+}
+
+window.__triggerQuizChoiceLeft = () => {
+    if (quizState === 'WAITING_CHOICE' || quizState === 'RESULT_PLAYING') {
+        selectChoice(currentQuiz.leftChoice);
+    }
+};
+window.__triggerQuizChoiceRight = () => {
+    if (quizState === 'WAITING_CHOICE' || quizState === 'RESULT_PLAYING') {
+        selectChoice(currentQuiz.rightChoice);
+    }
+};
 
 // -----------------------------------------------------------------------------
 // Setup Quiz Scene & Media Pointers
@@ -582,25 +664,27 @@ async function executeStartQuiz() {
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
     if (arScene) arScene.classList.add('ready');
 
-    // Inisialisasi scene kuis aktif
-    setupQuizScene(currentQuizId);
+    waitForCameraActive(() => {
+        // Inisialisasi scene kuis aktif
+        setupQuizScene(currentQuizId);
 
-    quizState = 'WAIT_MARKER';
-    if (statusBar) {
-        statusBar.textContent = 'Arahkan kamera ke Marker 8...';
-        statusBar.classList.remove('tracking', 'finished');
-    }
+        quizState = 'WAIT_MARKER';
+        if (statusBar) {
+            statusBar.textContent = 'Arahkan kamera ke Marker 8...';
+            statusBar.classList.remove('tracking', 'finished');
+        }
 
-    if (quizSceneWrapper) {
-        quizSceneWrapper.setAttribute('position', '0 0 0');
-        quizSceneWrapper.setAttribute('scale', '1 1 1');
-        quizSceneWrapper.setAttribute('visible', true);
-    }
+        if (quizSceneWrapper) {
+            quizSceneWrapper.setAttribute('position', '0 0 0');
+            quizSceneWrapper.setAttribute('scale', '1 1 1');
+            quizSceneWrapper.setAttribute('visible', true);
+        }
 
-    // Jika marker sudah tertangkap sebelum tombol start diklik
-    if (isTargetFound) {
-        startQuizPlayback();
-    }
+        // Jika marker sudah tertangkap sebelum tombol start diklik
+        if (isTargetFound) {
+            startQuizPlayback();
+        }
+    });
 }
 
 // -----------------------------------------------------------------------------
@@ -608,6 +692,7 @@ async function executeStartQuiz() {
 // -----------------------------------------------------------------------------
 if (targetQuiz) {
     targetQuiz.addEventListener('targetFound', () => {
+        if (!isStandalone && !quizActiveSeamless) return;
         console.log(`🎯 [Quiz AR] Marker 8 Terdeteksi untuk ${isFinalScore ? 'Skor Akhir' : 'Kuis ' + currentQuizId}!`);
         isTargetFound = true;
 
@@ -623,6 +708,7 @@ if (targetQuiz) {
     });
 
     targetQuiz.addEventListener('targetLost', () => {
+        if (!isStandalone && !quizActiveSeamless) return;
         console.log('⏹️ [Quiz AR] Marker 8 Hilang dari pandangan kamera.');
         isTargetFound = false;
         if (quizState === 'WAIT_MARKER' && statusBar) {

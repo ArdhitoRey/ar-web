@@ -41,8 +41,13 @@ async function startPart1Videos() {
     
     videos.part1.forEach(v => { v.pause(); v.currentTime = 0; });
     
+    // Tampilkan container AR langsung agar output visual tidak hilang/blank
+    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 300);
+    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
+    
     const playPromises = videos.part1.map(v => v.play().catch(e => console.error('❌ [Part 1] Video play error:', e)));
-    await Promise.all(playPromises);
+    // Timeout aman agar video lambat tidak menggantung transisi selamanya
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
     
     // 3. TEKNIK FREEZE FRAME (Mencegah black screen di akhir video)
     videos.part1.forEach(v => {
@@ -53,12 +58,6 @@ async function startPart1Videos() {
             }
         });
     });
-    
-    // Jeda agar layar tidak berkedip hitam di awal. Saat replay (container sudah visible),
-    // skip fade-in agar tidak ada flash.
-    await new Promise(r => setTimeout(r, 150));
-    if (dom.containerPart1 && !wasVisible) fadeInContainer(dom.containerPart1, 400);
-    else if (dom.containerPart1) dom.containerPart1.setAttribute('visible', true);
     
     try {
         if (dom.soundV1) {
@@ -124,6 +123,11 @@ export function initPart1() {
     dom.target1.addEventListener('targetFound', () => {
         state.isTargetInView[1] = true;
         if (!state.hasStarted) {
+            state.pendingPart = 1;
+            return;
+        }
+        if (!state.cameraReady) {
+            console.log('📷 [Part 1] Marker terdeteksi tapi kamera belum streaming, tunggu kamera aktif...');
             state.pendingPart = 1;
             return;
         }

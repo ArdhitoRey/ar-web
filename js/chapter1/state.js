@@ -23,7 +23,8 @@ export const state = {
     lockedMarker: null,
     activeMarkerDetection: null,
     markerIgnoreUntil: 0,
-    MARKER_IGNORE_DURATION: 1000
+    MARKER_IGNORE_DURATION: 1000,
+    cameraReady: false
 };
 
 export const dom = {

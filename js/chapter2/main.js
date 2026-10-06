@@ -1,4 +1,4 @@
-import { state, dom, allVideos } from "./state.js";
+import { state, dom, allVideos, videos } from "./state.js";
 
 // AREA IMPORT FUNGSI PART
 import { playPart1, initPart1 } from './parts/part1.js';
@@ -10,6 +10,8 @@ import { playPart6, initPart6 } from "./parts/part6.js";
 import { playPart7, initPart7 } from "./parts/part7.js";
 import { playPart8, initPart8 } from "./parts/part8.js";
 
+// IMPORT SEAMLESS QUIZ MODULE
+import '../quiz.js';
 
 const cacheBuster = Date.now();
 console.log("🔄 Cache buster applied:", cacheBuster);
@@ -37,11 +39,10 @@ document.getElementById("vid-tangan-part3-v1").src = `./compressed_ultra-videos/
 document.getElementById("vid-kertas-biru-part3-v1").src = `./compressed_ultra-videos/chapter2/part3/kertas biru.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot-part3-v1").src = `./compressed_ultra-videos/chapter2/part3/mascot.mp4?t=${cacheBuster}`;
 
-// part 4
+// Part 4
 document.getElementById("vid-gigi-orang-part4-v1").src = `./compressed_ultra-videos/chapter2/part4/gigi orang.mp4?t=${cacheBuster}`;
 document.getElementById("vid-bakteri-part4-v1").src = `./compressed_ultra-videos/chapter2/part4/bakteri.mp4?t=${cacheBuster}`;
 document.getElementById("vid-bakteri-part4-v2").src = `./compressed_ultra-videos/chapter2/part4/bakteri2.mp4?t=${cacheBuster}`;
-document.getElementById("vid-wadah-putih-part4-v1").src = `./compressed_ultra-videos/chapter2/part4/wadah putih.mp4?t=${cacheBuster}`;
 
 // Part 5
 document.getElementById("vid-air-part5-v1").src = `./compressed_ultra-videos/chapter2/part5/air.mp4?t=${cacheBuster}`;
@@ -67,22 +68,23 @@ document.getElementById("vid-kerang-part8-v1").src = `./compressed_ultra-videos/
 document.getElementById("vid-kapal-part8-v1").src = `./compressed_ultra-videos/chapter2/part8/kapal.mp4?t=${cacheBuster}`;
 document.getElementById("vid-teks-quiz-part8-v1").src = `./compressed_ultra-videos/chapter2/part8/teks-quiz.mp4?t=${cacheBuster}`;
 
-// FORCE LOAD AUDIO & VIDEO
-[dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].forEach((s) => {
-    if (s) { s.load(); s.preload = "auto"; }
+// LOAD AUDIO
+[dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].filter(Boolean).forEach((s) => {
+    s.load();
+    s.preload = "auto";
 });
 
-allVideos.forEach((v, index) => {
-    if (v) {
-        v.load();
-        v.preload = "auto";
-    } else {
-        console.error(`❌ ERROR: Video urutan ke-${index} di dalam allVideos bernilai NULL! Cek state.js kamu dan pastikan ID-nya ada di HTML.`);
-    }
+// Prioritaskan loading video Part 1
+videos.part1.forEach((v) => {
+    if (v) { v.load(); v.preload = "auto"; }
 });
 
-// SESUAIKAN JUMLAH VIDEO DARI SELURUH PART SECARA DINAMIS
-const totalVideos = allVideos.length;
+// Load sisa video part 2-8 di background
+setTimeout(() => {
+    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8].forEach((v) => {
+        if (v) { v.load(); v.preload = "auto"; }
+    });
+}, 300);
 
 function unlockStartButton() {
     if (state.allFullyBuffered) return;
@@ -98,75 +100,118 @@ function unlockStartButton() {
     }
 }
 
-allVideos.forEach((video) => {
+// Buka tombol Mulai segera setelah Part 1 siap
+let part1BufferedCount = 0;
+videos.part1.forEach((video) => {
     if (!video) return;
 
-    const onBuffered = () => {
-        state.videosBuffered++;
-        if (state.videosBuffered >= totalVideos) {
+    const onPart1Buffered = () => {
+        part1BufferedCount++;
+        const pct = Math.min(100, Math.round((part1BufferedCount / videos.part1.length) * 100));
+        const barFill = document.getElementById('loadingBarFill');
+        if (barFill) barFill.style.width = `${Math.max(25, pct)}%`;
+        if (dom.loadingProgress) dom.loadingProgress.textContent = `${pct}%`;
+        if (part1BufferedCount >= videos.part1.length) {
             unlockStartButton();
         }
     };
 
     if (video.readyState >= 3) {
-        onBuffered();
+        onPart1Buffered();
     } else {
-        video.addEventListener("canplaythrough", onBuffered, { once: true });
+        video.addEventListener("canplaythrough", onPart1Buffered, { once: true });
+        video.addEventListener("loadeddata", onPart1Buffered, { once: true });
     }
-
-    video.addEventListener("loadeddata", () => {
-        state.videosLoaded++;
-        if (state.allFullyBuffered) return;
-        const pct = Math.round((state.videosLoaded / totalVideos) * 100);
-        const barFill = document.getElementById('loadingBarFill');
-        if (barFill) barFill.style.width = `${Math.max(15, pct)}%`;
-        if (dom.loadingProgress) {
-            dom.loadingProgress.textContent = `${pct}%`;
-        }
-    }, { once: true });
 });
 
-// Safety fallback: jika pre-buffer browser terhambat (misal di mobile), buka tombol Mulai setelah 3.5 detik
+// Safety fallback: Buka tombol Mulai setelah 1.8 detik jika lambat
 setTimeout(() => {
     if (!state.allFullyBuffered) {
-        console.log("⏱️ [Chapter 2] Pre-buffer timeout: Tombol Mulai diaktifkan otomatis.");
+        console.log("⏱️ [Chapter 2] Fast-start timeout: Tombol Mulai siap.");
         unlockStartButton();
     }
-}, 3500);
+}, 1800);
+
+// Inisialisasi seluruh listener marker sejak awal
+initPart1();
+initPart2();
+initPart3();
+initPart4();
+initPart5();
+initPart6();
+initPart7();
+initPart8();
+
+// -----------------------------------------------------------------------------
+// Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
+// -----------------------------------------------------------------------------
+function isCameraActive() {
+    const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (!video) return false;
+    return video.readyState >= 2 && video.videoWidth > 0 && !video.paused;
+}
+
+function waitForCameraActive(callback) {
+    if (isCameraActive()) {
+        callback();
+        return;
+    }
+    const checkInterval = setInterval(() => {
+        if (isCameraActive()) {
+            clearInterval(checkInterval);
+            callback();
+        }
+    }, 100);
+
+    const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (video) {
+        video.addEventListener('playing', () => {
+            clearInterval(checkInterval);
+            callback();
+        }, { once: true });
+    }
+
+    setTimeout(() => {
+        clearInterval(checkInterval);
+        callback();
+    }, 3500);
+}
 
 // -----------------------------------------------------------------------------
 // MindAR Camera Readiness Tracking
 // -----------------------------------------------------------------------------
 let isArReady = false;
-let pendingStartTriggered = false;
 
 if (dom.arScene) {
     dom.arScene.addEventListener('arReady', () => {
         console.log('📷 [Chapter 2] MindAR Camera stream & AR Scene telah siap!');
         isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartChapter2();
-        }
     });
     dom.arScene.addEventListener('arError', (err) => {
         console.warn('⚠️ [Chapter 2] MindAR Camera error:', err);
         isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartChapter2();
-        }
     });
 }
 
-setTimeout(() => {
-    if (!isArReady) {
-        isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartChapter2();
-        }
-    }
-}, 4500);
+function executeStartChapter2() {
+    state.hasStarted = true;
+    state.audioEnabled = true;
 
-async function executeStartChapter2() {
+    // Tutup loading overlay seketika agar kamera langsung terlihat tanpa jeda
+    if (dom.loadingOverlay) {
+        dom.loadingOverlay.classList.add("hidden");
+        setTimeout(() => {
+            dom.loadingOverlay.style.display = "none";
+        }, 250);
+    }
+    if (dom.arScene) dom.arScene.classList.add("ready");
+
+    if (dom.statusBar) {
+        dom.statusBar.textContent = "Membuka kamera...";
+        dom.statusBar.classList.remove("tracking", "finished");
+    }
+
+    // Buka kunci audio untuk semua sound secara paralel & non-blocking
     const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8].filter(Boolean);
     sounds.forEach(async (sound) => {
         try {
@@ -176,38 +221,32 @@ async function executeStartChapter2() {
             sound.pause();
             sound.currentTime = 0;
         } catch (e) {
-            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
         } finally {
             sound.muted = false;
         }
     });
-    state.audioEnabled = true;
 
-    dom.loadingOverlay.classList.add("hidden");
-    dom.arScene.classList.add("ready");
-
-    initPart1();
-    initPart2();
-    initPart3();
-    initPart4();
-    initPart5();
-    initPart6();
-    initPart7();
-    initPart8();
+    // Tunggu kamera aktif & streaming frame nyata sebelum menjalankan sound / AR Part 1
+    waitForCameraActive(() => {
+        console.log('📷 [Chapter 2] Kamera aktif dan streaming!');
+        state.cameraReady = true;
+        if (dom.statusBar && !state.isPlaying) {
+            dom.statusBar.textContent = "Arahkan kamera ke Marker 1";
+        }
+        // Jika Marker 1 sudah terdeteksi di depan kamera, jalankan Part 1 sekarang
+        if (state.pendingPart === 1) {
+            state.pendingPart = null;
+            if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+                playPart1();
+            }
+        }
+    });
 }
 
 if (dom.startButton) {
     dom.startButton.addEventListener("click", () => {
-        if (!state.allFullyBuffered || pendingStartTriggered) return;
-
-        if (isArReady) {
-            executeStartChapter2();
-        } else {
-            pendingStartTriggered = true;
-            dom.startButton.textContent = 'Membuka Kamera...';
-            dom.startButton.disabled = true;
-            dom.startButton.classList.remove('ready');
-        }
+        if (state.hasStarted) return;
+        executeStartChapter2();
     });
 }
 

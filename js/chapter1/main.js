@@ -77,11 +77,17 @@ document.getElementById("vid-teks-part7").src = `./compressed_ultra-videos/chapt
     }
 });
 
-allVideos.forEach((v) => {
-    v.load(); v.preload = "auto";
+// Prioritaskan loading Part 1 terlebih dahulu
+videos.part1.forEach((v) => {
+    if (v) { v.load(); v.preload = "auto"; }
 });
 
-const totalVideos = allVideos.length;
+// Load sisa video part 2-7
+setTimeout(() => {
+    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7].forEach((v) => {
+        if (v) { v.load(); v.preload = "auto"; }
+    });
+}, 300);
 
 function unlockStartButton() {
     if (state.allFullyBuffered) return;
@@ -97,107 +103,108 @@ function unlockStartButton() {
     }
 }
 
-// 3. LOADING SCREEN SYSTEM
-allVideos.forEach((video) => {
+// 3. LOADING SCREEN SYSTEM: Buka tombol Mulai segera setelah Part 1 siap
+let part1BufferedCount = 0;
+videos.part1.forEach((video) => {
     if (!video) return;
-
-    const onBuffered = () => {
-        state.videosBuffered++;
-        if (state.videosBuffered >= totalVideos) {
+    const onPart1Buffered = () => {
+        part1BufferedCount++;
+        const pct = Math.min(100, Math.round((part1BufferedCount / videos.part1.length) * 100));
+        const barFill = document.getElementById('loadingBarFill');
+        if (barFill) barFill.style.width = `${Math.max(25, pct)}%`;
+        if (dom.loadingProgress) dom.loadingProgress.textContent = `${pct}%`;
+        if (part1BufferedCount >= videos.part1.length) {
             unlockStartButton();
         }
     };
-
     if (video.readyState >= 3) {
-        onBuffered();
+        onPart1Buffered();
     } else {
-        video.addEventListener("canplaythrough", onBuffered, { once: true });
+        video.addEventListener("canplaythrough", onPart1Buffered, { once: true });
+        video.addEventListener("loadeddata", onPart1Buffered, { once: true });
     }
-
-    video.addEventListener("loadeddata", () => {
-        state.videosLoaded++;
-        if (state.allFullyBuffered) return;
-        const pct = Math.round((state.videosLoaded / totalVideos) * 100);
-        const barFill = document.getElementById('loadingBarFill');
-        if (barFill) barFill.style.width = `${Math.max(15, pct)}%`;
-        if (dom.loadingProgress) {
-            dom.loadingProgress.textContent = `${pct}%`;
-        }
-    }, { once: true });
 });
 
-// Safety fallback: jika pre-buffer browser terhambat (misal di mobile), buka tombol Mulai setelah 3.5 detik
+// Safety fallback: Buka tombol Mulai setelah 1.8 detik jika jaringan lambat
 setTimeout(() => {
     if (!state.allFullyBuffered) {
-        console.log("⏱️ [Chapter 1] Pre-buffer timeout: Tombol Mulai diaktifkan otomatis.");
+        console.log("⏱️ [Chapter 1] Fast-start timeout: Tombol Mulai siap.");
         unlockStartButton();
     }
-}, 3500);
+}, 1800);
 
 // Inisialisasi seluruh listener marker dan UI sejak awal agar targetFound tidak terlewat
 initPart1(); initPart2(); initPart3(); initPart4(); initPart5(); initPart6(); initPart7();
 initNextButton();
 
-function checkAndTriggerActiveMarker() {
-    // 1. Cek apakah ada marker yang sudah terdeteksi saat overlay loading aktif
-    if (state.pendingPart) {
-        const p = state.pendingPart;
-        state.pendingPart = null;
-        if (p === 1 && !state.part1Finished && !state.isPlaying && !state.isTransitioning) {
-            playPart1();
-            return;
-        }
+// -----------------------------------------------------------------------------
+// Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
+// -----------------------------------------------------------------------------
+function isCameraActive() {
+    const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (!video) return false;
+    return video.readyState >= 2 && video.videoWidth > 0 && !video.paused;
+}
+
+function waitForCameraActive(callback) {
+    if (isCameraActive()) {
+        callback();
+        return;
     }
-    // 2. Cek apakah target 1 sedang terlihat di kamera (object3D.visible = true)
-    if (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible) {
-        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
-            playPart1();
-            return;
+    const checkInterval = setInterval(() => {
+        if (isCameraActive()) {
+            clearInterval(checkInterval);
+            callback();
         }
+    }, 100);
+
+    const video = document.querySelector('body > video') || document.querySelector('video:not([id])');
+    if (video) {
+        video.addEventListener('playing', () => {
+            clearInterval(checkInterval);
+            callback();
+        }, { once: true });
     }
-    // 3. Cek flag isTargetInView untuk Part 1
-    if (state.isTargetInView && state.isTargetInView[1]) {
-        if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
-            playPart1();
-        }
-    }
+
+    setTimeout(() => {
+        clearInterval(checkInterval);
+        callback();
+    }, 3500);
 }
 
 // -----------------------------------------------------------------------------
 // MindAR Camera Readiness Tracking
 // -----------------------------------------------------------------------------
 let isArReady = false;
-let pendingStartTriggered = false;
 
 if (dom.arScene) {
     dom.arScene.addEventListener('arReady', () => {
         console.log('📷 [Chapter 1] MindAR Camera stream & AR Scene telah siap!');
         isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartChapter1();
-        }
     });
     dom.arScene.addEventListener('arError', (err) => {
         console.warn('⚠️ [Chapter 1] MindAR Camera error:', err);
         isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartChapter1();
-        }
     });
 }
-
-setTimeout(() => {
-    if (!isArReady) {
-        isArReady = true;
-        if (pendingStartTriggered) {
-            executeStartChapter1();
-        }
-    }
-}, 4500);
 
 function executeStartChapter1() {
     state.hasStarted = true;
     state.audioEnabled = true;
+
+    // Tutup loading overlay seketika agar kamera langsung terlihat tanpa jeda
+    if (dom.loadingOverlay) {
+        dom.loadingOverlay.classList.add("hidden");
+        setTimeout(() => {
+            dom.loadingOverlay.style.display = "none";
+        }, 250);
+    }
+    if (dom.arScene) dom.arScene.classList.add("ready");
+
+    if (dom.statusBar) {
+        dom.statusBar.textContent = "Membuka kamera...";
+        dom.statusBar.classList.remove("tracking", "finished");
+    }
 
     // Buka kunci audio untuk semua sound secara paralel & non-blocking
     const sounds = [dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4, dom.soundV5, dom.soundV6, dom.soundV7].filter(Boolean);
@@ -209,32 +216,32 @@ function executeStartChapter1() {
             sound.pause();
             sound.currentTime = 0;
         } catch (e) {
-            console.warn("⚠️ Audio unlock warning untuk:", sound.id, e);
         } finally {
             sound.muted = false;
         }
     });
 
-    dom.loadingOverlay.classList.add("hidden");
-    dom.arScene.classList.add("ready");
-
-    // Langsung putar Part 1 jika marker sudah berada di depan kamera
-    checkAndTriggerActiveMarker();
+    // Tunggu kamera aktif & streaming frame nyata sebelum menjalankan sound / AR Part 1
+    waitForCameraActive(() => {
+        console.log('📷 [Chapter 1] Kamera aktif dan streaming!');
+        state.cameraReady = true;
+        if (dom.statusBar && !state.isPlaying) {
+            dom.statusBar.textContent = "Arahkan kamera ke Marker 1";
+        }
+        // Jika Marker 1 sudah terdeteksi di depan kamera, jalankan Part 1 sekarang
+        if (state.pendingPart === 1 || (state.isTargetInView && state.isTargetInView[1])) {
+            state.pendingPart = null;
+            if (!state.part1Finished && !state.isPlaying && !state.isTransitioning) {
+                playPart1();
+            }
+        }
+    });
 }
 
-// 4. START BUTTON (UNLOCK AUDIO CONTEXT & ACTIVATE AR)
+// 4. START BUTTON (LANGSUNG BUKA KAMERA TANPA DELAY)
 if (dom.startButton) {
     dom.startButton.addEventListener("click", () => {
-        if (pendingStartTriggered) return;
-
-        if (isArReady) {
-            executeStartChapter1();
-        } else {
-            pendingStartTriggered = true;
-            dom.startButton.textContent = 'Membuka Kamera...';
-            dom.startButton.disabled = true;
-            dom.startButton.classList.remove('ready');
-        }
+        executeStartChapter1();
     });
 }
 

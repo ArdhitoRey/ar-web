@@ -20,7 +20,8 @@ export const state = {
     lockedMarker: null,
     activeMarkerDetection: null,
     markerIgnoreUntil: 0,
-    MARKER_IGNORE_DURATION: 1000
+    MARKER_IGNORE_DURATION: 1000,
+    cameraReady: false
 };
 
 export const dom = {
@@ -80,8 +81,8 @@ export const videos = {
     ],
     part4: [
         document.getElementById('vid-gigi-orang-part4-v1'), document.getElementById('vid-bakteri-part4-v1'), 
-        document.getElementById('vid-bakteri-part4-v2'), document.getElementById('vid-wadah-putih-part4-v1')
-    ],
+        document.getElementById('vid-bakteri-part4-v2')
+    ].filter(Boolean),
     part5: [
         document.getElementById('vid-air-part5-v1'), document.getElementById('vid-mascot-part5-v1'), 
         document.getElementById('vid-bola-part5-v1'), document.getElementById('vid-orang-naik-balon-part5-v1')
@@ -101,4 +102,4 @@ export const videos = {
     ]
 };
 
-export const allVideos = [ ...videos.part1, ...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8 ];
+export const allVideos = [ ...videos.part1, ...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8 ].filter(Boolean);

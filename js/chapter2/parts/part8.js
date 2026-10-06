@@ -75,21 +75,58 @@ function handleNavigateToQuiz() {
     if (isNavigatingQuiz) return;
     isNavigatingQuiz = true;
 
-    console.log('🐚 [Part 8] Tombol Play pada kerang ditekan! Menuju kuis...');
+    console.log('🐚 [Part 8] Tombol Play pada kerang ditekan! Transisi slide ke kuis...');
 
     if (dom.btnPlayPart8_3D) {
         dom.btnPlayPart8_3D.setAttribute('scale', '1.25 1.25 1.25');
     }
 
+    hidePlayPart8Button();
+
+    if (dom.soundV8) {
+        dom.soundV8.pause();
+    }
+    videos.part8.forEach(v => {
+        if (v) v.pause();
+    });
+
     if (dom.statusBar) {
-        dom.statusBar.textContent = 'Menuju Kuis Bab 2...';
+        dom.statusBar.textContent = 'Membuka Kuis 1...';
         dom.statusBar.classList.add('finished');
     }
 
+    // Trigger animasi slide-out ke kiri pada container Part 8
+    if (dom.containerPart8) {
+        dom.containerPart8.emit('trigger-slide-out', null, false);
+    }
+
     setTimeout(() => {
-        window.location.href = './quiz.html';
-    }, 250);
+        if (dom.containerPart8) {
+            dom.containerPart8.setAttribute('visible', false);
+        }
+        if (window.__startQuizSeamless) {
+            window.__startQuizSeamless(1);
+        } else {
+            window.location.href = './quiz.html';
+        }
+    }, 380);
 }
+
+// Handler pemulihan saat pengguna kembali dari Kuis ke Bab 2
+window.__restorePart8FromQuiz = function () {
+    isNavigatingQuiz = false;
+    if (dom.containerPart8) {
+        dom.containerPart8.setAttribute('position', '0 0 0');
+        dom.containerPart8.setAttribute('scale', '1 1 1');
+        dom.containerPart8.setAttribute('visible', true);
+    }
+    showPlayPart8Button();
+    if (dom.statusBar) {
+        dom.statusBar.textContent = 'Tap untuk ulang, atau mulai Kuis';
+        dom.statusBar.classList.remove('tracking');
+        dom.statusBar.classList.add('finished');
+    }
+};
 
 function checkPlayButtonInteraction(clientX, clientY) {
     if (!isPlayButtonActive || isNavigatingQuiz) return false;
