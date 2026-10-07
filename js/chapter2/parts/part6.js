@@ -119,6 +119,8 @@ async function startPart6Videos() {
         dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 7';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
+
+        if (window.__preloadNextPart) window.__preloadNextPart(7);
     };
 
     if (dom.soundV6) {

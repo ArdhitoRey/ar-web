@@ -125,6 +125,8 @@ async function startPart7Videos() {
             dom.statusBar.classList.remove('tracking');
             dom.statusBar.classList.add('finished');
         }
+
+        if (window.__preloadNextPart) window.__preloadNextPart(8);
     };
 
     if (dom.soundV7) {

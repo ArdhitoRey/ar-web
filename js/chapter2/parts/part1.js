@@ -43,7 +43,11 @@ async function startPart1Videos() {
     // Pastikan video dalam kondisi muted dan reset hanya jika currentTime > 0
     videos.part1.forEach(v => {
         if (!v) return;
+        v.crossOrigin = 'anonymous';
         v.muted = true;
+        v.playsInline = true;
+        v.setAttribute('playsinline', '');
+        v.setAttribute('webkit-playsinline', '');
         if (v.currentTime > 0) {
             v.pause();
             v.currentTime = 0;
@@ -56,10 +60,13 @@ async function startPart1Videos() {
 
     const playPromises = videos.part1.map(v => {
         if (!v) return Promise.resolve();
+        v.crossOrigin = 'anonymous';
         v.muted = true;
+        v.playsInline = true;
         return v.play().catch(e => console.error('❌ [Part 1] Video play error:', e));
     });
-    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 600))]);
+    // Timeout toleran agar video lambat di HP tidak menggantung transisi
+    await Promise.race([Promise.all(playPromises), new Promise(r => setTimeout(r, 1200))]);
     
     // Perbarui GPU texture binding
     if (dom.containerPart1) {
@@ -98,11 +105,16 @@ async function startPart1Videos() {
             if (p !== undefined) {
                 p.catch((err) => {
                     console.warn('⚠️ [Part 1] Audio play deferred:', err);
+                    if (dom.statusBar) dom.statusBar.textContent = 'Ketuk layar jika suara/video belum muncul';
                     const resumeAudio = () => {
                         if (state.currentPart === 1 && !state.part1Finished) {
                             dom.soundV1.muted = false;
                             dom.soundV1.volume = 1.0;
                             dom.soundV1.play().catch(() => {});
+                            videos.part1.forEach(v => {
+                                if (v && v.paused) v.play().catch(() => {});
+                            });
+                            if (dom.statusBar) dom.statusBar.textContent = 'Part 1 diputar';
                         }
                         window.removeEventListener('click', resumeAudio, true);
                         window.removeEventListener('touchend', resumeAudio, true);
@@ -147,6 +159,9 @@ async function startPart1Videos() {
         dom.statusBar.textContent = 'Tap untuk ulang, atau scan Marker 2';
         dom.statusBar.classList.remove('tracking');
         dom.statusBar.classList.add('finished');
+
+        // Picu preloading progressive untuk Part 2
+        if (window.__preloadNextPart) window.__preloadNextPart(2);
     };
 
     if (dom.soundV1) {

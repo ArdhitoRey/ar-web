@@ -94,17 +94,37 @@ if (vidTeks8) vidTeks8.src = `${CDN_BASE}/compressed_ultra-videos/chapter1/part8
     }
 });
 
-// Prioritaskan loading Part 1 terlebih dahulu
+// Prioritaskan inisialisasi video Part 1 dengan atribut mobile browser
 videos.part1.forEach((v) => {
-    if (v) { v.load(); v.preload = "auto"; }
+    if (v) {
+        v.crossOrigin = "anonymous";
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute("playsinline", "");
+        v.setAttribute("webkit-playsinline", "");
+        v.preload = "auto";
+        v.load();
+    }
 });
 
-// Load sisa video part 2-8
-setTimeout(() => {
-    [...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8].forEach((v) => {
-        if (v) { v.load(); v.preload = "auto"; }
-    });
-}, 300);
+// Lazy-preload part berikutnya bertahap untuk mencegah saturasi koneksi & decoder di HP
+export function preloadNextPart(nextPartNumber) {
+    const nextVideos = videos[`part${nextPartNumber}`];
+    if (nextVideos) {
+        nextVideos.forEach(v => {
+            if (v && v.readyState < 2) {
+                v.crossOrigin = "anonymous";
+                v.muted = true;
+                v.playsInline = true;
+                v.setAttribute("playsinline", "");
+                v.setAttribute("webkit-playsinline", "");
+                v.preload = "auto";
+                v.load();
+            }
+        });
+    }
+}
+window.__preloadNextPart = preloadNextPart;
 
 // -----------------------------------------------------------------------------
 // Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
@@ -314,7 +334,6 @@ function executeStartChapter1() {
             const p = audio.play();
             if (p !== undefined) {
                 p.then(() => {
-                    // Hanya pause audio Part 2-8 yang belum dipakai, atau jika Part 1 belum jalan
                     if (audio !== dom.soundV1 || !state.isPlaying) {
                         audio.pause();
                         audio.currentTime = 0;
@@ -324,6 +343,25 @@ function executeStartChapter1() {
                 }).catch(() => {});
             }
         } catch (e) {}
+    });
+
+    // Buka kunci izin mobile decoder untuk seluruh video Part 1 pada user gesture (klik Mulai)
+    videos.part1.forEach((v) => {
+        if (!v) return;
+        v.crossOrigin = "anonymous";
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute('playsinline', '');
+        v.setAttribute('webkit-playsinline', '');
+        const p = v.play();
+        if (p !== undefined) {
+            p.then(() => {
+                if (!state.isPlaying) {
+                    v.pause();
+                    v.currentTime = 0;
+                }
+            }).catch(() => {});
+        }
     });
 
     // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan

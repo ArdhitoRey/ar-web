@@ -76,26 +76,37 @@ document.getElementById("vid-teks-part8").src = `${CDN_BASE}/compressed_ultra-vi
     s.preload = "auto";
 });
 
-// Prioritaskan loading video Part 1
+// Prioritaskan inisialisasi video Part 1 dengan atribut mobile browser
 videos.part1.forEach((v) => {
-    if (v) { v.load(); v.preload = "auto"; }
+    if (v) {
+        v.crossOrigin = "anonymous";
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute("playsinline", "");
+        v.setAttribute("webkit-playsinline", "");
+        v.preload = "auto";
+        v.load();
+    }
 });
 
-// Load sisa video part 2-8 dan kuis di background
-setTimeout(() => {
-    const backgroundVids = [
-        ...videos.part2, ...videos.part3, ...videos.part4, ...videos.part5, ...videos.part6, ...videos.part7, ...videos.part8,
-        document.getElementById('vid-quiz1-benar'), document.getElementById('vid-quiz1-salah'),
-        document.getElementById('vid-quiz2-benar'), document.getElementById('vid-quiz2-salah'),
-        document.getElementById('vid-quiz3-benar'), document.getElementById('vid-quiz3-salah'),
-        document.getElementById('vid-quiz4-benar'), document.getElementById('vid-quiz4-salah'),
-        document.getElementById('vid-quiz5-benar'), document.getElementById('vid-quiz5-salah'),
-        document.getElementById('vid-quiz-score')
-    ].filter(Boolean);
-    backgroundVids.forEach((v) => {
-        if (v) { v.load(); v.preload = "auto"; }
-    });
-}, 300);
+// Lazy-preload part berikutnya bertahap untuk mencegah saturasi koneksi & decoder di HP
+export function preloadNextPart(nextPartNumber) {
+    const nextVideos = videos[`part${nextPartNumber}`];
+    if (nextVideos) {
+        nextVideos.forEach(v => {
+            if (v && v.readyState < 2) {
+                v.crossOrigin = "anonymous";
+                v.muted = true;
+                v.playsInline = true;
+                v.setAttribute("playsinline", "");
+                v.setAttribute("webkit-playsinline", "");
+                v.preload = "auto";
+                v.load();
+            }
+        });
+    }
+}
+window.__preloadNextPart = preloadNextPart;
 
 // -----------------------------------------------------------------------------
 // Kamera Streaming Helper (Cegah Black Screen & Suara Memulai Duluan)
@@ -330,6 +341,25 @@ function executeStartChapter2() {
                 }).catch(() => {});
             }
         } catch (e) {}
+    });
+
+    // Buka kunci izin mobile decoder untuk seluruh video Part 1 pada user gesture (klik Mulai)
+    videos.part1.forEach((v) => {
+        if (!v) return;
+        v.crossOrigin = "anonymous";
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute('playsinline', '');
+        v.setAttribute('webkit-playsinline', '');
+        const p = v.play();
+        if (p !== undefined) {
+            p.then(() => {
+                if (!state.isPlaying) {
+                    v.pause();
+                    v.currentTime = 0;
+                }
+            }).catch(() => {});
+        }
     });
 
     // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan
