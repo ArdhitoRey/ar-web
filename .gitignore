@@ -7,3 +7,7 @@ Thumbs.db
 node_modules/
 __pycache__/
 *.bak
+
+# Media assets hosted on Supabase Storage CDN
+compressed_ultra-videos/
+sounds/
