@@ -299,6 +299,32 @@ function executeStartChapter1() {
         }
     } catch (e) {}
 
+    // Buka kunci izin mobile browser untuk SEMUA narasi (Part 1 sampai Part 8)
+    // Dilakukan secara senyap (volume 0 & muted) di dalam event gesture klik "Mulai"
+    const allSounds = [
+        dom.soundV1, dom.soundV2, dom.soundV3, dom.soundV4,
+        dom.soundV5, dom.soundV6, dom.soundV7, dom.soundV8
+    ].filter(Boolean);
+
+    allSounds.forEach((audio) => {
+        try {
+            audio.muted = true;
+            audio.volume = 0;
+            const p = audio.play();
+            if (p !== undefined) {
+                p.then(() => {
+                    // Hanya pause audio Part 2-8 yang belum dipakai, atau jika Part 1 belum jalan
+                    if (audio !== dom.soundV1 || !state.isPlaying) {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }
+                    audio.muted = false;
+                    audio.volume = 1.0;
+                }).catch(() => {});
+            }
+        } catch (e) {}
+    });
+
     // Jika Marker 1 memang sudah terdeteksi nyata oleh kamera sebelum/saat tombol Mulai ditekan
     const isMarker1Detected = (state.pendingPart === 1) || (state.isTargetInView && state.isTargetInView[1]) || (dom.target1 && dom.target1.object3D && dom.target1.object3D.visible);
 
@@ -328,9 +354,12 @@ function executeStartChapter1() {
 
 // 4. START BUTTON (LANGSUNG BUKA KAMERA TANPA DELAY)
 if (dom.startButton) {
-    dom.startButton.addEventListener("click", () => {
+    const handleStartChapter1 = () => {
+        if (state.hasStarted) return;
         executeStartChapter1();
-    });
+    };
+    dom.startButton.addEventListener("click", handleStartChapter1);
+    dom.startButton.addEventListener("touchstart", handleStartChapter1, { passive: true });
 }
 
 // 5. GLOBAL CONTROL LOGIC
