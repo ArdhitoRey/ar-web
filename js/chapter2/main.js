@@ -65,6 +65,7 @@ document.getElementById("vid-orang-part7-v1").src = `./compressed_ultra-videos/c
 
 // Part 8
 document.getElementById("vid-kolam-part8").src = `./compressed_ultra-videos/chapter2/part8/kolam.mp4?t=${cacheBuster}`;
+document.getElementById("vid-anak-kecil-part8").src = `./compressed_ultra-videos/chapter2/part8/anakkecil.mp4?t=${cacheBuster}`;
 document.getElementById("vid-mascot-part8").src = `./compressed_ultra-videos/chapter2/part8/mascot.mp4?t=${cacheBuster}`;
 document.getElementById("vid-teks-part8").src = `./compressed_ultra-videos/chapter2/part8/teks-part8.mp4?t=${cacheBuster}`;
 

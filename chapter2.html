@@ -287,8 +287,8 @@
                 <!-- Urutan layer Part 8: Kolam -> Anak Kecil -> Mascot -> teks-part8 -->
                 <a-video id="video-kolam-part8" src="#vid-kolam-part8" position="0 0 0.10" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-kolam-part8; transparent: true; side: double; depthWrite: false"></a-video>
-                <!-- Placeholder untuk Video Anak Kecil (Menyusul) -->
-                <a-entity id="video-anak-kecil-part8" position="0 0 0.15"></a-entity>
+                <a-video id="video-anak-kecil-part8" src="#vid-anak-kecil-part8" position="0 0 0.15" height="1" width="1"
+                    material="shader: chromakey-magenta; src: #vid-anak-kecil-part8; transparent: true; side: double; depthWrite: false"></a-video>
                 <a-video id="video-mascot-part8" src="#vid-mascot-part8" position="0 0 0.20" height="1" width="1"
                     material="shader: chromakey-advanced; src: #vid-mascot-part8; transparent: true; side: double; depthWrite: false"></a-video>
                 <a-video id="video-teks-part8" src="#vid-teks-part8" position="0 0 0.25" height="1" width="1"
@@ -490,6 +490,8 @@
             <!-- Part 8 -->
             <img id="img-part8-play-btn" src="./addon-image/chapter2/play-button-crop.png" crossorigin="anonymous" />
             <video id="vid-kolam-part8" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline
+                muted></video>
+            <video id="vid-anak-kecil-part8" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline
                 muted></video>
             <video id="vid-mascot-part8" preload="auto" crossorigin="anonymous" playsinline webkit-playsinline
                 muted></video>

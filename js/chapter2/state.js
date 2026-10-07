@@ -100,6 +100,7 @@ export const videos = {
     ],
     part8: [
         document.getElementById('vid-kolam-part8'),
+        document.getElementById('vid-anak-kecil-part8'),
         document.getElementById('vid-mascot-part8'),
         document.getElementById('vid-teks-part8')
     ].filter(Boolean)
